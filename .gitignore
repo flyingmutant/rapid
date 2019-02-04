@@ -1,0 +1,12 @@
+/.idea/
+/.vscode/
+*.swp
+
+/rapid.test
+/rapid.test.exe
+/cpu.prof
+/mem.prof
+/profile*
+
+/doc.html
+/vis-*.html

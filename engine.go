@@ -1,0 +1,431 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+package rapid
+
+import (
+	"errors"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"reflect"
+	"runtime"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+)
+
+const (
+	small             = 5
+	invalidChecksMult = 10
+	exampleMaxTries   = 1000
+
+	tracebackLen  = 32
+	tracebackStop = "github.com/flyingmutant/rapid.checkOnce"
+)
+
+var (
+	checks   = flag.Int("rapid.checks", 100, "rapid: number of checks to perform")
+	steps    = flag.Int("rapid.steps", 100, "rapid: number of state machine steps to perform")
+	rapidLog = flag.Bool("rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
+	verbose  = flag.Bool("rapid.v", false, "rapid: verbose output")
+	debug    = flag.Bool("rapid.debug", false, "rapid: debugging output")
+	debugvis = flag.Bool("rapid.debugvis", false, "rapid: debugging visualization")
+
+	errCantGenDueToFilter = errors.New("generation failed due to Filter() or Assume() conditions being too strong")
+
+	tPtrType         = reflect.TypeOf((*T)(nil))
+	emptyStructType  = reflect.TypeOf(struct{}{})
+	emptyStructValue = reflect.ValueOf(struct{}{})
+)
+
+func assert(ok bool) {
+	if !ok {
+		panic("assertion failed")
+	}
+}
+
+func assertf(ok bool, format string, args ...interface{}) {
+	if !ok {
+		panic(fmt.Sprintf(format, args...))
+	}
+}
+
+func assertValidRange(min int, max int) {
+	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%v, %v]", min, max))
+}
+
+func Assume(cond bool) {
+	if !cond {
+		panic(invalidData("failed to satisfy assumption"))
+	}
+}
+
+func Bind(prop interface{}, args ...*Generator) func(*T) {
+	if len(args) == 0 {
+		fn, ok := prop.(func(*T))
+		assertf(ok, "prop should have type func(*T), not %v", reflect.TypeOf(prop))
+		return fn
+	}
+
+	var (
+		args_ = Tuple(args...)
+		pv    = reflect.ValueOf(prop)
+		pt    = reflect.TypeOf(prop)
+	)
+
+	assertCallable(pt, args_.type_(), "prop", 1)
+	assertf(pt.In(0) == tPtrType, "prop should have first parameter of type %v, not %v", tPtrType, pt.In(0))
+	assertf(pt.NumOut() == 0, "prop should have no output parameters (got %v)", pt.NumOut())
+
+	return func(t *T) {
+		t.Helper()
+
+		v := reflect.ValueOf(t.Draw(args_, "args"))
+
+		n := v.NumField()
+		in := make([]reflect.Value, n+1)
+		in[0] = reflect.ValueOf(t)
+
+		for i := 0; i < n; i++ {
+			in[i+1] = v.Field(i)
+		}
+
+		pv.Call(in)
+	}
+}
+
+func BindIf(precondition bool, prop interface{}, args ...*Generator) func(*T) {
+	if !precondition {
+		return nil
+	}
+
+	return Bind(prop, args...)
+}
+
+func Check(t *testing.T, prop interface{}, args ...*Generator) {
+	t.Helper()
+	checkTB(t, Bind(prop, args...))
+}
+
+func MakeCheck(prop interface{}, args ...*Generator) func(*testing.T) {
+	return func(t *testing.T) {
+		t.Helper()
+		checkTB(t, Bind(prop, args...))
+	}
+}
+
+func checkTB(tb limitedTB, prop func(*T)) {
+	tb.Helper()
+
+	start := time.Now()
+	valid, invalid, buf, err1, err2 := doCheck(tb, prop)
+	dt := time.Since(start)
+
+	if err1 == nil && err2 == nil {
+		if valid == *checks {
+			tb.Logf("OK, passed %v tests (%v)", valid, dt)
+		} else {
+			tb.Errorf("only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
+		}
+	} else {
+		if traceback(err1) == traceback(err2) {
+			tb.Errorf("failed after %v tests: %v\nTraceback:\n%v\nDetails:", valid, err2, traceback(err2))
+		} else {
+			tb.Errorf("flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nDetails:", err2, traceback(err2), err1, traceback(err1))
+		}
+
+		reportFailure(tb, buf, prop)
+	}
+
+	if tb.Failed() {
+		tb.FailNow() // do not try to run any checks after the first failed one
+	}
+}
+
+func doCheck(tb limitedTB, prop func(*T)) (int, int, []uint64, *panicError, *panicError) {
+	tb.Helper()
+
+	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
+
+	seed, valid, invalid, err1 := findBug(tb, prop)
+	if err1 == nil {
+		return valid, invalid, nil, nil, nil
+	}
+
+	s := newRandomBitStream(seed, true)
+	t := newT(tb, s, *verbose)
+	t.Logf("[rapid] trying to reproduce the failure")
+	err2 := checkOnce(t, prop)
+	if !sameError(err1, err2) {
+		return valid, invalid, s.data, err1, err2
+	}
+
+	t.Logf("[rapid] trying to minimize the failing test case")
+	buf, err3 := shrink(tb, s.recordedBits, err2, prop)
+
+	return valid, invalid, buf, err2, err3
+}
+
+func findBug(tb limitedTB, prop func(*T)) (uint64, int, int, *panicError) {
+	tb.Helper()
+
+	valid := 0
+	invalid := 0
+	for valid < *checks && invalid < *checks*invalidChecksMult {
+		start := time.Now()
+		seed := randomSeed()
+		t := newT(tb, newRandomBitStream(seed, false), *verbose)
+		t.Logf("[rapid] test #%v start (seed %v)", valid+invalid+1, seed)
+		err := checkOnce(t, prop)
+		dt := time.Since(start)
+		if err == nil {
+			t.Logf("[rapid] test #%v OK (%v)", valid+invalid+1, dt)
+			valid++
+		} else if err.isInvalidData() {
+			t.Logf("[rapid] test #%v invalid (%v)", valid+invalid+1, dt)
+			invalid++
+		} else {
+			t.Logf("[rapid] test #%v failed: %v", valid+invalid+1, err)
+			return seed, valid, invalid, err
+		}
+	}
+
+	return 0, valid, invalid, nil
+}
+
+func checkOnce(t *T, prop func(*T)) (err *panicError) {
+	t.Helper()
+
+	defer func() { err = panicToError(recover(), 3) }()
+
+	prop(t)
+
+	if t.Failed() {
+		panic(t.failed)
+	}
+
+	return nil
+}
+
+func reportFailure(tb limitedTB, buf []uint64, prop func(*T)) {
+	tb.Helper()
+	assert(tb.Failed())
+	_ = checkOnce(newT(tb, newBufBitStream(buf, false), *verbose), prop)
+}
+
+type invalidData string
+
+type panicError struct {
+	data    interface{}
+	callers []uintptr
+}
+
+func panicToError(p interface{}, skip int) *panicError {
+	if p == nil {
+		return nil
+	}
+
+	callers := make([]uintptr, tracebackLen)
+	callers = callers[:runtime.Callers(skip, callers)]
+
+	return &panicError{
+		data:    p,
+		callers: callers,
+	}
+}
+
+func (err *panicError) Error() string {
+	if msg, ok := err.data.(invalidData); ok {
+		return string(msg)
+	}
+
+	return fmt.Sprintf("panic: %v", err.data)
+}
+
+func (err *panicError) isInvalidData() bool {
+	_, ok := err.data.(invalidData)
+	return ok
+}
+
+func (err *panicError) traceback() string {
+	frames := runtime.CallersFrames(err.callers)
+	skipRuntime := true
+	var lines []string
+
+	f, more := runtime.Frame{}, true
+	for more && f.Function != tracebackStop {
+		f, more = frames.Next()
+
+		isRuntime := strings.HasPrefix(f.Function, "runtime.")
+		if !isRuntime {
+			skipRuntime = false
+		}
+		if !isRuntime || !skipRuntime {
+			lines = append(lines, fmt.Sprintf("    %v:%v in %v", f.File, f.Line, f.Function))
+		}
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func sameError(err1 *panicError, err2 *panicError) bool {
+	return errorString(err1) == errorString(err2) && traceback(err1) == traceback(err2)
+}
+
+func errorString(err *panicError) string {
+	if err == nil {
+		return ""
+	}
+
+	return err.Error()
+}
+
+func traceback(err *panicError) string {
+	if err == nil {
+		return "    <no error>"
+	}
+
+	return err.traceback()
+}
+
+type limitedTB interface {
+	Helper()
+	Name() string
+	Logf(format string, args ...interface{})
+	Log(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Error(args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Fatal(args ...interface{})
+	FailNow()
+	Fail()
+	Failed() bool
+}
+
+type T struct {
+	limitedTB // unnamed to force re-export of (*T).Helper()
+	log       bool
+	rapidLog  *log.Logger
+	data      *bitStreamData
+	draws     int
+	refDraws  []Value
+	mu        sync.RWMutex
+	failed    string
+}
+
+func newT(tb limitedTB, s bitStream, verbose bool, refDraws ...Value) *T {
+	t := &T{
+		limitedTB: tb,
+		log:       verbose || tb.Failed(),
+		data:      &bitStreamData{s},
+		refDraws:  refDraws,
+	}
+
+	if *rapidLog {
+		t.rapidLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", tb.Name()), 0)
+	}
+
+	return t
+}
+
+func (t *T) Draw(g *Generator, label string, unpack ...interface{}) Value {
+	v := t.data.Draw(g, label, unpack...)
+
+	if len(t.refDraws) > 0 {
+		ref := t.refDraws[t.draws]
+		if !reflect.DeepEqual(v, ref) {
+			t.limitedTB.Fatalf("draw %v differs: %v vs expected %v", t.draws, prettyValue{v}, prettyValue{ref})
+		}
+	}
+
+	if t.log || t.rapidLog != nil {
+		if label == "" {
+			label = fmt.Sprintf("#%v", t.draws)
+		}
+
+		t.Helper()
+		t.Logf("draw %v: %v", label, prettyValue{v})
+	}
+
+	t.draws++
+
+	return v
+}
+
+func (t *T) Logf(format string, args ...interface{}) {
+	if t.rapidLog != nil {
+		t.rapidLog.Printf(format, args...)
+	} else if t.log {
+		t.Helper()
+		t.limitedTB.Logf(format, args...)
+	}
+}
+
+func (t *T) Log(args ...interface{}) {
+	if t.rapidLog != nil {
+		t.rapidLog.Print(args...)
+	} else if t.log {
+		t.Helper()
+		t.limitedTB.Log(args...)
+	}
+}
+
+func (t *T) Errorf(format string, args ...interface{}) {
+	t.Helper()
+	t.Logf(format, args...)
+	t.fail(false, "[error] ", format, args...)
+}
+
+func (t *T) Error(args ...interface{}) {
+	t.Helper()
+	t.Log(args...)
+	t.fail(false, "[error] ", "", args...)
+}
+
+func (t *T) Fatalf(format string, args ...interface{}) {
+	t.Helper()
+	t.Logf(format, args...)
+	t.fail(true, "[fatal] ", format, args...)
+}
+
+func (t *T) Fatal(args ...interface{}) {
+	t.Helper()
+	t.Log(args...)
+	t.fail(true, "[fatal] ", "", args...)
+}
+
+func (t *T) FailNow() {
+	t.fail(true, "", "(*T).FailNow() called")
+}
+
+func (t *T) Fail() {
+	t.fail(false, "", "(*T).Fail() called")
+}
+
+func (t *T) Failed() bool {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	return t.failed != ""
+}
+
+func (t *T) fail(now bool, prefix string, format string, args ...interface{}) {
+	var msg string
+	if format != "" {
+		msg = fmt.Sprintf(prefix+format, args...)
+	} else {
+		msg = fmt.Sprint(append([]interface{}{prefix}, args...)...)
+	}
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.failed = msg
+	if now {
+		panic(msg)
+	}
+}
