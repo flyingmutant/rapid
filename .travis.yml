@@ -12,5 +12,8 @@ before_install:
   - go get -v golang.org/x/tools/cmd/goimports
 
 script:
+  - which goimports
+  - which goimports.exe
   - test -z "$(goimports -l .)"
+  - test -z "$(goimports.exe -l .)"
   - go test -race
