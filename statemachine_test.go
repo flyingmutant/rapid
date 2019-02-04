@@ -177,6 +177,10 @@ func (m *queueMachine) Check(t *T) {
 }
 
 func TestStateMachine_Queue(t *testing.T) {
+	if !*flaky {
+		t.Skip() // TODO: try to make this test non-flaky
+	}
+
 	checkShrink(t, StateMachine(&queueMachine{}),
 		"Init",
 		pack(1),
