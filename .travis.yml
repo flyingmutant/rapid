@@ -13,4 +13,4 @@ before_install:
 
 script:
   - test -z "$(goimports -l .)"
-  - go test -race -count=10
+  - go test -race
