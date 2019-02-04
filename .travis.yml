@@ -7,3 +7,10 @@ os:
 
 go:
   - 1.11.x
+
+before_install:
+  - go get -v golang.org/x/tools/cmd/goimports
+
+script:
+  - test -z "$(goimports -l .)"
+  - go test -v -count=10
