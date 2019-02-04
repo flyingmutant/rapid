@@ -1,4 +1,4 @@
-# Rapid
+# Rapid [![Build Status](https://travis-ci.org/flyingmutant/rapid.svg?branch=master)](https://travis-ci.org/flyingmutant/rapid)
 
 Rapid is a Go library for property-based testing.
 
