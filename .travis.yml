@@ -10,11 +10,10 @@ go:
 
 before_install:
   - go get -v golang.org/x/tools/cmd/goimports
+  - git config core.autocrlf=input
+  - git add --renormalize .
 
 script:
-  - which goimports
-  - which goimports.exe
-  - goimports.exe -l -v .
   - goimports.exe -d .
   - test -z "$(true)"
   - test -z "$(goimports -l .)"
