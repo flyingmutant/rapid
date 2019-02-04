@@ -14,6 +14,9 @@ before_install:
 script:
   - which goimports
   - which goimports.exe
+  - goimports.exe -l .
+  - test -z "$(true)"
   - test -z "$(goimports -l .)"
+  - if ["$(goimports -l .)" = ""] ; then exit 0 ; else exit 1 ; fi
   - test -z "$(goimports.exe -l .)"
   - go test -race
