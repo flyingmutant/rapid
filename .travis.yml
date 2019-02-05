@@ -10,13 +10,7 @@ go:
 
 before_install:
   - go get -v golang.org/x/tools/cmd/goimports
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then git config core.autocrlf false   ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then git add --renormalize --verbose .; fi
 
 script:
-  - goimports.exe -d .
-  - test -z "$(true)"
-  - test -z "$(goimports -l .)"
-  - if ["$(goimports -l .)" = ""] ; then exit 0 ; else exit 1 ; fi
-  - test -z "$(goimports.exe -l .)"
+  - test -z "$(goimports -d .)"
   - go test -race
