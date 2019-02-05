@@ -3,6 +3,7 @@
 ## Now
 
 - doc.go paragraph about defining properties
+- fix examples at godoc.org
 
 ## Big things
 
