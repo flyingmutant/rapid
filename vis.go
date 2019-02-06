@@ -21,14 +21,14 @@ var (
 	visBitSetColor   = color.Black
 	visBitUnsetColor = color.White
 
-	visTmpl = template.Must(template.New("rapid-vis").Parse(visHtml))
+	visTmpl = template.Must(template.New("rapid-vis").Parse(visHTML))
 )
 
 type visTmplData struct {
 	Title     string
 	Images    [][]*visTmplImage
-	VisCss    template.CSS
-	RebootCss template.CSS
+	VisCSS    template.CSS
+	RebootCSS template.CSS
 }
 
 type visGroupInfo struct {
@@ -47,11 +47,11 @@ type visTmplImage struct {
 	GroupEnds   []visGroupInfo
 }
 
-func visWriteHtml(w io.Writer, title string, recData []recordedBits) error {
+func visWriteHTML(w io.Writer, title string, recData []recordedBits) error {
 	d := &visTmplData{
 		Title:     fmt.Sprintf("%v (%v)", title, time.Now().Format(time.RFC1123)),
-		VisCss:    template.CSS(visCss),
-		RebootCss: template.CSS(visRebootCss),
+		VisCSS:    template.CSS(visCSS),
+		RebootCSS: template.CSS(visRebootCSS),
 	}
 
 	labelClasses := map[string]string{}
@@ -169,7 +169,7 @@ func (img *visUint64Image) toTmplImage() (*visTmplImage, error) {
 	}, nil
 }
 
-const visHtml = `<!doctype html>
+const visHTML = `<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -177,10 +177,10 @@ const visHtml = `<!doctype html>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>[rapid] {{.Title}}</title>
 		<style>
-{{- .RebootCss }}
+{{- .RebootCSS }}
 		</style>
 		<style>
-{{- .VisCss }}
+{{- .VisCSS }}
 		</style>
 	</head>
 	<body>
@@ -197,7 +197,7 @@ const visHtml = `<!doctype html>
 	</body>
 </html>`
 
-const visCss = `
+const visCSS = `
 body {
 	margin: 1rem;
 }
@@ -322,7 +322,7 @@ body {
 }
 `
 
-const visRebootCss = `
+const visRebootCSS = `
 /*!
  * Bootstrap Reboot v4.1.3 (https://getbootstrap.com/)
  * Copyright 2011-2018 The Bootstrap Authors

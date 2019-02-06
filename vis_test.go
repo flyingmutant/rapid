@@ -63,8 +63,8 @@ func TestDataVis(t *testing.T) {
 		}
 	}
 
-	err = visWriteHtml(f, "test", rd)
+	err = visWriteHTML(f, "test", rd)
 	if err != nil {
-		t.Errorf("visWriteHtml error: %v", err)
+		t.Errorf("visWriteHTML error: %v", err)
 	}
 }

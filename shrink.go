@@ -33,7 +33,7 @@ func shrink(tb limitedTB, rec recordedBits, err *panicError, prop func(*T)) ([]u
 		} else {
 			defer f.Close()
 
-			if err = visWriteHtml(f, tb.Name(), s.visBits); err != nil {
+			if err = visWriteHTML(f, tb.Name(), s.visBits); err != nil {
 				tb.Logf("failed to write debugvis file %v: %v", name, err)
 			}
 		}
