@@ -40,7 +40,7 @@ func ParseDate(s string) (int, int, int, error) {
 	return y, m, d, nil
 }
 
-// Prefix Example_parseDate with Test to make an actual (failing) test.
+// Rename to TestParseDate to make an actual (failing) test.
 func Example_parseDate(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T, y int, m int, d int) {
 		s := fmt.Sprintf("%04d-%02d-%02d", y, m, d)

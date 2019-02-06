@@ -87,7 +87,7 @@ func (m *queueMachine) put(t *rapid.T, i int) {
 	m.state = append(m.state, i)
 }
 
-// Prefix Example_queue with Test to make an actual (failing) test.
+// Rename to TestQueue to make an actual (failing) test.
 func Example_queue(t *testing.T) {
 	rapid.Check(t, rapid.StateMachine(&queueMachine{}))
 }
