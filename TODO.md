@@ -3,6 +3,10 @@
 ## Now
 
 - doc.go paragraph about defining properties
+- better docs
+  - document every exported symbol
+  - more examples
+  - a tutorial?
 
 ## Big things
 
@@ -38,7 +42,6 @@
 - subset-of-slice
 - permutation-of-slice
 - runes with rune/range blacklist
-- arbitrary(type)
 - recursive (base + extend)
 - arbitrary(type)
 
