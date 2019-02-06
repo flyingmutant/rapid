@@ -58,12 +58,24 @@ func assertValidRange(min int, max int) {
 	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%v, %v]", min, max))
 }
 
+// Assume marks the current test case as invalid if cond is false.
+// If assumption is too hard to satisfy, rapid will mark the test as failing
+// due to inability to generate enough valid test cases.
+//
+// Prefer Filter to Assume, and prefer generators that always produce
+// valid test cases to Filter.
 func Assume(cond bool) {
 	if !cond {
 		panic(invalidData("failed to satisfy assumption"))
 	}
 }
 
+// Bind is a convenience function for writing state machine transition rules.
+//
+// Given prop with signature func(*T, Arg1,  ..., ArgN) and N generators
+// producing values of types Arg1, ...,  ArgN, Bind returns a function
+// of type func(*T) which calls prop with the values drawn from the
+// generators as arguments 1...N.
 func Bind(prop interface{}, args ...*Generator) func(*T) {
 	if len(args) == 0 {
 		fn, ok := prop.(func(*T))
@@ -98,6 +110,11 @@ func Bind(prop interface{}, args ...*Generator) func(*T) {
 	}
 }
 
+// BindIf is a convenience function for writing conditional state machine
+// transition rules.
+//
+// BindIf behaves exactly like Bind, except that it returns nil if
+// the precondition is false.
 func BindIf(precondition bool, prop interface{}, args ...*Generator) func(*T) {
 	if !precondition {
 		return nil
@@ -106,11 +123,17 @@ func BindIf(precondition bool, prop interface{}, args ...*Generator) func(*T) {
 	return Bind(prop, args...)
 }
 
+// Check fails the current test if rapid can find a test case which falsifies
+// the property created by Bind(prop, args...). Property is falsified in case
+// of a panic or a call to (*T).Fatalf, (*T).Fatal, (*T).Errorf, (*T).Error,
+// (*T).FailNow or (*T).Fail.
 func Check(t *testing.T, prop interface{}, args ...*Generator) {
 	t.Helper()
 	checkTB(t, Bind(prop, args...))
 }
 
+// MakeCheck is a convenience function for defining subtests suitable for
+// (*testing.T).Run.
 func MakeCheck(prop interface{}, args ...*Generator) func(*testing.T) {
 	return func(t *testing.T) {
 		t.Helper()

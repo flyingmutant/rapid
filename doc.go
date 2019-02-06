@@ -7,6 +7,10 @@ Package rapid implements utilities for property-based testing.
 
 Rapid checks that properties you define hold for a large number
 of automatically generated test cases. If a failure is found, rapid
-automatically minimizes the failing test case before presenting it.
+fails the current test and presents an automatically minimized
+version of the failing test case.
+
+Please note that rapid is alpha software; the documentation
+is very incomplete, unclear and probably full of grammatical errors.
 */
 package rapid

@@ -18,6 +18,9 @@ const (
 	cleanupMethodName = "Cleanup"
 )
 
+// StateMachine synthesizes a property to be checked with Check or MakeCheck
+// from the type of its argument, which must be a pointer to a state machine
+// definition type.
 func StateMachine(i interface{}) func(*T) {
 	typ := reflect.TypeOf(i)
 
