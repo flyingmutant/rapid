@@ -2,6 +2,11 @@
 
 ## Now
 
+- reddit feedback:
+  - try to hide the fact that panics are used internally a bit
+  - show the intended output of the examples, so the people know that shrinking works indeed
+  - correctly report state machines with no possible actions
+  - docs!
 - doc.go paragraph about defining properties
 - better docs
   - document every exported symbol
