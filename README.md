@@ -19,7 +19,7 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 
 - Idiomatic Go API
   - Designed to be used together with `go test` and the `testing` package
-  - Works great with
+  - Works great with libraries like
     [testify/require](https://godoc.org/github.com/stretchr/testify/require) and
     [testify/assert](https://godoc.org/github.com/stretchr/testify/assert)
 - Automatic minimization of failing test cases
