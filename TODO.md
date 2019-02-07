@@ -7,6 +7,7 @@
   - show the intended output of the examples, so the people know that shrinking works indeed
   - correctly report state machines with no possible actions
   - docs!
+  - HTTP API testing example
 - doc.go paragraph about defining properties
 - better docs
   - document every exported symbol
