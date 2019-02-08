@@ -2,7 +2,6 @@
 
 ## Now
 
-- CONTRIBUTING.md
 - reddit feedback:
   - try to hide the fact that panics are used internally a bit
   - show the intended output of the examples, so the people know that shrinking works indeed
