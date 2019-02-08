@@ -50,7 +50,7 @@ func (g *Generator) value(s bitStream) Value {
 }
 
 func (g *Generator) Example(seed ...uint64) (Value, int, error) {
-	s := randomSeed()
+	s := prngSeed()
 	if len(seed) > 0 {
 		s = seed[0]
 	}

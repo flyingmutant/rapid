@@ -74,14 +74,14 @@ func TestRandomBitSteam_DrawBits(t *testing.T) {
 	}
 }
 
-func BenchmarkRandomSeed(b *testing.B) {
+func BenchmarkPRNGSeed(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		randomSeed()
+		prngSeed()
 	}
 }
 
 func BenchmarkRandomBitStream_DrawBits1(b *testing.B) {
-	s := newRandomBitStream(randomSeed(), false)
+	s := newRandomBitStream(prngSeed(), false)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -90,7 +90,7 @@ func BenchmarkRandomBitStream_DrawBits1(b *testing.B) {
 }
 
 func BenchmarkRandomBitStream_DrawBits64(b *testing.B) {
-	s := newRandomBitStream(randomSeed(), false)
+	s := newRandomBitStream(prngSeed(), false)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {

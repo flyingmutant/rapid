@@ -36,7 +36,11 @@ func (d *bitStreamData) Draw(g *Generator, label string, unpack ...interface{}) 
 	return v
 }
 
-func randomSeed() uint64 {
+func prngSeed() uint64 {
+	if *startSeed != 0 {
+		return *startSeed
+	}
+
 	return uint64(time.Now().UnixNano()) + uint64(atomic.AddUint32(&seedCounter, 1))
 }
 

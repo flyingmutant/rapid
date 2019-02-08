@@ -20,7 +20,7 @@ var flaky = flag.Bool("flaky", false, "run flaky tests")
 func createRandomBitStream(t *testing.T) bitStream {
 	t.Helper()
 
-	seed := randomSeed()
+	seed := prngSeed()
 	t.Logf("random seed %v", seed)
 
 	return newRandomBitStream(seed, false)
@@ -55,7 +55,7 @@ func TestGenGeom(t *testing.T) {
 }
 
 func TestUintsExamplesHist(t *testing.T) {
-	s := newRandomBitStream(randomSeed(), false)
+	s := newRandomBitStream(prngSeed(), false)
 
 	for _, n := range []int{2, 3, 4, 5, 6, 8, 16, 32, 64} {
 		t.Run(strconv.Itoa(n), func(t *testing.T) {
