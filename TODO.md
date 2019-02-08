@@ -20,7 +20,6 @@
 
 ## Misc
 
-- make sure our repeat allows shrinker to remove *any* element (no matter if it was a p=1 or p=0.75 one)
 - do not play with filter games for the state machine, just find all valid actions
 - our functions panic too early which leads to confusing? `go test` output
 - extract filter functionality so that it is easy to mix in generators without the baggage like String()
