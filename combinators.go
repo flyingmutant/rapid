@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const filterLabel = "filter"
+const tryLabel = "try"
 
 var (
 	boolType = reflect.TypeOf(false)
@@ -96,8 +96,7 @@ func (g *tupleGen) value(s bitStream) Value {
 }
 
 func filter(g *Generator, fn interface{}, tries int, must bool) *Generator {
-	f := reflect.ValueOf(fn)
-	t := f.Type()
+	t := reflect.TypeOf(fn)
 
 	assertCallable(t, g.type_(), "fn", 0)
 	assertf(t.NumOut() == 1, "fn should have 1 output parameter, not %v", t.NumOut())
@@ -105,7 +104,7 @@ func filter(g *Generator, fn interface{}, tries int, must bool) *Generator {
 
 	return newGenerator(&filteredGen{
 		g:     g,
-		fn:    f,
+		fn:    fn,
 		tries: tries,
 		must:  must,
 	})
@@ -113,7 +112,7 @@ func filter(g *Generator, fn interface{}, tries int, must bool) *Generator {
 
 type filteredGen struct {
 	g     *Generator
-	fn    reflect.Value
+	fn    interface{}
 	tries int
 	must  bool
 }
@@ -127,20 +126,26 @@ func (g *filteredGen) type_() reflect.Type {
 }
 
 func (g *filteredGen) value(s bitStream) Value {
-	for tries := 0; tries < g.tries; tries++ {
-		i := s.beginGroup(filterLabel, false)
-		v := g.g.value(s)
-		ok := call(g.fn, reflect.ValueOf(v), nil).(bool)
-		s.endGroup(i, !g.must && !ok)
+	return satisfy(g.fn, g.g.value, s, g.tries, g.must)
+}
+
+func satisfy(filter interface{}, gen func(bitStream) Value, s bitStream, tries int, must bool) Value {
+	fn := reflect.ValueOf(filter)
+
+	for n := 0; n < tries; n++ {
+		i := s.beginGroup(tryLabel, false)
+		v := gen(s)
+		ok := call(fn, reflect.ValueOf(v), nil).(bool)
+		s.endGroup(i, !must && !ok)
 
 		if ok {
 			return v
 		}
 	}
 
-	msg := fmt.Sprintf("failed to satisfy filter in %v tries", g.tries)
+	msg := fmt.Sprintf("failed to satisfy filter in %v tries", tries)
 
-	if g.must {
+	if must {
 		panic(msg)
 	} else {
 		panic(invalidData(msg))

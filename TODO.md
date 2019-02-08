@@ -22,7 +22,6 @@
 
 - do not play with filter games for the state machine, just find all valid actions
 - our functions panic too early which leads to confusing? `go test` output
-- extract filter functionality so that it is easy to mix in generators without the baggage like String()
 - when generating numbers in range, try to bias based on the min number,
   just like we bias repeat based on the min number?
   - because min number defines the "magnitude" of the whole thing, kind of?

@@ -16,7 +16,7 @@ func TestPanicTraceback(t *testing.T) {
 	_, err := recoverValue(g, s)
 	tr := err.traceback()
 	lines := strings.Split(tr, "\n")
-	if !strings.HasSuffix(lines[0], "/rapid.(*filteredGen).value") {
+	if !strings.HasSuffix(lines[0], "/rapid.satisfy") {
 		t.Errorf("bad traceback from recoverValue():\n%v", tr)
 	}
 }

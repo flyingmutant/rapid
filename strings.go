@@ -299,17 +299,17 @@ func (g *regexpGen) type_() reflect.Type {
 
 func (g *regexpGen) value(s bitStream) Value {
 	if g.str {
-		b := &strings.Builder{}
-		g.build(b, g.syn, s)
-		v := b.String()
-		Assume(g.re.MatchString(v))
-		return v
+		return satisfy(g.re.MatchString, func(s bitStream) Value {
+			b := &strings.Builder{}
+			g.build(b, g.syn, s)
+			return b.String()
+		}, s, small, false)
 	} else {
-		b := &bytes.Buffer{}
-		g.build(b, g.syn, s)
-		v := b.Bytes()
-		Assume(g.re.Match(v))
-		return v
+		return satisfy(g.re.Match, func(s bitStream) Value {
+			b := &bytes.Buffer{}
+			g.build(b, g.syn, s)
+			return b.Bytes()
+		}, s, small, false)
 	}
 }
 
