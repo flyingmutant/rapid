@@ -298,19 +298,34 @@ func (g *regexpGen) type_() reflect.Type {
 }
 
 func (g *regexpGen) value(s bitStream) Value {
+	var (
+		gen    func(bitStream) Value
+		filter func(Value) bool
+	)
+
 	if g.str {
-		return satisfy(g.re.MatchString, func(s bitStream) Value {
+		gen = func(s bitStream) Value {
 			b := &strings.Builder{}
 			g.build(b, g.syn, s)
 			return b.String()
-		}, s, small, false)
+		}
+
+		filter = func(v Value) bool {
+			return g.re.MatchString(v.(string))
+		}
 	} else {
-		return satisfy(g.re.Match, func(s bitStream) Value {
+		gen = func(s bitStream) Value {
 			b := &bytes.Buffer{}
 			g.build(b, g.syn, s)
 			return b.Bytes()
-		}, s, small, false)
+		}
+
+		filter = func(v Value) bool {
+			return g.re.Match(v.([]byte))
+		}
 	}
+
+	return satisfy(filter, gen, s, small, false)
 }
 
 func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {

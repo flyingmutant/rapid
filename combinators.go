@@ -96,15 +96,18 @@ func (g *tupleGen) value(s bitStream) Value {
 }
 
 func filter(g *Generator, fn interface{}, tries int, must bool) *Generator {
-	t := reflect.TypeOf(fn)
+	f := reflect.ValueOf(fn)
+	t := f.Type()
 
 	assertCallable(t, g.type_(), "fn", 0)
 	assertf(t.NumOut() == 1, "fn should have 1 output parameter, not %v", t.NumOut())
 	assertf(t.Out(0) == boolType, "fn should return bool, not %v", t.Out(0))
 
 	return newGenerator(&filteredGen{
-		g:     g,
-		fn:    fn,
+		g: g,
+		fn: func(v Value) bool {
+			return call(f, reflect.ValueOf(v), nil).(bool)
+		},
 		tries: tries,
 		must:  must,
 	})
@@ -112,7 +115,7 @@ func filter(g *Generator, fn interface{}, tries int, must bool) *Generator {
 
 type filteredGen struct {
 	g     *Generator
-	fn    interface{}
+	fn    func(Value) bool
 	tries int
 	must  bool
 }
@@ -129,13 +132,11 @@ func (g *filteredGen) value(s bitStream) Value {
 	return satisfy(g.fn, g.g.value, s, g.tries, g.must)
 }
 
-func satisfy(filter interface{}, gen func(bitStream) Value, s bitStream, tries int, must bool) Value {
-	fn := reflect.ValueOf(filter)
-
+func satisfy(filter func(Value) bool, gen func(bitStream) Value, s bitStream, tries int, must bool) Value {
 	for n := 0; n < tries; n++ {
 		i := s.beginGroup(tryLabel, false)
 		v := gen(s)
-		ok := call(fn, reflect.ValueOf(v), nil).(bool)
+		ok := filter(v)
 		s.endGroup(i, !must && !ok)
 
 		if ok {
