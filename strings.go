@@ -185,22 +185,18 @@ func (g *stringGen) String() string {
 	if g.runeGen != nil && g.runeGen.String() == runesGenString {
 		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
 			return "Strings()"
-		} else {
-			return fmt.Sprintf("StringsN(minRunes=%v, maxRunes=%v, maxLen=%v)", g.minElems, g.maxElems, g.maxLen)
 		}
+		return fmt.Sprintf("StringsN(minRunes=%v, maxRunes=%v, maxLen=%v)", g.minElems, g.maxElems, g.maxLen)
 	} else if g.runeGen != nil {
 		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
 			return fmt.Sprintf("StringsOf(%v)", g.runeGen)
-		} else {
-			return fmt.Sprintf("StringsOfN(%v, minRunes=%v, maxRunes=%v, maxLen=%v)", g.runeGen, g.minElems, g.maxElems, g.maxLen)
 		}
-	} else {
-		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
-			return "StringsOfBytes()"
-		} else {
-			return fmt.Sprintf("StringsOfNBytes(minLen=%v, maxLen=%v)", g.minElems, g.maxElems)
-		}
+		return fmt.Sprintf("StringsOfN(%v, minRunes=%v, maxRunes=%v, maxLen=%v)", g.runeGen, g.minElems, g.maxElems, g.maxLen)
 	}
+	if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
+		return "StringsOfBytes()"
+	}
+	return fmt.Sprintf("StringsOfNBytes(minLen=%v, maxLen=%v)", g.minElems, g.maxElems)
 }
 
 func (g *stringGen) type_() reflect.Type {
