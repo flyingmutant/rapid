@@ -242,6 +242,7 @@ func reportFailure(tb limitedTB, buf []uint64, prop func(*T)) {
 }
 
 type invalidData string
+type stopTest string
 
 type testError struct {
 	data    interface{}
@@ -263,8 +264,12 @@ func panicToError(p interface{}, skip int) *testError {
 }
 
 func (err *testError) Error() string {
-	if msg, ok := err.data.(invalidData); ok {
+	if msg, ok := err.data.(stopTest); ok {
 		return string(msg)
+	}
+
+	if msg, ok := err.data.(invalidData); ok {
+		return fmt.Sprintf("invalid data: %v", msg)
 	}
 
 	return fmt.Sprintf("panic: %v", err.data)
@@ -338,7 +343,7 @@ type T struct {
 	draws     int
 	refDraws  []Value
 	mu        sync.RWMutex
-	failed    string
+	failed    stopTest
 }
 
 func newT(tb limitedTB, s bitStream, verbose bool, refDraws ...Value) *T {
@@ -448,8 +453,8 @@ func (t *T) fail(now bool, prefix string, format string, args ...interface{}) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.failed = msg
+	t.failed = stopTest(msg)
 	if now {
-		panic(msg)
+		panic(t.failed)
 	}
 }
