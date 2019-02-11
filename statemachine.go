@@ -16,6 +16,8 @@ const (
 	initMethodPrefix  = "Init"
 	checkMethodName   = "Check"
 	cleanupMethodName = "Cleanup"
+
+	noValidActionsMsg = "can't find a valid action"
 )
 
 // StateMachine synthesizes a property to be checked with Check or MakeCheck
@@ -97,7 +99,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	sm := &stateMachine{
 		inits:      inits,
 		actions:    actions,
-		actionKeys: filter(SampledFrom(actionKeys), func(key string) bool { return actions[key]() != nil }, validActionTries, true),
+		actionKeys: filter(SampledFrom(actionKeys), func(key string) bool { return actions[key]() != nil }, validActionTries, noValidActionsMsg),
 		check:      check,
 		cleanup_:   cleanup_,
 	}

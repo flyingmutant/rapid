@@ -158,7 +158,7 @@ func checkTB(tb limitedTB, prop func(*T)) {
 	} else {
 		if traceback(err1) == traceback(err2) {
 			if err2.isStopTest() {
-				tb.Errorf("[rapid] failed after %v tests\nFailed test output:", valid)
+				tb.Errorf("[rapid] failed after %v tests: %v\nFailed test output:", valid, err2)
 			} else {
 				tb.Errorf("[rapid] panic after %v tests: %v\nTraceback:\n%v\nFailed test output:", valid, err2, traceback(err2))
 			}
