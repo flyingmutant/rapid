@@ -150,7 +150,7 @@ func (m *queueMachine) Init() func(*T) {
 	return Bind(func(t *T, size int) {
 		m.q = newBuggyQueue(size)
 		m.size = size
-	}, IntsRange(0, 1000))
+	}, IntsRange(1, 1000))
 }
 
 func (m *queueMachine) Get() func(*T) {
@@ -177,10 +177,6 @@ func (m *queueMachine) Check(t *T) {
 }
 
 func TestStateMachine_Queue(t *testing.T) {
-	if !*flaky {
-		t.Skip() // TODO: try to make this test non-flaky
-	}
-
 	checkShrink(t, StateMachine(&queueMachine{}),
 		"Init",
 		pack(1),

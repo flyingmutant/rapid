@@ -49,7 +49,7 @@ type queueMachine struct {
 
 // Init is an action for initializing  a queueMachine instance.
 func (m *queueMachine) Init() func(*rapid.T) {
-	return rapid.Bind(m.init, rapid.IntsRange(0, 1000))
+	return rapid.Bind(m.init, rapid.IntsRange(1, 1000))
 }
 
 // Get is a conditional action which removes an item from the queue.
