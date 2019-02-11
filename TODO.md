@@ -32,6 +32,8 @@
 - minimize bitstream mis-alignment during minimization (try to make the shape as constant as possible)
   - better, make minimization not care about mis-alignment
 - more powerful assume/filter (look at what hypothesis is doing)
+- builtin go-fuzz integration
+  - compare property-based testing with fuzzing in README
 
 ## Generators
 
