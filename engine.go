@@ -158,12 +158,12 @@ func checkTB(tb limitedTB, prop func(*T)) {
 	} else {
 		if traceback(err1) == traceback(err2) {
 			if err2.isStopTest() {
-				tb.Errorf("[rapid] failed after %v tests\nDetails:", valid)
+				tb.Errorf("[rapid] failed after %v tests\nFailed test output:", valid)
 			} else {
-				tb.Errorf("[rapid] failed after %v tests: %v\nTraceback:\n%v\nDetails:", valid, err2, traceback(err2))
+				tb.Errorf("[rapid] failed after %v tests: %v\nTraceback:\n%v\nFailed test output:", valid, err2, traceback(err2))
 			}
 		} else {
-			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nDetails:", err2, traceback(err2), err1, traceback(err1))
+			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nFailed test output:", err2, traceback(err2), err1, traceback(err1))
 		}
 
 		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
