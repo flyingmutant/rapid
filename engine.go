@@ -151,19 +151,19 @@ func checkTB(tb limitedTB, prop func(*T)) {
 
 	if err1 == nil && err2 == nil {
 		if valid == *checks {
-			tb.Logf("OK, passed %v tests (%v)", valid, dt)
+			tb.Logf("[rapid] OK, passed %v tests (%v)", valid, dt)
 		} else {
-			tb.Errorf("only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
+			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
 		}
 	} else {
 		if traceback(err1) == traceback(err2) {
 			if err2.isStopTest() {
-				tb.Errorf("failed after %v tests\nDetails:", valid)
+				tb.Errorf("[rapid] failed after %v tests\nDetails:", valid)
 			} else {
-				tb.Errorf("failed after %v tests: %v\nTraceback:\n%v\nDetails:", valid, err2, traceback(err2))
+				tb.Errorf("[rapid] failed after %v tests: %v\nTraceback:\n%v\nDetails:", valid, err2, traceback(err2))
 			}
 		} else {
-			tb.Errorf("flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nDetails:", err2, traceback(err2), err1, traceback(err1))
+			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nDetails:", err2, traceback(err2), err1, traceback(err1))
 		}
 
 		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
