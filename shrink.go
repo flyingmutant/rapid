@@ -13,7 +13,7 @@ import (
 
 const shrinkTimeLimit = 30 * time.Second
 
-func shrink(tb limitedTB, rec recordedBits, err *panicError, prop func(*T)) ([]uint64, *panicError) {
+func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
 	rec.prune()
 
 	s := &shrinker{
@@ -45,7 +45,7 @@ func shrink(tb limitedTB, rec recordedBits, err *panicError, prop func(*T)) ([]u
 type shrinker struct {
 	tb      limitedTB
 	rec     recordedBits
-	err     *panicError
+	err     *testError
 	prop    func(*T)
 	visBits []recordedBits
 	tries   int
@@ -58,10 +58,10 @@ func (s *shrinker) debugf(format string, args ...interface{}) {
 	}
 }
 
-func (s *shrinker) shrink() (buf []uint64, err *panicError) {
+func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	defer func() {
 		if r := recover(); r != nil {
-			buf, err = s.rec.data, r.(*panicError)
+			buf, err = s.rec.data, r.(*testError)
 		}
 	}()
 

@@ -80,7 +80,7 @@ func example(g *Generator, s bitStream) (Value, int, error) {
 	}
 }
 
-func recoverValue(g *Generator, s bitStream) (v Value, err *panicError) {
+func recoverValue(g *Generator, s bitStream) (v Value, err *testError) {
 	defer func() { err = panicToError(recover(), 3) }()
 
 	return g.value(s), nil

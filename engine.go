@@ -170,7 +170,7 @@ func checkTB(tb limitedTB, prop func(*T)) {
 	}
 }
 
-func doCheck(tb limitedTB, prop func(*T)) (int, int, []uint64, *panicError, *panicError) {
+func doCheck(tb limitedTB, prop func(*T)) (int, int, []uint64, *testError, *testError) {
 	tb.Helper()
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
@@ -194,7 +194,7 @@ func doCheck(tb limitedTB, prop func(*T)) (int, int, []uint64, *panicError, *pan
 	return valid, invalid, buf, err2, err3
 }
 
-func findBug(tb limitedTB, prop func(*T)) (uint64, int, int, *panicError) {
+func findBug(tb limitedTB, prop func(*T)) (uint64, int, int, *testError) {
 	tb.Helper()
 
 	valid := 0
@@ -221,7 +221,7 @@ func findBug(tb limitedTB, prop func(*T)) (uint64, int, int, *panicError) {
 	return 0, valid, invalid, nil
 }
 
-func checkOnce(t *T, prop func(*T)) (err *panicError) {
+func checkOnce(t *T, prop func(*T)) (err *testError) {
 	t.Helper()
 
 	defer func() { err = panicToError(recover(), 3) }()
@@ -243,12 +243,12 @@ func reportFailure(tb limitedTB, buf []uint64, prop func(*T)) {
 
 type invalidData string
 
-type panicError struct {
+type testError struct {
 	data    interface{}
 	callers []uintptr
 }
 
-func panicToError(p interface{}, skip int) *panicError {
+func panicToError(p interface{}, skip int) *testError {
 	if p == nil {
 		return nil
 	}
@@ -256,13 +256,13 @@ func panicToError(p interface{}, skip int) *panicError {
 	callers := make([]uintptr, tracebackLen)
 	callers = callers[:runtime.Callers(skip, callers)]
 
-	return &panicError{
+	return &testError{
 		data:    p,
 		callers: callers,
 	}
 }
 
-func (err *panicError) Error() string {
+func (err *testError) Error() string {
 	if msg, ok := err.data.(invalidData); ok {
 		return string(msg)
 	}
@@ -270,12 +270,12 @@ func (err *panicError) Error() string {
 	return fmt.Sprintf("panic: %v", err.data)
 }
 
-func (err *panicError) isInvalidData() bool {
+func (err *testError) isInvalidData() bool {
 	_, ok := err.data.(invalidData)
 	return ok
 }
 
-func (err *panicError) traceback() string {
+func (err *testError) traceback() string {
 	frames := runtime.CallersFrames(err.callers)
 	skipRuntime := true
 	var lines []string
@@ -296,11 +296,11 @@ func (err *panicError) traceback() string {
 	return strings.Join(lines, "\n")
 }
 
-func sameError(err1 *panicError, err2 *panicError) bool {
+func sameError(err1 *testError, err2 *testError) bool {
 	return errorString(err1) == errorString(err2) && traceback(err1) == traceback(err2)
 }
 
-func errorString(err *panicError) string {
+func errorString(err *testError) string {
 	if err == nil {
 		return ""
 	}
@@ -308,7 +308,7 @@ func errorString(err *panicError) string {
 	return err.Error()
 }
 
-func traceback(err *panicError) string {
+func traceback(err *testError) string {
 	if err == nil {
 		return "    <no error>"
 	}
