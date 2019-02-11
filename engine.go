@@ -371,7 +371,7 @@ func (t *T) Draw(g *Generator, label string, unpack ...interface{}) Value {
 		}
 
 		t.Helper()
-		t.Logf("draw %v: %v", label, prettyValue{v})
+		t.Logf("[rapid] draw %v: %v", label, prettyValue{v})
 	}
 
 	t.draws++
