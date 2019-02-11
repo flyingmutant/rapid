@@ -162,7 +162,7 @@ func checkTB(tb limitedTB, prop func(*T)) {
 			tb.Errorf("flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nDetails:", err2, traceback(err2), err1, traceback(err1))
 		}
 
-		reportFailure(tb, buf, prop)
+		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
 	}
 
 	if tb.Failed() {
@@ -233,12 +233,6 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 	}
 
 	return nil
-}
-
-func reportFailure(tb limitedTB, buf []uint64, prop func(*T)) {
-	tb.Helper()
-	assert(tb.Failed())
-	_ = checkOnce(newT(tb, newBufBitStream(buf, false), *verbose), prop)
 }
 
 type invalidData string
@@ -346,10 +340,10 @@ type T struct {
 	failed    stopTest
 }
 
-func newT(tb limitedTB, s bitStream, verbose bool, refDraws ...Value) *T {
+func newT(tb limitedTB, s bitStream, log_ bool, refDraws ...Value) *T {
 	t := &T{
 		limitedTB: tb,
-		log:       verbose || tb.Failed(),
+		log:       log_,
 		data:      &bitStreamData{s},
 		refDraws:  refDraws,
 	}
