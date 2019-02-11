@@ -157,7 +157,11 @@ func checkTB(tb limitedTB, prop func(*T)) {
 		}
 	} else {
 		if traceback(err1) == traceback(err2) {
-			tb.Errorf("failed after %v tests: %v\nTraceback:\n%v\nDetails:", valid, err2, traceback(err2))
+			if err2.isStopTest() {
+				tb.Errorf("failed after %v tests\nDetails:", valid)
+			} else {
+				tb.Errorf("failed after %v tests: %v\nTraceback:\n%v\nDetails:", valid, err2, traceback(err2))
+			}
 		} else {
 			tb.Errorf("flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nDetails:", err2, traceback(err2), err1, traceback(err1))
 		}
@@ -271,6 +275,11 @@ func (err *testError) Error() string {
 
 func (err *testError) isInvalidData() bool {
 	_, ok := err.data.(invalidData)
+	return ok
+}
+
+func (err *testError) isStopTest() bool {
+	_, ok := err.data.(stopTest)
 	return ok
 }
 
