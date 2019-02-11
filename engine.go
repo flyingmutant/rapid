@@ -160,7 +160,7 @@ func checkTB(tb limitedTB, prop func(*T)) {
 			if err2.isStopTest() {
 				tb.Errorf("[rapid] failed after %v tests\nFailed test output:", valid)
 			} else {
-				tb.Errorf("[rapid] failed after %v tests: %v\nTraceback:\n%v\nFailed test output:", valid, err2, traceback(err2))
+				tb.Errorf("[rapid] panic after %v tests: %v\nTraceback:\n%v\nFailed test output:", valid, err2, traceback(err2))
 			}
 		} else {
 			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nFailed test output:", err2, traceback(err2), err1, traceback(err1))
@@ -270,7 +270,7 @@ func (err *testError) Error() string {
 		return fmt.Sprintf("invalid data: %v", msg)
 	}
 
-	return fmt.Sprintf("panic: %v", err.data)
+	return fmt.Sprintf("%v", err.data)
 }
 
 func (err *testError) isInvalidData() bool {
