@@ -400,33 +400,33 @@ func (t *T) Log(args ...interface{}) {
 func (t *T) Errorf(format string, args ...interface{}) {
 	t.Helper()
 	t.Logf(format, args...)
-	t.fail(false, "[error] ", format, args...)
+	t.fail(false, fmt.Sprintf(format, args...))
 }
 
 func (t *T) Error(args ...interface{}) {
 	t.Helper()
 	t.Log(args...)
-	t.fail(false, "[error] ", "", args...)
+	t.fail(false, fmt.Sprint(args...))
 }
 
 func (t *T) Fatalf(format string, args ...interface{}) {
 	t.Helper()
 	t.Logf(format, args...)
-	t.fail(true, "[fatal] ", format, args...)
+	t.fail(true, fmt.Sprintf(format, args...))
 }
 
 func (t *T) Fatal(args ...interface{}) {
 	t.Helper()
 	t.Log(args...)
-	t.fail(true, "[fatal] ", "", args...)
+	t.fail(true, fmt.Sprint(args...))
 }
 
 func (t *T) FailNow() {
-	t.fail(true, "", "(*T).FailNow() called")
+	t.fail(true, "(*T).FailNow() called")
 }
 
 func (t *T) Fail() {
-	t.fail(false, "", "(*T).Fail() called")
+	t.fail(false, "(*T).Fail() called")
 }
 
 func (t *T) Failed() bool {
@@ -436,14 +436,7 @@ func (t *T) Failed() bool {
 	return t.failed != ""
 }
 
-func (t *T) fail(now bool, prefix string, format string, args ...interface{}) {
-	var msg string
-	if format != "" {
-		msg = fmt.Sprintf(prefix+format, args...)
-	} else {
-		msg = fmt.Sprint(append([]interface{}{prefix}, args...)...)
-	}
-
+func (t *T) fail(now bool, msg string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
