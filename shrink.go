@@ -49,6 +49,7 @@ type shrinker struct {
 	prop    func(*T)
 	visBits []recordedBits
 	tries   int
+	shrinks int
 }
 
 func (s *shrinker) debugf(format string, args ...interface{}) {
@@ -66,18 +67,16 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	}()
 
 	i := 0
-	shrunk := true
+	shrinks := -1
 	start := time.Now()
-	for ; shrunk && time.Since(start) < shrinkTimeLimit; i++ {
-		data := append([]uint64(nil), s.rec.data...)
+	for ; s.shrinks > shrinks && time.Since(start) < shrinkTimeLimit; i++ {
+		shrinks = s.shrinks
 
 		s.debugf("round %v start", i)
 		s.removeBlockGroups()
 		s.minimizeBlocks()
-
-		shrunk = compareData(s.rec.data, data) < 0
 	}
-	s.debugf("done, %v rounds total (%v tries)", i, s.tries)
+	s.debugf("done, %v rounds total (%v tries, %v shrinks)", i, s.tries, s.shrinks)
 
 	return s.rec.data, s.err
 }
@@ -143,6 +142,7 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 	if !sameError(err1, err2) {
 		panic(err2)
 	}
+	s.shrinks++
 
 	return true
 }
