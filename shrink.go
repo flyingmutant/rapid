@@ -57,8 +57,8 @@ type shrinker struct {
 	hits    int
 }
 
-func (s *shrinker) debugf(format string, args ...interface{}) {
-	if *debug {
+func (s *shrinker) debugf(verbose_ bool, format string, args ...interface{}) {
+	if *debug && (!verbose_ || *verbose) {
 		s.tb.Helper()
 		s.tb.Logf("[shrink] "+format, args...)
 	}
@@ -77,17 +77,17 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	for ; s.shrinks > shrinks && time.Since(start) < shrinkTimeLimit; i++ {
 		shrinks = s.shrinks
 
-		s.debugf("round %v start", i)
+		s.debugf(false, "round %v start", i)
 		s.removeGroups()
 		s.minimizeBlocks()
 
 		if s.shrinks == shrinks {
-			s.debugf("trying expensive algorithms for round %v", i)
+			s.debugf(false, "trying expensive algorithms for round %v", i)
 			s.lowerAndDelete()
 			s.removeGroupPairs()
 		}
 	}
-	s.debugf("done, %v rounds total (%v tries, %v shrinks, %v cache hits)", i, s.tries, s.shrinks, s.hits)
+	s.debugf(false, "done, %v rounds total (%v tries, %v shrinks, %v cache hits)", i, s.tries, s.shrinks, s.hits)
 
 	return s.rec.data, s.err
 }
@@ -171,19 +171,19 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 		return false
 	}
 
-	s.debugf("trying to reproduce the failure with a smaller test case: "+format, args...)
+	s.debugf(true, "trying to reproduce the failure with a smaller test case: "+format, args...)
 	s.tries++
 	s1 := newBufBitStream(buf, false)
-	err1 := checkOnce(newT(s.tb, s1, *debug), s.prop)
+	err1 := checkOnce(newT(s.tb, s1, *debug && *verbose), s.prop)
 	if traceback(err1) != traceback(s.err) {
 		s.cache[bufStr] = struct{}{}
 		return false
 	}
 
-	s.debugf("trying to reproduce the failure")
+	s.debugf(true, "trying to reproduce the failure")
 	s.err = err1
 	s2 := newBufBitStream(buf, true)
-	err2 := checkOnce(newT(s.tb, s2, *debug), s.prop)
+	err2 := checkOnce(newT(s.tb, s2, *debug && *verbose), s.prop)
 	s.rec = s2.recordedBits
 	s.rec.prune()
 	assert(compareData(s.rec.data, buf) <= 0)
@@ -193,6 +193,8 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 	if !sameError(err1, err2) {
 		panic(err2)
 	}
+
+	s.debugf(false, "success: "+format, args...)
 	s.shrinks++
 
 	return true
