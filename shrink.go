@@ -189,10 +189,10 @@ func (m *minimizer) rShift() {
 }
 
 func (m *minimizer) unsetBits() {
-	size := uint(bits.Len64(m.best))
+	size := bits.Len64(m.best)
 
-	for i := uint(0); i < size; i++ {
-		m.accept(m.best ^ 1<<i)
+	for i := size - 1; i >= 0; i-- {
+		m.accept(m.best ^ 1<<uint(i))
 	}
 }
 
