@@ -18,7 +18,12 @@
 
 ## Shrinking
 
-- partial sort of (equivalent) groups
+- shrink duplicates together
+  - generalize to arbitrary "offsets" for pairs
+- not all value groups are standalone!
+  - standalone might be too coarse, maybe should be replaced with a bunch of other traits
+- we are doing too much prop evaluations
+- partial sort does not swap e.g. int and int32
 - when shrinking, if we try to lower the wanted bits of some uint64, we have a high chance to draw very low value
   - because high bits will be masked out
   - this can prevent shrinking, when we first lower block A (which e.g. selects the generator), then
@@ -35,14 +40,11 @@
   - better, make minimization not care about mis-alignment
   - sticky bitstream?
 - differentiate groups with structure vs groups without one for smarter shrinking
-- shrink duplicates together
-  - generalize to arbitrary "offsets" for pairs
-- not all value groups are standalone!
-  - standalone might be too coarse, maybe should be replaced with a bunch of other traits
 
 ## Misc
 
 - bitStream -> blockStream?
+- log action drawn together with the args
 - do not play with filter games for the state machine, just find all valid actions
 - our functions panic too early which leads to confusing? `go test` output
 - when generating numbers in range, try to bias based on the min number,
