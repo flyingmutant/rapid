@@ -89,16 +89,12 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 func (s *shrinker) removeGroups() {
 	for i := 0; i < len(s.rec.groups); i++ {
 		g := s.rec.groups[i]
-		if !g.standalone {
+		if !g.standalone || g.end < 0 {
 			continue
 		}
 
 		buf := append([]uint64(nil), s.rec.data...)
-		if g.end >= 0 {
-			buf = append(buf[:g.begin], buf[g.end:]...)
-		} else {
-			buf = buf[:g.begin]
-		}
+		buf = append(buf[:g.begin], buf[g.end:]...)
 
 		if s.accept(buf, "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
 			i--
