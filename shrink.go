@@ -80,6 +80,11 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 		s.debugf("round %v start", i)
 		s.removeGroups()
 		s.minimizeBlocks()
+
+		if s.shrinks == shrinks {
+			s.debugf("trying expensive algorithms for round %v", i)
+			s.removeGroupPairs()
+		}
 	}
 	s.debugf("done, %v rounds total (%v tries, %v shrinks, %v cache hits)", i, s.tries, s.shrinks, s.hits)
 
@@ -106,6 +111,29 @@ func (s *shrinker) minimizeBlocks() {
 			buf[i] = u
 			return s.accept(buf, "minimize block %v: %v to %v", i, s.rec.data[i], u)
 		})
+	}
+}
+
+func (s *shrinker) removeGroupPairs() {
+	for i := 0; i < len(s.rec.groups); i++ {
+		g := s.rec.groups[i]
+		if !g.standalone || g.end < 0 {
+			continue
+		}
+
+		for j := i + 1; j < len(s.rec.groups); j++ {
+			h := s.rec.groups[j]
+			if !h.standalone || h.end < 0 || h.begin < g.end {
+				continue
+			}
+
+			buf := without(s.rec.data, g, h)
+
+			if s.accept(buf, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
+				i--
+				break
+			}
+		}
 	}
 }
 

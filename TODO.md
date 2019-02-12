@@ -19,7 +19,6 @@
 ## Shrinking
 
 - partial sort of (equivalent) groups
-- removal of groups of groups
 - lower-and-delete
   - should work for things like dependent state machine draws
 - when shrinking, if we try to lower the wanted bits of some uint64, we have a high chance to draw very low value
