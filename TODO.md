@@ -16,6 +16,19 @@
 
 - failure persistence
 
+## Shrinking
+
+- partial sort of (equivalent) groups
+- removal of groups of groups
+- lower-and-delete
+  - should work for things like dependent state machine draws
+- when shrinking, if we try to lower the wanted bits of some uint64, we have a high chance to draw very low value
+  - because high bits will be masked out
+  - this can prevent shrinking, when we first lower block A (which e.g. selects the generator), then
+    we draw next block B (which the lowered generator wants fewer bits of). Instead of getting a bit value for B
+    and doing proper search, we end up getting a small one, and abandoning the generator shrink
+- smart (prefix?) cache to lower the amount of prop evaluations
+
 ## Misc
 
 - do not play with filter games for the state machine, just find all valid actions
@@ -24,11 +37,6 @@
   just like we bias repeat based on the min number?
   - because min number defines the "magnitude" of the whole thing, kind of?
   - so when we are generating numbers in [1000000; +inf) we do not stick with 1000000 too hard
-- when shrinking, if we try to lower the wanted bits of some uint64, we have a high chance to draw very low value
-  - because high bits will be masked out
-  - this can prevent shrinking, when we first lower block A (which e.g. selects the generator), then
-    we draw next block B (which the lowered generator wants fewer bits of). Instead of getting a bit value for B
-    and doing proper search, we end up getting a small one, and abandoning the generator shrink
 - minimize bitstream mis-alignment during minimization (try to make the shape as constant as possible)
   - better, make minimization not care about mis-alignment
 - more powerful assume/filter (look at what hypothesis is doing)
