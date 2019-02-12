@@ -197,14 +197,18 @@ func (m *minimizer) unsetBits() {
 }
 
 func (m *minimizer) sortBits() {
-	size := uint(bits.Len64(m.best))
+	size := bits.Len64(m.best)
 
-	for i := uint(0); i < size; i++ {
-		for j := uint(0); j < size-i-1; j++ {
-			l := uint64(1 << j)
-			h := uint64(1 << (j + 1))
-			if m.best&l == 0 && m.best&h != 0 {
-				m.accept(m.best ^ (l | h))
+	for i := size - 1; i >= 0; i-- {
+		h := uint64(1 << uint(i))
+		if m.best&h != 0 {
+			for j := 0; j < i; j++ {
+				l := uint64(1 << uint(j))
+				if m.best&l == 0 {
+					if m.accept(m.best ^ (l | h)) {
+						break
+					}
+				}
 			}
 		}
 	}
