@@ -5,9 +5,11 @@
 package rapid
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math/bits"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -17,10 +19,11 @@ func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]ui
 	rec.prune()
 
 	s := &shrinker{
-		tb:   tb,
-		rec:  rec,
-		err:  err,
-		prop: prop,
+		tb:    tb,
+		rec:   rec,
+		err:   err,
+		prop:  prop,
+		cache: map[string]struct{}{},
 	}
 
 	buf, err := s.shrink()
@@ -50,6 +53,8 @@ type shrinker struct {
 	visBits []recordedBits
 	tries   int
 	shrinks int
+	cache   map[string]struct{}
+	hits    int
 }
 
 func (s *shrinker) debugf(format string, args ...interface{}) {
@@ -76,17 +81,15 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 		s.removeGroups()
 		s.minimizeBlocks()
 	}
-	s.debugf("done, %v rounds total (%v tries, %v shrinks)", i, s.tries, s.shrinks)
+	s.debugf("done, %v rounds total (%v tries, %v shrinks, %v cache hits)", i, s.tries, s.shrinks, s.hits)
 
 	return s.rec.data, s.err
 }
 
 func (s *shrinker) removeGroups() {
-	for i := 0; i < len(s.rec.groups); {
+	for i := 0; i < len(s.rec.groups); i++ {
 		g := s.rec.groups[i]
 		if !g.standalone {
-			s.debugf("skip non-standalone group %q at %v: [%v, %v)", g.label, i, g.begin, g.end)
-			i++
 			continue
 		}
 
@@ -96,10 +99,9 @@ func (s *shrinker) removeGroups() {
 		} else {
 			buf = buf[:g.begin]
 		}
-		if !s.accept(buf, "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
-			for i++; i < len(s.rec.groups) && s.rec.groups[i].begin == g.begin && s.rec.groups[i].end == g.end; i++ {
-				s.debugf("skip duplicate group %v: [%v, %v)", i, g.begin, g.end)
-			}
+
+		if s.accept(buf, "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
+			i--
 		}
 	}
 }
@@ -118,12 +120,18 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 	if compareData(buf, s.rec.data) >= 0 {
 		return false
 	}
+	bufStr := dataStr(buf)
+	if _, ok := s.cache[bufStr]; ok {
+		s.hits++
+		return false
+	}
 
 	s.debugf("trying to reproduce the failure with a smaller test case: "+format, args...)
 	s.tries++
 	s1 := newBufBitStream(buf, false)
 	err1 := checkOnce(newT(s.tb, s1, *debug), s.prop)
 	if traceback(err1) != traceback(s.err) {
+		s.cache[bufStr] = struct{}{}
 		return false
 	}
 
@@ -227,6 +235,13 @@ func (m *minimizer) binSearch() {
 			i = h + 1
 		}
 	}
+}
+
+func dataStr(data []uint64) string {
+	b := &strings.Builder{}
+	err := binary.Write(b, binary.BigEndian, data)
+	assert(err == nil)
+	return b.String()
 }
 
 func compareData(a []uint64, b []uint64) int {

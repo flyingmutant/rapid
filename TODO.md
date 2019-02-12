@@ -27,7 +27,6 @@
   - this can prevent shrinking, when we first lower block A (which e.g. selects the generator), then
     we draw next block B (which the lowered generator wants fewer bits of). Instead of getting a bit value for B
     and doing proper search, we end up getting a small one, and abandoning the generator shrink
-- smart (prefix?) cache to lower the amount of prop evaluations
 
 ## Misc
 
