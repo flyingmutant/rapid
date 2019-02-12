@@ -119,20 +119,18 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 		return false
 	}
 
+	s.debugf("trying to reproduce the failure with a smaller test case: "+format, args...)
 	s.tries++
 	s1 := newBufBitStream(buf, false)
-	t1 := newT(s.tb, s1, *debug)
-	t1.Logf("[shrink] trying to reproduce the failure with a smaller test case: "+format, args...)
-	err1 := checkOnce(t1, s.prop)
+	err1 := checkOnce(newT(s.tb, s1, *debug), s.prop)
 	if traceback(err1) != traceback(s.err) {
 		return false
 	}
 
+	s.debugf("trying to reproduce the failure")
 	s.err = err1
 	s2 := newBufBitStream(buf, true)
-	t2 := newT(s.tb, s2, *debug)
-	t2.Logf("[shrink] trying to reproduce the failure")
-	err2 := checkOnce(t2, s.prop)
+	err2 := checkOnce(newT(s.tb, s2, *debug), s.prop)
 	s.rec = s2.recordedBits
 	s.rec.prune()
 	assert(compareData(s.rec.data, buf) <= 0)
