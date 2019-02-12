@@ -93,10 +93,7 @@ func (s *shrinker) removeGroups() {
 			continue
 		}
 
-		buf := append([]uint64(nil), s.rec.data...)
-		buf = append(buf[:g.begin], buf[g.end:]...)
-
-		if s.accept(buf, "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
+		if s.accept(without(s.rec.data, g), "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
 			i--
 		}
 	}
@@ -231,6 +228,17 @@ func (m *minimizer) binSearch() {
 			i = h + 1
 		}
 	}
+}
+
+func without(data []uint64, groups ...groupInfo) []uint64 {
+	buf := append([]uint64(nil), data...)
+
+	for i := len(groups) - 1; i >= 0; i-- {
+		g := groups[i]
+		buf = append(buf[:g.begin], buf[g.end:]...)
+	}
+
+	return buf
 }
 
 func dataStr(data []uint64) string {
