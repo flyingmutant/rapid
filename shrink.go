@@ -85,8 +85,8 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 func (s *shrinker) removeBlockGroups() {
 	for i := 0; i < len(s.rec.groups); {
 		g := s.rec.groups[i]
-		if !g.removable {
-			s.debugf("skip non-removable group %q at %v: [%v, %v)", g.label, i, g.begin, g.end)
+		if !g.standalone {
+			s.debugf("skip non-standalone group %q at %v: [%v, %v)", g.label, i, g.begin, g.end)
 			i++
 			continue
 		}

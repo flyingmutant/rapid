@@ -18,7 +18,7 @@ type Data interface {
 
 type bitStream interface {
 	drawBits(n int) uint64
-	beginGroup(label string, removable bool) int
+	beginGroup(label string, standalone bool) int
 	endGroup(i int, discard bool)
 }
 
@@ -93,11 +93,11 @@ func (s *bufBitStream) drawBits(n int) uint64 {
 }
 
 type groupInfo struct {
-	begin     int
-	end       int
-	label     string
-	removable bool
-	discard   bool
+	begin      int
+	end        int
+	label      string
+	standalone bool
+	discard    bool
 }
 
 type recordedBits struct {
@@ -115,16 +115,16 @@ func (rec *recordedBits) record(u uint64) {
 	}
 }
 
-func (rec *recordedBits) beginGroup(label string, removable bool) int {
+func (rec *recordedBits) beginGroup(label string, standalone bool) int {
 	if !rec.persist {
 		return rec.dataLen
 	}
 
 	rec.groups = append(rec.groups, groupInfo{
-		begin:     len(rec.data),
-		end:       -1,
-		label:     label,
-		removable: removable,
+		begin:      len(rec.data),
+		end:        -1,
+		label:      label,
+		standalone: standalone,
 	})
 
 	return len(rec.groups) - 1
