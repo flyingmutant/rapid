@@ -60,6 +60,17 @@ func TestShrink_CollectionElements(t *testing.T) {
 	}, SlicesOf(Ints())), pack([]int{1000001, 1000001}))
 }
 
+func TestShrink_CollectionIndex(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, s []int) {
+		ix := t.Draw(IntsRange(0, len(s)-1), "ix").(int)
+
+		if s[ix] >= 100 {
+			t.Fail()
+		}
+
+	}, SlicesOfN(Ints(), 1, -1)), pack([]int{100}), 0)
+}
+
 func TestShrink_Strings(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s1 string, s2 string) {
 		if len(s1) > len(s2) {

@@ -83,6 +83,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 
 		if s.shrinks == shrinks {
 			s.debugf("trying expensive algorithms for round %v", i)
+			s.lowerAndDelete()
 			s.removeGroupPairs()
 		}
 	}
@@ -130,6 +131,29 @@ func (s *shrinker) removeGroupPairs() {
 			buf := without(s.rec.data, g, h)
 
 			if s.accept(buf, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
+				i--
+				break
+			}
+		}
+	}
+}
+
+func (s *shrinker) lowerAndDelete() {
+	for i := 0; i < len(s.rec.data); i++ {
+		if s.rec.data[i] == 0 {
+			continue
+		}
+
+		buf := append([]uint64(nil), s.rec.data...)
+		buf[i] -= 1
+
+		for j := 0; j < len(s.rec.groups); j++ {
+			g := s.rec.groups[j]
+			if !g.standalone || g.end < 0 || (i >= g.begin && i < g.end) {
+				continue
+			}
+
+			if s.accept(without(buf, g), "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
 				i--
 				break
 			}
