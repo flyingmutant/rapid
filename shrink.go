@@ -73,7 +73,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 		shrinks = s.shrinks
 
 		s.debugf("round %v start", i)
-		s.removeBlockGroups()
+		s.removeGroups()
 		s.minimizeBlocks()
 	}
 	s.debugf("done, %v rounds total (%v tries, %v shrinks)", i, s.tries, s.shrinks)
@@ -81,7 +81,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	return s.rec.data, s.err
 }
 
-func (s *shrinker) removeBlockGroups() {
+func (s *shrinker) removeGroups() {
 	for i := 0; i < len(s.rec.groups); {
 		g := s.rec.groups[i]
 		if !g.standalone {
