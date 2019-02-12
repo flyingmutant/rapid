@@ -37,7 +37,7 @@ func (g *Generator) type_() reflect.Type {
 }
 
 func (g *Generator) value(s bitStream) Value {
-	i := s.beginGroup(g.str, false)
+	i := s.beginGroup(g.str, true)
 
 	v := g.impl.value(s)
 	t := reflect.TypeOf(v)
