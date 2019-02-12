@@ -1,5 +1,9 @@
 language: go
 
+branches:
+  except:
+    - /^wip-.*$/
+
 os:
   - linux
   - osx
