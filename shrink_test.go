@@ -81,7 +81,7 @@ func TestShrink_Strings(t *testing.T) {
 
 func TestMinimize_UnsetBits(t *testing.T) {
 	Check(t, func(t *T, mask uint64) {
-		best := minimize(math.MaxUint64, func(x uint64) bool { return x&mask == mask })
+		best := minimize(math.MaxUint64, func(x uint64, s string) bool { return x&mask == mask })
 		if best != mask {
 			t.Fatalf("unset to %v instead of %v", bin(best), bin(mask))
 		}
@@ -93,7 +93,7 @@ func TestMinimize_SortBits(t *testing.T) {
 		n := bits.OnesCount64(u)
 		v := uint64(1<<uint(n) - 1)
 
-		best := minimize(u, func(x uint64) bool { return bits.OnesCount64(x) == n })
+		best := minimize(u, func(x uint64, s string) bool { return bits.OnesCount64(x) == n })
 		if best != v {
 			t.Fatalf("minimized to %v instead of %v (%v bits set)", bin(best), bin(v), n)
 		}
@@ -105,7 +105,7 @@ func TestMinimize_LowerBound(t *testing.T) {
 		min := t.Draw(Uint64s(), "min").(uint64)
 		u := t.Draw(Uint64sMin(min), "u").(uint64)
 
-		best := minimize(u, func(x uint64) bool { return x >= min })
+		best := minimize(u, func(x uint64, s string) bool { return x >= min })
 		if best != min {
 			t.Fatalf("found %v instead of %v", best, min)
 		}

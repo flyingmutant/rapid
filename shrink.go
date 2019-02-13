@@ -13,7 +13,18 @@ import (
 	"time"
 )
 
-const shrinkTimeLimit = 30 * time.Second
+const (
+	shrinkTimeLimit = 30 * time.Second
+
+	labelMinBlockTrySmall  = "minblock_trysmall"
+	labelMinBlockShift     = "minblock_shift"
+	labelMinBlockUnset     = "minblock_unset"
+	labelMinBlockSort      = "minblock_sort"
+	labelMinBlockBinSearch = "minblock_binsearch"
+	labelRemoveGroup       = "remove_group"
+	labelLowerDelete       = "lower_delete"
+	labelRemovePair        = "remove_pair"
+)
 
 func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
 	rec.prune()
@@ -23,6 +34,7 @@ func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]ui
 		rec:   rec,
 		err:   err,
 		prop:  prop,
+		tries: map[string]int{},
 		cache: map[string]struct{}{},
 	}
 
@@ -51,7 +63,7 @@ type shrinker struct {
 	err     *testError
 	prop    func(*T)
 	visBits []recordedBits
-	tries   int
+	tries   map[string]int
 	shrinks int
 	cache   map[string]struct{}
 	hits    int
@@ -87,7 +99,12 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 			s.removeGroupPairs()
 		}
 	}
-	s.debugf(false, "done, %v rounds total (%v tries, %v shrinks, %v cache hits)", i, s.tries, s.shrinks, s.hits)
+
+	tries := 0
+	for _, n := range s.tries {
+		tries += n
+	}
+	s.debugf(false, "done, %v rounds total (%v tries, %v shrinks, %v cache hits):\n%v", i, tries, s.shrinks, s.hits, s.tries)
 
 	return s.rec.data, s.err
 }
@@ -99,7 +116,7 @@ func (s *shrinker) removeGroups() {
 			continue
 		}
 
-		if s.accept(without(s.rec.data, g), "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
+		if s.accept(without(s.rec.data, g), labelRemoveGroup, "remove group %q at %v: [%v, %v)", g.label, i, g.begin, g.end) {
 			i--
 		}
 	}
@@ -107,10 +124,10 @@ func (s *shrinker) removeGroups() {
 
 func (s *shrinker) minimizeBlocks() {
 	for i := 0; i < len(s.rec.data); i++ {
-		minimize(s.rec.data[i], func(u uint64) bool {
+		minimize(s.rec.data[i], func(u uint64, label string) bool {
 			buf := append([]uint64(nil), s.rec.data...)
 			buf[i] = u
-			return s.accept(buf, "minimize block %v: %v to %v", i, s.rec.data[i], u)
+			return s.accept(buf, label, "minimize block %v: %v to %v", i, s.rec.data[i], u)
 		})
 	}
 }
@@ -130,7 +147,7 @@ func (s *shrinker) removeGroupPairs() {
 
 			buf := without(s.rec.data, g, h)
 
-			if s.accept(buf, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
+			if s.accept(buf, labelRemovePair, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
 				i--
 				break
 			}
@@ -153,7 +170,7 @@ func (s *shrinker) lowerAndDelete() {
 				continue
 			}
 
-			if s.accept(without(buf, g), "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
+			if s.accept(without(buf, g), labelLowerDelete, "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
 				i--
 				break
 			}
@@ -161,7 +178,7 @@ func (s *shrinker) lowerAndDelete() {
 	}
 }
 
-func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool {
+func (s *shrinker) accept(buf []uint64, label string, format string, args ...interface{}) bool {
 	if compareData(buf, s.rec.data) >= 0 {
 		return false
 	}
@@ -171,8 +188,8 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 		return false
 	}
 
-	s.debugf(true, "trying to reproduce the failure with a smaller test case: "+format, args...)
-	s.tries++
+	s.debugf(true, label+": trying to reproduce the failure with a smaller test case: "+format, args...)
+	s.tries[label]++
 	s1 := newBufBitStream(buf, false)
 	err1 := checkOnce(newT(s.tb, s1, *debug && *verbose), s.prop)
 	if traceback(err1) != traceback(s.err) {
@@ -180,7 +197,8 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 		return false
 	}
 
-	s.debugf(true, "trying to reproduce the failure")
+	s.debugf(true, label+": trying to reproduce the failure")
+	s.tries[label]++
 	s.err = err1
 	s2 := newBufBitStream(buf, true)
 	err2 := checkOnce(newT(s.tb, s2, *debug && *verbose), s.prop)
@@ -194,18 +212,18 @@ func (s *shrinker) accept(buf []uint64, format string, args ...interface{}) bool
 		panic(err2)
 	}
 
-	s.debugf(false, "success: "+format, args...)
+	s.debugf(false, label+" success: "+format, args...)
 	s.shrinks++
 
 	return true
 }
 
-func minimize(u uint64, cond func(uint64) bool) uint64 {
+func minimize(u uint64, cond func(uint64, string) bool) uint64 {
 	if u == 0 {
 		return 0
 	}
 	for i := uint64(0); i < u && i < small; i++ {
-		if cond(i) {
+		if cond(i, labelMinBlockTrySmall) {
 			return i
 		}
 	}
@@ -225,11 +243,11 @@ func minimize(u uint64, cond func(uint64) bool) uint64 {
 
 type minimizer struct {
 	best uint64
-	cond func(uint64) bool
+	cond func(uint64, string) bool
 }
 
-func (m *minimizer) accept(u uint64) bool {
-	if u >= m.best || !m.cond(u) {
+func (m *minimizer) accept(u uint64, label string) bool {
+	if u >= m.best || !m.cond(u, label) {
 		return false
 	}
 	m.best = u
@@ -237,7 +255,7 @@ func (m *minimizer) accept(u uint64) bool {
 }
 
 func (m *minimizer) rShift() {
-	for m.accept(m.best >> 1) {
+	for m.accept(m.best>>1, labelMinBlockShift) {
 	}
 }
 
@@ -245,7 +263,7 @@ func (m *minimizer) unsetBits() {
 	size := bits.Len64(m.best)
 
 	for i := size - 1; i >= 0; i-- {
-		m.accept(m.best ^ 1<<uint(i))
+		m.accept(m.best^1<<uint(i), labelMinBlockUnset)
 	}
 }
 
@@ -258,7 +276,7 @@ func (m *minimizer) sortBits() {
 			for j := 0; j < i; j++ {
 				l := uint64(1 << uint(j))
 				if m.best&l == 0 {
-					if m.accept(m.best ^ (l | h)) {
+					if m.accept(m.best^(l|h), labelMinBlockSort) {
 						break
 					}
 				}
@@ -268,7 +286,7 @@ func (m *minimizer) sortBits() {
 }
 
 func (m *minimizer) binSearch() {
-	if !m.accept(m.best - 1) {
+	if !m.accept(m.best-1, labelMinBlockBinSearch) {
 		return
 	}
 
@@ -276,7 +294,7 @@ func (m *minimizer) binSearch() {
 	j := m.best
 	for i < j {
 		h := i + (j-i)/2
-		if m.accept(h) {
+		if m.accept(h, labelMinBlockBinSearch) {
 			j = h
 		} else {
 			i = h + 1
