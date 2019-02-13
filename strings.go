@@ -219,7 +219,7 @@ func (g *stringGen) value(s bitStream) Value {
 			maxLen = maxInt
 		}
 
-		for repeat.more(s) {
+		for repeat.more(s, g.runeGen.String()) {
 			r := g.runeGen.value(s).(rune)
 			n := utf8.RuneLen(r)
 
@@ -230,7 +230,7 @@ func (g *stringGen) value(s bitStream) Value {
 			}
 		}
 	} else {
-		for repeat.more(s) {
+		for repeat.more(s, g.byteGen.String()) {
 			b.WriteByte(g.byteGen.value(s).(byte))
 		}
 	}
@@ -253,9 +253,6 @@ func matching(expr string, str bool) *Generator {
 	re, err := regexp.Compile(expr)
 	assertf(err == nil, "failed to compile regexp %q: %v", expr, err)
 
-	cc := map[*syntax.Regexp]*Generator{}
-	fillCharClasses(syn, cc)
-
 	return newGenerator(&regexpGen{
 		str:         str,
 		expr:        expr,
@@ -263,7 +260,8 @@ func matching(expr string, str bool) *Generator {
 		re:          re,
 		any:         Runes(),
 		anyNoNL:     Runes().Filter(func(r rune) bool { return r != '\n' }),
-		charClasses: cc,
+		subNames:    map[*syntax.Regexp]string{},
+		charClasses: map[*syntax.Regexp]*Generator{},
 	})
 }
 
@@ -278,6 +276,7 @@ type regexpGen struct {
 	re          *regexp.Regexp
 	any         *Generator
 	anyNoNL     *Generator
+	subNames    map[*syntax.Regexp]string
 	charClasses map[*syntax.Regexp]*Generator
 }
 
@@ -345,7 +344,7 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 		sub := g.any
 		switch re.Op {
 		case syntax.OpCharClass:
-			sub = g.charClasses[re]
+			sub = g.loadGen(re)
 		case syntax.OpAnyCharNotNL:
 			sub = g.anyNoNL
 		}
@@ -368,7 +367,7 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 			min, max = 0, 1
 		}
 		repeat := newRepeat(min, max, -1)
-		for repeat.more(s) {
+		for repeat.more(s, g.loadName(re.Sub[0])) {
 			g.build(w, re.Sub[0], s)
 		}
 	case syntax.OpConcat:
@@ -383,6 +382,24 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 	}
 
 	s.endGroup(i, false)
+}
+
+func (g *regexpGen) loadName(re *syntax.Regexp) string {
+	name := g.subNames[re]
+	if name == "" {
+		name = re.String()
+		g.subNames[re] = name
+	}
+	return name
+}
+
+func (g *regexpGen) loadGen(re *syntax.Regexp) *Generator {
+	sub := g.charClasses[re]
+	if sub == nil {
+		sub = charClassGen(re)
+		g.charClasses[re] = sub
+	}
+	return sub
 }
 
 func maybeFoldCase(s bitStream, r rune, flags syntax.Flags) rune {
@@ -448,25 +465,20 @@ func expandRangeTable(t *unicode.RangeTable, name string) []rune {
 	return ret
 }
 
-func fillCharClasses(re *syntax.Regexp, cc map[*syntax.Regexp]*Generator) {
-	if re.Op == syntax.OpCharClass {
-		t := &unicode.RangeTable{}
+func charClassGen(re *syntax.Regexp) *Generator {
+	assert(re.Op == syntax.OpCharClass)
 
-		for i := 0; i < len(re.Rune); i += 2 {
-			t.R32 = append(t.R32, unicode.Range32{
-				Lo:     uint32(re.Rune[i]),
-				Hi:     uint32(re.Rune[i+1]),
-				Stride: 1,
-			})
-		}
-
-		cc[re] = newGenerator(&runeGen{
-			die:    newLoadedDie([]int{1}),
-			tables: [][]rune{expandRangeTable(t, re.String())},
+	t := &unicode.RangeTable{}
+	for i := 0; i < len(re.Rune); i += 2 {
+		t.R32 = append(t.R32, unicode.Range32{
+			Lo:     uint32(re.Rune[i]),
+			Hi:     uint32(re.Rune[i+1]),
+			Stride: 1,
 		})
 	}
 
-	for _, sub := range re.Sub {
-		fillCharClasses(sub, cc)
-	}
+	return newGenerator(&runeGen{
+		die:    newLoadedDie([]int{1}),
+		tables: [][]rune{expandRangeTable(t, re.String())},
+	})
 }

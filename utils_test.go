@@ -278,7 +278,7 @@ func TestRepeat(t *testing.T) {
 		c := make([]int, n)
 		for i := 0; i < n; i++ {
 			r := newRepeat(min, max, float64(avg))
-			for r.more(s) {
+			for r.more(s, "") {
 				c[i]++
 			}
 

@@ -93,7 +93,7 @@ func (g *sliceGen) value(s bitStream) Value {
 	}
 
 	sl := reflect.MakeSlice(g.typ, 0, repeat.avg())
-	for repeat.more(s) {
+	for repeat.more(s, g.elem.String()) {
 		e := reflect.ValueOf(g.elem.value(s))
 		if g.keyTyp == nil {
 			sl = reflect.Append(sl, e)
@@ -194,10 +194,15 @@ func (g *mapGen) type_() reflect.Type {
 }
 
 func (g *mapGen) value(s bitStream) Value {
+	label := g.val.String()
+	if g.key != nil {
+		label = g.key.String() + "," + label
+	}
+
 	repeat := newRepeat(g.minLen, g.maxLen, -1)
 
 	m := reflect.MakeMapWithSize(g.typ, repeat.avg())
-	for repeat.more(s) {
+	for repeat.more(s, label) {
 		var k, v reflect.Value
 		if g.keyTyp == nil {
 			k = reflect.ValueOf(g.key.value(s))

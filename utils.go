@@ -14,7 +14,7 @@ const (
 	intBitsLabel  = "intbits"
 	coinFlipLabel = "coinflip"
 	dieRollLabel  = "dieroll"
-	repeatLabel   = "repeat"
+	repeatLabel   = "@repeat"
 )
 
 func genFloat01(s bitStream) float64 {
@@ -183,12 +183,12 @@ func (r *repeat) avg() int {
 	return int(math.Ceil(r.avgCount))
 }
 
-func (r *repeat) more(s bitStream) bool {
+func (r *repeat) more(s bitStream, label string) bool {
 	if r.group >= 0 {
 		s.endGroup(r.group, r.rejected)
 	}
 
-	r.group = s.beginGroup(repeatLabel, true)
+	r.group = s.beginGroup(label+repeatLabel, true)
 	r.rejected = false
 
 	pCont := r.pContinue
