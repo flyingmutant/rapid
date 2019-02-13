@@ -27,17 +27,31 @@
   - this can prevent shrinking, when we first lower block A (which e.g. selects the generator), then
     we draw next block B (which the lowered generator wants fewer bits of). Instead of getting a bit value for B
     and doing proper search, we end up getting a small one, and abandoning the generator shrink
+- for order-based passes, try alternating orders?
+  - what order is a better default?
+- "prefix search" shrinking
+  - when shrinking, why do we leave the tail the same?
+    - we have "misalignment" problems and all that
+  - generate random data instead!
+    - generate random tails all the time
+- minimize bitstream mis-alignment during shrinking (try to make the shape as constant as possible)
+  - better, make minimization not care about mis-alignment
+  - sticky bitstream?
+- differentiate groups with structure vs groups without one for smarter shrinking
+- shrink duplicates together
+  - generalize to arbitrary "offsets" for pairs
+- not all value groups are standalone!
+  - standalone might be too coarse, maybe should be replaced with a bunch of other traits
 
 ## Misc
 
+- bitStream -> blockStream?
 - do not play with filter games for the state machine, just find all valid actions
 - our functions panic too early which leads to confusing? `go test` output
 - when generating numbers in range, try to bias based on the min number,
   just like we bias repeat based on the min number?
   - because min number defines the "magnitude" of the whole thing, kind of?
   - so when we are generating numbers in [1000000; +inf) we do not stick with 1000000 too hard
-- minimize bitstream mis-alignment during minimization (try to make the shape as constant as possible)
-  - better, make minimization not care about mis-alignment
 - more powerful assume/filter (look at what hypothesis is doing)
 - builtin go-fuzz integration
   - compare property-based testing with fuzzing in README
@@ -58,11 +72,6 @@
 
 ## Wild ideas
 
-- "prefix search" shrinking
-  - when shrinking, why do we leave the tail the same?
-    - we have "misalignment" problems and all that
-  - generate random data instead!
-    - generate random tails all the time
 - recurrence-based generation, because it is hard to stumble upon interesting stuff purely by random
   - start generating already generated stuff, overriding random for some number of draws
     - zip the sequence with itself
