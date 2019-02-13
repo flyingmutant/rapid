@@ -247,7 +247,7 @@ type minimizer struct {
 }
 
 func (m *minimizer) accept(u uint64, label string) bool {
-	if u >= m.best || !m.cond(u, label) {
+	if u >= m.best || u < small || !m.cond(u, label) {
 		return false
 	}
 	m.best = u
