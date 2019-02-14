@@ -132,29 +132,6 @@ func (s *shrinker) minimizeBlocks() {
 	}
 }
 
-func (s *shrinker) removeGroupPairs() {
-	for i := 0; i < len(s.rec.groups); i++ {
-		g := s.rec.groups[i]
-		if !g.standalone || g.end < 0 {
-			continue
-		}
-
-		for j := i + 1; j < len(s.rec.groups); j++ {
-			h := s.rec.groups[j]
-			if !h.standalone || h.end < 0 || h.begin < g.end {
-				continue
-			}
-
-			buf := without(s.rec.data, g, h)
-
-			if s.accept(buf, labelRemovePair, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
-				i--
-				break
-			}
-		}
-	}
-}
-
 func (s *shrinker) lowerAndDelete() {
 	for i := 0; i < len(s.rec.data); i++ {
 		if s.rec.data[i] == 0 {
@@ -171,6 +148,29 @@ func (s *shrinker) lowerAndDelete() {
 			}
 
 			if s.accept(without(buf, g), labelLowerDelete, "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
+				i--
+				break
+			}
+		}
+	}
+}
+
+func (s *shrinker) removeGroupPairs() {
+	for i := 0; i < len(s.rec.groups); i++ {
+		g := s.rec.groups[i]
+		if !g.standalone || g.end < 0 {
+			continue
+		}
+
+		for j := i + 1; j < len(s.rec.groups); j++ {
+			h := s.rec.groups[j]
+			if !h.standalone || h.end < 0 || h.begin < g.end {
+				continue
+			}
+
+			buf := without(s.rec.data, g, h)
+
+			if s.accept(buf, labelRemovePair, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
 				i--
 				break
 			}
