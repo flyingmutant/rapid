@@ -71,6 +71,14 @@ func TestShrink_CollectionIndex(t *testing.T) {
 	}, SlicesOfN(Ints(), 1, -1)), pack([]int{100}), 0)
 }
 
+func TestShrink_CollectionSpan(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, s []int) {
+		if len(s)%3 == 1 && s[len(s)-1] >= 100 {
+			t.Fail()
+		}
+	}, SlicesOfN(Ints(), 4, -1)), pack([]int{0, 0, 0, 100}))
+}
+
 func TestShrink_Strings(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s1 string, s2 string) {
 		if len(s1) > len(s2) {

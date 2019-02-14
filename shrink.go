@@ -16,14 +16,14 @@ import (
 const (
 	shrinkTimeLimit = 30 * time.Second
 
-	labelMinBlockTrySmall  = "minblock_trysmall"
-	labelMinBlockShift     = "minblock_shift"
-	labelMinBlockUnset     = "minblock_unset"
-	labelMinBlockSort      = "minblock_sort"
-	labelMinBlockBinSearch = "minblock_binsearch"
-	labelRemoveGroup       = "remove_group"
 	labelLowerDelete       = "lower_delete"
-	labelRemovePair        = "remove_pair"
+	labelMinBlockBinSearch = "minblock_binsearch"
+	labelMinBlockShift     = "minblock_shift"
+	labelMinBlockSort      = "minblock_sort"
+	labelMinBlockTrySmall  = "minblock_trysmall"
+	labelMinBlockUnset     = "minblock_unset"
+	labelRemoveGroup       = "remove_group"
+	labelRemoveGroupSpan   = "remove_groupspan"
 )
 
 func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
@@ -96,7 +96,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 		if s.shrinks == shrinks {
 			s.debugf(false, "trying expensive algorithms for round %v", i)
 			s.lowerAndDelete()
-			s.removeGroupPairs()
+			s.removeGroupSpans()
 		}
 	}
 
@@ -155,22 +155,24 @@ func (s *shrinker) lowerAndDelete() {
 	}
 }
 
-func (s *shrinker) removeGroupPairs() {
+func (s *shrinker) removeGroupSpans() {
 	for i := 0; i < len(s.rec.groups); i++ {
 		g := s.rec.groups[i]
 		if !g.standalone || g.end < 0 {
 			continue
 		}
 
+		groups := []groupInfo{g}
 		for j := i + 1; j < len(s.rec.groups); j++ {
 			h := s.rec.groups[j]
-			if !h.standalone || h.end < 0 || h.begin < g.end {
+			if !h.standalone || h.end < 0 || h.begin < groups[len(groups)-1].end {
 				continue
 			}
 
-			buf := without(s.rec.data, g, h)
+			groups = append(groups, h)
+			buf := without(s.rec.data, groups...)
 
-			if s.accept(buf, labelRemovePair, "remove group %q at %v: [%v, %v) + group %q at %v: [%v, %v)", g.label, i, g.begin, g.end, h.label, j, h.begin, h.end) {
+			if s.accept(buf, labelRemoveGroupSpan, "remove %v groups %v", len(groups), groups) {
 				i--
 				break
 			}
