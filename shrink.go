@@ -85,20 +85,19 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	}()
 
 	i := 0
-	shrinks := -1
-	start := time.Now()
-	for ; s.shrinks > shrinks && time.Since(start) < shrinkTimeLimit; i++ {
+	deadline := time.Now().Add(shrinkTimeLimit)
+	for shrinks := -1; s.shrinks > shrinks && time.Now().Before(deadline); i++ {
 		shrinks = s.shrinks
 
 		s.debugf(false, "round %v start", i)
-		s.removeGroups()
-		s.minimizeBlocks()
+		s.removeGroups(deadline)
+		s.minimizeBlocks(deadline)
 
 		if s.shrinks == shrinks {
 			s.debugf(false, "trying expensive algorithms for round %v", i)
-			s.removeGroupsAndLower()
-			s.sortGroups()
-			s.removeGroupSpans()
+			s.removeGroupsAndLower(deadline)
+			s.sortGroups(deadline)
+			s.removeGroupSpans(deadline)
 		}
 	}
 
@@ -111,8 +110,8 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	return s.rec.data, s.err
 }
 
-func (s *shrinker) removeGroups() {
-	for i := 0; i < len(s.rec.groups); i++ {
+func (s *shrinker) removeGroups(deadline time.Time) {
+	for i := 0; i < len(s.rec.groups) && time.Now().Before(deadline); i++ {
 		g := s.rec.groups[i]
 		if !g.standalone || g.end < 0 {
 			continue
@@ -124,8 +123,8 @@ func (s *shrinker) removeGroups() {
 	}
 }
 
-func (s *shrinker) minimizeBlocks() {
-	for i := 0; i < len(s.rec.data); i++ {
+func (s *shrinker) minimizeBlocks(deadline time.Time) {
+	for i := 0; i < len(s.rec.data) && time.Now().Before(deadline); i++ {
 		minimize(s.rec.data[i], func(u uint64, label string) bool {
 			buf := append([]uint64(nil), s.rec.data...)
 			buf[i] = u
@@ -134,8 +133,8 @@ func (s *shrinker) minimizeBlocks() {
 	}
 }
 
-func (s *shrinker) removeGroupsAndLower() {
-	for i := 0; i < len(s.rec.data); i++ {
+func (s *shrinker) removeGroupsAndLower(deadline time.Time) {
+	for i := 0; i < len(s.rec.data) && time.Now().Before(deadline); i++ {
 		if s.rec.data[i] == 0 {
 			continue
 		}
@@ -157,8 +156,8 @@ func (s *shrinker) removeGroupsAndLower() {
 	}
 }
 
-func (s *shrinker) sortGroups() {
-	for i := 1; i < len(s.rec.groups); i++ {
+func (s *shrinker) sortGroups(deadline time.Time) {
+	for i := 1; i < len(s.rec.groups) && time.Now().Before(deadline); i++ {
 		for j := i; j > 0; {
 			g := s.rec.groups[j]
 			if !g.standalone || g.end < 0 {
@@ -186,8 +185,8 @@ func (s *shrinker) sortGroups() {
 	}
 }
 
-func (s *shrinker) removeGroupSpans() {
-	for i := 0; i < len(s.rec.groups); i++ {
+func (s *shrinker) removeGroupSpans(deadline time.Time) {
+	for i := 0; i < len(s.rec.groups) && time.Now().Before(deadline); i++ {
 		g := s.rec.groups[i]
 		if !g.standalone || g.end < 0 {
 			continue
