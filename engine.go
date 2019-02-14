@@ -28,13 +28,14 @@ const (
 )
 
 var (
-	checks    = flag.Int("rapid.checks", 100, "rapid: number of checks to perform")
-	steps     = flag.Int("rapid.steps", 100, "rapid: number of state machine steps to perform")
-	startSeed = flag.Uint64("rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
-	rapidLog  = flag.Bool("rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
-	verbose   = flag.Bool("rapid.v", false, "rapid: verbose output")
-	debug     = flag.Bool("rapid.debug", false, "rapid: debugging output")
-	debugvis  = flag.Bool("rapid.debugvis", false, "rapid: debugging visualization")
+	checks     = flag.Int("rapid.checks", 100, "rapid: number of checks to perform")
+	steps      = flag.Int("rapid.steps", 100, "rapid: number of state machine steps to perform")
+	startSeed  = flag.Uint64("rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
+	rapidLog   = flag.Bool("rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
+	verbose    = flag.Bool("rapid.v", false, "rapid: verbose output")
+	debug      = flag.Bool("rapid.debug", false, "rapid: debugging output")
+	debugvis   = flag.Bool("rapid.debugvis", false, "rapid: debugging visualization")
+	shrinkTime = flag.Duration("rapid.shrinktime", 30*time.Second, "rapid: maximum time to spend on test case minimization")
 
 	errCantGenDueToFilter = errors.New("generation failed due to Filter() or Assume() conditions being too strong")
 

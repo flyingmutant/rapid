@@ -14,8 +14,6 @@ import (
 )
 
 const (
-	shrinkTimeLimit = 30 * time.Second
-
 	labelMinBlockBinSearch   = "minblock_binsearch"
 	labelMinBlockShift       = "minblock_shift"
 	labelMinBlockSort        = "minblock_sort"
@@ -85,7 +83,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	}()
 
 	i := 0
-	deadline := time.Now().Add(shrinkTimeLimit)
+	deadline := time.Now().Add(*shrinkTime)
 	for shrinks := -1; s.shrinks > shrinks && time.Now().Before(deadline); i++ {
 		shrinks = s.shrinks
 
