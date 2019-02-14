@@ -16,14 +16,14 @@ import (
 const (
 	shrinkTimeLimit = 30 * time.Second
 
-	labelLowerDelete       = "lower_delete"
-	labelMinBlockBinSearch = "minblock_binsearch"
-	labelMinBlockShift     = "minblock_shift"
-	labelMinBlockSort      = "minblock_sort"
-	labelMinBlockTrySmall  = "minblock_trysmall"
-	labelMinBlockUnset     = "minblock_unset"
-	labelRemoveGroup       = "remove_group"
-	labelRemoveGroupSpan   = "remove_groupspan"
+	labelMinBlockBinSearch   = "minblock_binsearch"
+	labelMinBlockShift       = "minblock_shift"
+	labelMinBlockSort        = "minblock_sort"
+	labelMinBlockTrySmall    = "minblock_trysmall"
+	labelMinBlockUnset       = "minblock_unset"
+	labelRemoveGroup         = "remove_group"
+	labelRemoveGroupAndLower = "remove_group_lower"
+	labelRemoveGroupSpan     = "remove_groupspan"
 )
 
 func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
@@ -95,7 +95,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 
 		if s.shrinks == shrinks {
 			s.debugf(false, "trying expensive algorithms for round %v", i)
-			s.lowerAndDelete()
+			s.removeGroupsAndLower()
 			s.removeGroupSpans()
 		}
 	}
@@ -132,7 +132,7 @@ func (s *shrinker) minimizeBlocks() {
 	}
 }
 
-func (s *shrinker) lowerAndDelete() {
+func (s *shrinker) removeGroupsAndLower() {
 	for i := 0; i < len(s.rec.data); i++ {
 		if s.rec.data[i] == 0 {
 			continue
@@ -147,7 +147,7 @@ func (s *shrinker) lowerAndDelete() {
 				continue
 			}
 
-			if s.accept(without(buf, g), labelLowerDelete, "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
+			if s.accept(without(buf, g), labelRemoveGroupAndLower, "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
 				i--
 				break
 			}
