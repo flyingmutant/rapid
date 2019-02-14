@@ -24,6 +24,7 @@ const (
 	labelRemoveGroup         = "remove_group"
 	labelRemoveGroupAndLower = "remove_group_lower"
 	labelRemoveGroupSpan     = "remove_groupspan"
+	labelSortGroups          = "sort_groups"
 )
 
 func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
@@ -96,6 +97,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 		if s.shrinks == shrinks {
 			s.debugf(false, "trying expensive algorithms for round %v", i)
 			s.removeGroupsAndLower()
+			s.sortGroups()
 			s.removeGroupSpans()
 		}
 	}
@@ -150,6 +152,35 @@ func (s *shrinker) removeGroupsAndLower() {
 			if s.accept(without(buf, g), labelRemoveGroupAndLower, "lower block %v to %v and remove group %q at %v: [%v, %v)", i, buf[i], g.label, j, g.begin, g.end) {
 				i--
 				break
+			}
+		}
+	}
+}
+
+func (s *shrinker) sortGroups() {
+	for i := 1; i < len(s.rec.groups); i++ {
+		for j := i; j > 0; {
+			g := s.rec.groups[j]
+			if !g.standalone || g.end < 0 {
+				break
+			}
+
+			j_ := j
+			for j--; j >= 0; j-- {
+				h := s.rec.groups[j]
+				if !h.standalone || h.end < 0 || h.end > g.begin || h.label != g.label {
+					continue
+				}
+
+				buf := append([]uint64(nil), s.rec.data[:h.begin]...)
+				buf = append(buf, s.rec.data[g.begin:g.end]...)
+				buf = append(buf, s.rec.data[h.end:g.begin]...)
+				buf = append(buf, s.rec.data[h.begin:h.end]...)
+				buf = append(buf, s.rec.data[g.end:]...)
+
+				if s.accept(buf, labelSortGroups, "swap groups %q at %v: [%v, %v) and %q at %v: [%v, %v)", g.label, j_, g.begin, g.end, h.label, j, h.begin, h.end) {
+					break
+				}
 			}
 		}
 	}

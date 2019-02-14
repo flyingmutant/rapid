@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/bits"
 	"reflect"
+	"sort"
 	"strconv"
 	"testing"
 )
@@ -77,6 +78,20 @@ func TestShrink_CollectionSpan(t *testing.T) {
 			t.Fail()
 		}
 	}, SlicesOfN(Ints(), 4, -1)), pack([]int{0, 0, 0, 100}))
+}
+
+func TestShrink_Sort(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, s []int) {
+		sort.Ints(s)
+		last := 0
+		for _, i := range s {
+			if i == last {
+				return
+			}
+			last = i
+		}
+		t.Fail()
+	}, SlicesOfN(IntsMin(1), 5, -1)), pack([]int{1, 2, 3, 4, 5}))
 }
 
 func TestShrink_Strings(t *testing.T) {
