@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	flaky = flag.Bool("ext.flaky", false, "run flaky external tests")
+	flaky = flag.Bool("flaky.ext", false, "run flaky external tests")
 	rv    = reflect.ValueOf
 )
 
