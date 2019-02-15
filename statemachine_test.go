@@ -187,3 +187,9 @@ func TestStateMachine_Queue(t *testing.T) {
 		pack(0),
 	)
 }
+
+func BenchmarkCheckQueue(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		doCheck(b, StateMachine(&queueMachine{}))
+	}
+}
