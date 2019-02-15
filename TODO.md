@@ -40,6 +40,9 @@
   - better, make minimization not care about mis-alignment
   - sticky bitstream?
 - differentiate groups with structure vs groups without one for smarter shrinking
+- non-greedy shrink
+  - allow to increase the data size *between shrink passes*, if the net result is good
+  - e.g. allow sort to do arbitrary? swaps
 
 ## Misc
 
