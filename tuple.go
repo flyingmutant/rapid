@@ -53,7 +53,8 @@ func assertCallable(fn reflect.Type, t reflect.Type, name string, start int) {
 	if isTuple(t) {
 		assertf(fn.NumIn() == t.NumField()+start, "%v should have %v parameters, not %v", name, t.NumField()+start, fn.NumIn())
 		for i := start; i < fn.NumIn(); i++ {
-			assertf(t.Field(i-start).Type.AssignableTo(fn.In(i)), "parameter %v (%v) of %v should be assignable from %v", i, fn.In(i), name, t.Field(i-start).Type)
+			ft := t.Field(i - start).Type
+			assertf(ft.AssignableTo(fn.In(i)), "parameter %v (%v) of %v should be assignable from %v", i, fn.In(i), name, ft)
 		}
 	} else {
 		assertf(fn.NumIn() == 1+start, "%v should have %v parameters, not %v", name, 1+start, fn.NumIn())
