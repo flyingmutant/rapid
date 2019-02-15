@@ -16,6 +16,20 @@
 
 - failure persistence
 
+## Generators
+
+- floats
+- times, durations, locations
+- complex numbers
+- big numbers
+- ip addresses & masks
+- deferred
+- subset-of-slice
+- permutation-of-slice
+- runes with rune/range blacklist
+- recursive (base + extend)
+- arbitrary(type)
+
 ## Shrinking
 
 - shrink duplicates together
@@ -57,20 +71,6 @@
 - more powerful assume/filter (look at what hypothesis is doing)
 - builtin go-fuzz integration
   - compare property-based testing with fuzzing in README
-
-## Generators
-
-- floats
-- times, durations, locations
-- complex numbers
-- big numbers
-- ip addresses & masks
-- deferred
-- subset-of-slice
-- permutation-of-slice
-- runes with rune/range blacklist
-- recursive (base + extend)
-- arbitrary(type)
 
 ## Wild ideas
 
