@@ -24,7 +24,7 @@ func tupleOf(fieldTypes []reflect.Type) reflect.Type {
 
 	for i, t := range fieldTypes {
 		fields[i] = reflect.StructField{
-			Name: fmt.Sprintf("%v%v", tupleFieldPrefix, i),
+			Name: fmt.Sprintf("%s%d", tupleFieldPrefix, i),
 			Type: t,
 		}
 	}

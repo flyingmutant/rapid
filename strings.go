@@ -427,7 +427,7 @@ func rangeTableName(t *unicode.RangeTable) string {
 	for c, m := range maps {
 		for k, v := range m {
 			if v == t {
-				return fmt.Sprintf("%v/%v", c, k)
+				return fmt.Sprintf("%s/%s", c, k)
 			}
 		}
 	}

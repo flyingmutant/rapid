@@ -147,7 +147,7 @@ func satisfy(filter func(Value) bool, gen func(bitStream) Value, s bitStream, tr
 	if stopMsg != "" {
 		panic(stopTest(stopMsg))
 	} else {
-		panic(invalidData(fmt.Sprintf("failed to satisfy filter in %v tries", tries)))
+		panic(invalidData(fmt.Sprintf("failed to satisfy filter in %d tries", tries)))
 	}
 }
 

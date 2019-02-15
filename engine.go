@@ -57,7 +57,7 @@ func assertf(ok bool, format string, args ...interface{}) {
 }
 
 func assertValidRange(min int, max int) {
-	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%v, %v]", min, max))
+	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%d, %d]", min, max))
 }
 
 // Assume marks the current test case as invalid if cond is false.
@@ -268,7 +268,7 @@ func (err *testError) Error() string {
 	}
 
 	if msg, ok := err.data.(invalidData); ok {
-		return fmt.Sprintf("invalid data: %v", msg)
+		return fmt.Sprintf("invalid data: %s", string(msg))
 	}
 
 	return fmt.Sprintf("%v", err.data)
@@ -298,7 +298,7 @@ func (err *testError) traceback() string {
 			skipRuntime = false
 		}
 		if !isRuntime || !skipRuntime {
-			lines = append(lines, fmt.Sprintf("    %v:%v in %v", f.File, f.Line, f.Function))
+			lines = append(lines, fmt.Sprintf("    %s:%d in %s", f.File, f.Line, f.Function))
 		}
 	}
 
