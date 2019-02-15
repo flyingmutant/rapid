@@ -145,7 +145,7 @@ func checkShrink(t *testing.T, prop func(*T), draws ...Value) {
 				t.Fatalf("shrink test did not fail")
 			}
 			if traceback(err1) != traceback(err2) {
-				t.Fatalf("flaky shrink test\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v", err2, traceback(err2), err1, traceback(err1))
+				t.Fatalf("flaky shrink test\nTraceback (%v):\n%vOriginal traceback (%v):\n%v", err2, traceback(err2), err1, traceback(err1))
 			}
 
 			_ = checkOnce(newT(t, newBufBitStream(buf, false), false, draws...), prop)

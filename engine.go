@@ -161,10 +161,10 @@ func checkTB(tb limitedTB, prop func(*T)) {
 			if err2.isStopTest() {
 				tb.Errorf("[rapid] failed after %v tests: %v\nFailed test output:", valid, err2)
 			} else {
-				tb.Errorf("[rapid] panic after %v tests: %v\nTraceback:\n%v\nFailed test output:", valid, err2, traceback(err2))
+				tb.Errorf("[rapid] panic after %v tests: %v\nTraceback:\n%vFailed test output:", valid, err2, traceback(err2))
 			}
 		} else {
-			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%v\nOriginal traceback (%v):\n%v\nFailed test output:", err2, traceback(err2), err1, traceback(err1))
+			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", err2, traceback(err2), err1, traceback(err1))
 		}
 
 		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
@@ -244,8 +244,8 @@ type invalidData string
 type stopTest string
 
 type testError struct {
-	data    interface{}
-	callers []uintptr
+	data      interface{}
+	traceback string
 }
 
 func panicToError(p interface{}, skip int) *testError {
@@ -255,10 +255,26 @@ func panicToError(p interface{}, skip int) *testError {
 
 	callers := make([]uintptr, tracebackLen)
 	callers = callers[:runtime.Callers(skip, callers)]
+	frames := runtime.CallersFrames(callers)
+
+	b := &strings.Builder{}
+	f, more, skipRuntime := runtime.Frame{}, true, true
+	for more && f.Function != tracebackStop {
+		f, more = frames.Next()
+
+		isRuntime := strings.HasPrefix(f.Function, "runtime.")
+		if !isRuntime {
+			skipRuntime = false
+		}
+		if !isRuntime || !skipRuntime {
+			_, err := fmt.Fprintf(b, "    %s:%d in %s\n", f.File, f.Line, f.Function)
+			assert(err == nil)
+		}
+	}
 
 	return &testError{
-		data:    p,
-		callers: callers,
+		data:      p,
+		traceback: b.String(),
 	}
 }
 
@@ -284,27 +300,6 @@ func (err *testError) isStopTest() bool {
 	return ok
 }
 
-func (err *testError) traceback() string {
-	frames := runtime.CallersFrames(err.callers)
-	skipRuntime := true
-	var lines []string
-
-	f, more := runtime.Frame{}, true
-	for more && f.Function != tracebackStop {
-		f, more = frames.Next()
-
-		isRuntime := strings.HasPrefix(f.Function, "runtime.")
-		if !isRuntime {
-			skipRuntime = false
-		}
-		if !isRuntime || !skipRuntime {
-			lines = append(lines, fmt.Sprintf("    %s:%d in %s", f.File, f.Line, f.Function))
-		}
-	}
-
-	return strings.Join(lines, "\n")
-}
-
 func sameError(err1 *testError, err2 *testError) bool {
 	return errorString(err1) == errorString(err2) && traceback(err1) == traceback(err2)
 }
@@ -319,10 +314,10 @@ func errorString(err *testError) string {
 
 func traceback(err *testError) string {
 	if err == nil {
-		return "    <no error>"
+		return "    <no error>\n"
 	}
 
-	return err.traceback()
+	return err.traceback
 }
 
 type limitedTB interface {
