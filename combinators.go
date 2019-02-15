@@ -73,12 +73,18 @@ type tupleGen struct {
 }
 
 func (g *tupleGen) String() string {
-	strs := make([]string, len(g.gens))
-	for i, g := range g.gens {
-		strs[i] = g.String()
-	}
+	b := &strings.Builder{}
 
-	return fmt.Sprintf("Tuple(%s)", strings.Join(strs, ", "))
+	b.WriteString("Tuple(")
+	for i, f := range g.gens {
+		b.WriteString(f.String())
+		if i != len(g.gens)-1 {
+			b.WriteString(", ")
+		}
+	}
+	b.WriteString(")")
+
+	return b.String()
 }
 
 func (g *tupleGen) type_() reflect.Type {
