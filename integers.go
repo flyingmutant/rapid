@@ -248,25 +248,25 @@ type integerGen struct {
 func (g *integerGen) String() string {
 	if g.hasMin && g.hasMax {
 		if g.signed {
-			return fmt.Sprintf("%vRange(%v, %v)", g.kind, g.smin, g.smax)
+			return fmt.Sprintf("%sRange(%d, %d)", g.kind, g.smin, g.smax)
 		} else {
-			return fmt.Sprintf("%vRange(%v, %v)", g.kind, g.umin, g.umax)
+			return fmt.Sprintf("%sRange(%d, %d)", g.kind, g.umin, g.umax)
 		}
 	} else if g.hasMin {
 		if g.signed {
-			return fmt.Sprintf("%vMin(%v)", g.kind, g.smin)
+			return fmt.Sprintf("%sMin(%d)", g.kind, g.smin)
 		} else {
-			return fmt.Sprintf("%vMin(%v)", g.kind, g.umin)
+			return fmt.Sprintf("%sMin(%d)", g.kind, g.umin)
 		}
 	} else if g.hasMax {
 		if g.signed {
-			return fmt.Sprintf("%vMax(%v)", g.kind, g.smax)
+			return fmt.Sprintf("%sMax(%d)", g.kind, g.smax)
 		} else {
-			return fmt.Sprintf("%vMax(%v)", g.kind, g.umax)
+			return fmt.Sprintf("%sMax(%d)", g.kind, g.umax)
 		}
 	}
 
-	return fmt.Sprintf("%v()", g.kind)
+	return fmt.Sprintf("%s()", g.kind)
 }
 
 func (g *integerGen) type_() reflect.Type {

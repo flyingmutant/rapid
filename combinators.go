@@ -78,7 +78,7 @@ func (g *tupleGen) String() string {
 		strs[i] = g.String()
 	}
 
-	return fmt.Sprintf("Tuple(%v)", strings.Join(strs, ", "))
+	return fmt.Sprintf("Tuple(%s)", strings.Join(strs, ", "))
 }
 
 func (g *tupleGen) type_() reflect.Type {
