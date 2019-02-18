@@ -27,21 +27,21 @@ func TestExp64Roundtrip(t *testing.T) {
 }
 
 func TestLexToFloat32Roundtrip(t *testing.T) {
-	Check(t, func(t *T, e uint32, m uint64) {
-		f := lexToFloat32(e, m)
-		e_, m_ := float32ToLex(f)
-		if e_ != e || m_ != m {
-			t.Fatalf("lex encoding roundtrip failed: (%v, %v) vs expected (%v, %v)", e_, m_, e, m)
+	Check(t, func(t *T, sign bool, e uint32, m uint64) {
+		f := lexToFloat32(sign, e, m)
+		sign_, e_, m_ := float32ToLex(f)
+		if sign_ != sign || e_ != e || m_ != m {
+			t.Fatalf("lex encoding roundtrip failed: (%v, %v, %v) vs expected (%v, %v, %v)", sign_, e_, m_, sign, e, m)
 		}
-	}, Uint32sMax(float32ExpMax), Uint64sMax(float32MantMax))
+	}, Booleans(), Uint32sMax(float32ExpMax), Uint64sMax(float32MantMax))
 }
 
 func TestLexToFloat64Roundtrip(t *testing.T) {
-	Check(t, func(t *T, e uint32, m uint64) {
-		f := lexToFloat64(e, m)
-		e_, m_ := float64ToLex(f)
-		if e_ != e || m_ != m {
-			t.Fatalf("lex encoding roundtrip failed: (%v, %v) vs expected (%v, %v)", e_, m_, e, m)
+	Check(t, func(t *T, sign bool, e uint32, m uint64) {
+		f := lexToFloat64(sign, e, m)
+		sign_, e_, m_ := float64ToLex(f)
+		if sign_ != sign || e_ != e || m_ != m {
+			t.Fatalf("lex encoding roundtrip failed: (%v, %v, %v) vs expected (%v, %v, %v)", sign_, e_, m_, sign, e, m)
 		}
-	}, Uint32sMax(float64ExpMax), Uint64sMax(float64MantMax))
+	}, Booleans(), Uint32sMax(float64ExpMax), Uint64sMax(float64MantMax))
 }

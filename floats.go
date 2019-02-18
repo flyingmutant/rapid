@@ -94,28 +94,38 @@ func transformMant64(e uint32, m uint64) uint64 {
 	return transformMant(e, float64ExpBias, float64MantBits, m)
 }
 
-func float32ToLex(f float32) (uint32, uint64) {
-	u := math.Float32bits(f) & math.MaxInt32
+func float32ToLex(f float32) (bool, uint32, uint64) {
+	i := math.Float32bits(f)
+	u := i & math.MaxInt32
 	e := uint32(u >> float32MantBits)
 	m := uint64(u & float32MantMax)
-	return encodeExp32(e), transformMant32(e, m)
+	return i&(1<<31) != 0, encodeExp32(e), transformMant32(e, m)
 }
 
-func float64ToLex(f float64) (uint32, uint64) {
-	u := math.Float64bits(f) & math.MaxInt64
+func float64ToLex(f float64) (bool, uint32, uint64) {
+	i := math.Float64bits(f)
+	u := i & math.MaxInt64
 	e := uint32(u >> float64MantBits)
 	m := uint64(u & float64MantMax)
-	return encodeExp64(e), transformMant64(e, m)
+	return i&(1<<63) != 0, encodeExp64(e), transformMant64(e, m)
 }
 
-func lexToFloat32(e uint32, m uint64) float32 {
+func lexToFloat32(sign bool, e uint32, m uint64) float32 {
 	e = decodeExp32(e & float32ExpMax)
 	m = transformMant32(e, m&float32MantMax)
-	return math.Float32frombits(e<<float32MantBits | uint32(m))
+	u := e<<float32MantBits | uint32(m)
+	if sign {
+		u |= 1 << 31
+	}
+	return math.Float32frombits(u)
 }
 
-func lexToFloat64(e uint32, m uint64) float64 {
+func lexToFloat64(sign bool, e uint32, m uint64) float64 {
 	e = decodeExp64(e & float64ExpMax)
 	m = transformMant64(e, m&float64MantMax)
-	return math.Float64frombits(uint64(e)<<float64MantBits | m)
+	u := uint64(e)<<float64MantBits | m
+	if sign {
+		u |= 1 << 63
+	}
+	return math.Float64frombits(u)
 }
