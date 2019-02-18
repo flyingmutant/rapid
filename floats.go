@@ -136,24 +136,24 @@ func lexToFloat64(sign bool, e uint32, m uint64) float64 {
 
 func Float32s() *Generator {
 	return newGenerator(&floatGen{
-		typ:      float32Type,
-		expBits:  float32ExpBits,
-		mantBits: float32MantBits,
+		typ:     float32Type,
+		maxExp:  float32ExpMax,
+		maxMant: float32MantMax,
 	})
 }
 
 func Float64s() *Generator {
 	return newGenerator(&floatGen{
-		typ:      float64Type,
-		expBits:  float64ExpBits,
-		mantBits: float64MantBits,
+		typ:     float64Type,
+		maxExp:  float64ExpMax,
+		maxMant: float64MantMax,
 	})
 }
 
 type floatGen struct {
-	typ      reflect.Type
-	expBits  int
-	mantBits int
+	typ     reflect.Type
+	maxExp  uint32
+	maxMant uint64
 }
 
 func (g *floatGen) String() string {
@@ -170,8 +170,8 @@ func (g *floatGen) type_() reflect.Type {
 
 func (g *floatGen) value(s bitStream) Value {
 	var (
-		e    = s.drawBits(g.expBits)
-		m    = s.drawBits(g.mantBits)
+		e    = genUintN(s, uint64(g.maxExp), true)
+		m    = genUintN(s, g.maxMant, false)
 		sign = s.drawBits(1)
 	)
 
