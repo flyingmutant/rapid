@@ -7,6 +7,7 @@ package rapid
 import (
 	"math"
 	"math/bits"
+	"reflect"
 	"sort"
 )
 
@@ -25,6 +26,9 @@ const (
 )
 
 var (
+	float32Type = reflect.TypeOf(float32(0))
+	float64Type = reflect.TypeOf(float64(0))
+
 	float32ExpEnc [float32ExpMax + 1]uint32
 	float32ExpDec [float32ExpMax + 1]uint32
 
@@ -128,4 +132,52 @@ func lexToFloat64(sign bool, e uint32, m uint64) float64 {
 		u |= 1 << 63
 	}
 	return math.Float64frombits(u)
+}
+
+func Float32s() *Generator {
+	return newGenerator(&floatGen{
+		typ:      float32Type,
+		expBits:  float32ExpBits,
+		mantBits: float32MantBits,
+	})
+}
+
+func Float64s() *Generator {
+	return newGenerator(&floatGen{
+		typ:      float64Type,
+		expBits:  float64ExpBits,
+		mantBits: float64MantBits,
+	})
+}
+
+type floatGen struct {
+	typ      reflect.Type
+	expBits  int
+	mantBits int
+}
+
+func (g *floatGen) String() string {
+	if g.typ == float32Type {
+		return "Float32s()"
+	} else {
+		return "Float64s()"
+	}
+}
+
+func (g *floatGen) type_() reflect.Type {
+	return g.typ
+}
+
+func (g *floatGen) value(s bitStream) Value {
+	var (
+		e    = s.drawBits(g.expBits)
+		m    = s.drawBits(g.mantBits)
+		sign = s.drawBits(1)
+	)
+
+	if g.typ == float32Type {
+		return lexToFloat32(sign == 1, uint32(e), m)
+	} else {
+		return lexToFloat64(sign == 1, uint32(e), m)
+	}
 }
