@@ -29,12 +29,13 @@ func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]ui
 	rec.prune()
 
 	s := &shrinker{
-		tb:    tb,
-		rec:   rec,
-		err:   err,
-		prop:  prop,
-		tries: map[string]int{},
-		cache: map[string]struct{}{},
+		tb:      tb,
+		rec:     rec,
+		err:     err,
+		prop:    prop,
+		visBits: []recordedBits{rec},
+		tries:   map[string]int{},
+		cache:   map[string]struct{}{},
 	}
 
 	buf, err := s.shrink()
