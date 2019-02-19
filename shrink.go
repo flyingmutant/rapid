@@ -40,7 +40,7 @@ func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]ui
 	buf, err := s.shrink()
 
 	if *debugvis {
-		name := fmt.Sprintf("vis-%v.html", tb.Name())
+		name := fmt.Sprintf("vis-%v.html", strings.Replace(tb.Name(), "/", "_", -1))
 		f, err := os.Create(name)
 		if err != nil {
 			tb.Logf("failed to create debugvis file %v: %v", name, err)
