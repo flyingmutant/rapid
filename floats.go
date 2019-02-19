@@ -5,6 +5,7 @@
 package rapid
 
 import (
+	"fmt"
 	"math"
 	"math/bits"
 	"reflect"
@@ -23,6 +24,9 @@ const (
 	float64ExpBias  = 1<<(float64ExpBits-1) - 1
 	float64MantBits = 52
 	float64MantMax  = 1<<float64MantBits - 1
+
+	floatGenTries    = 100
+	failedToGenFloat = "failed to generate suitable floating-point number"
 )
 
 var (
@@ -135,32 +139,54 @@ func lexToFloat64(sign bool, e uint32, m uint64) float64 {
 }
 
 func Float32s() *Generator {
-	return newGenerator(&floatGen{
-		typ:     float32Type,
-		maxExp:  float32ExpMax,
-		maxMant: float32MantMax,
-	})
+	return Float32sEx(false, false)
 }
 
 func Float64s() *Generator {
+	return Float64sEx(false, false)
+}
+
+func Float32sEx(allowInf bool, allowNan bool) *Generator {
 	return newGenerator(&floatGen{
-		typ:     float64Type,
-		maxExp:  float64ExpMax,
-		maxMant: float64MantMax,
+		typ:      float32Type,
+		maxExp:   float32ExpMax,
+		maxMant:  float32MantMax,
+		allowInf: allowInf,
+		allowNan: allowNan,
+	})
+}
+
+func Float64sEx(allowInf bool, allowNan bool) *Generator {
+	return newGenerator(&floatGen{
+		typ:      float64Type,
+		maxExp:   float64ExpMax,
+		maxMant:  float64MantMax,
+		allowInf: allowInf,
+		allowNan: allowNan,
 	})
 }
 
 type floatGen struct {
-	typ     reflect.Type
-	maxExp  uint32
-	maxMant uint64
+	typ      reflect.Type
+	maxExp   uint32
+	maxMant  uint64
+	allowInf bool
+	allowNan bool
 }
 
 func (g *floatGen) String() string {
 	if g.typ == float32Type {
-		return "Float32s()"
+		if !g.allowInf && !g.allowNan {
+			return "Float32s()"
+		} else {
+			return fmt.Sprintf("Float32sEx(allowInf=%v, allowNan=%v)", g.allowInf, g.allowNan)
+		}
 	} else {
-		return "Float64s()"
+		if !g.allowInf && !g.allowNan {
+			return "Float64s()"
+		} else {
+			return fmt.Sprintf("Float64sEx(allowInf=%v, allowNan=%v)", g.allowInf, g.allowNan)
+		}
 	}
 }
 
@@ -169,6 +195,35 @@ func (g *floatGen) type_() reflect.Type {
 }
 
 func (g *floatGen) value(s bitStream) Value {
+	var cond func(Value) bool
+	if g.typ == float32Type {
+		cond = func(v Value) bool {
+			f := v.(float32)
+			if !g.allowInf && (f < -math.MaxFloat32 || f > math.MaxFloat32) {
+				return false
+			}
+			if !g.allowNan && f != f {
+				return false
+			}
+			return true
+		}
+	} else {
+		cond = func(v Value) bool {
+			f := v.(float64)
+			if !g.allowInf && (f < -math.MaxFloat64 || f > math.MaxFloat64) {
+				return false
+			}
+			if !g.allowNan && f != f {
+				return false
+			}
+			return true
+		}
+	}
+
+	return satisfy(cond, g.value_, s, floatGenTries, failedToGenFloat)
+}
+
+func (g *floatGen) value_(s bitStream) Value {
 	var (
 		e    = genUintN(s, uint64(g.maxExp), true)
 		m    = genUintN(s, g.maxMant, false)

@@ -19,6 +19,8 @@
 ## Generators
 
 - floats
+  - actually generate inf/nan with decent probability when allowed
+  - bounded generators, similar to bounded signed integers
 - times, durations, locations
 - complex numbers
 - big numbers
