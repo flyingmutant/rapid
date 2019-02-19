@@ -9,21 +9,20 @@ import (
 	"math"
 	"math/bits"
 	"reflect"
-	"sort"
 )
 
 const (
 	float32ExpBits  = 8
-	float32ExpMax   = 1<<float32ExpBits - 1
+	float32ExpMask  = 1<<float32ExpBits - 1
 	float32ExpBias  = 1<<(float32ExpBits-1) - 1
 	float32MantBits = 23
-	float32MantMax  = 1<<float32MantBits - 1
+	float32MantMask = 1<<float32MantBits - 1
 
 	float64ExpBits  = 11
-	float64ExpMax   = 1<<float64ExpBits - 1
+	float64ExpMask  = 1<<float64ExpBits - 1
 	float64ExpBias  = 1<<(float64ExpBits-1) - 1
 	float64MantBits = 52
-	float64MantMax  = 1<<float64MantBits - 1
+	float64MantMask = 1<<float64MantBits - 1
 
 	floatGenTries    = 100
 	failedToGenFloat = "failed to generate suitable floating-point number"
@@ -32,46 +31,7 @@ const (
 var (
 	float32Type = reflect.TypeOf(float32(0))
 	float64Type = reflect.TypeOf(float64(0))
-
-	float32ExpEnc [float32ExpMax + 1]uint32
-	float32ExpDec [float32ExpMax + 1]uint32
-
-	float64ExpEnc [float64ExpMax + 1]uint32
-	float64ExpDec [float64ExpMax + 1]uint32
 )
-
-func init() {
-	fillFloatTables(float32ExpEnc[:], float32ExpDec[:], float32ExpMax, float32ExpBias)
-	fillFloatTables(float64ExpEnc[:], float64ExpDec[:], float64ExpMax, float64ExpBias)
-}
-
-func fillFloatTables(enc []uint32, dec []uint32, maxE uint32, bias uint32) {
-	for e := uint32(0); e <= maxE; e++ {
-		enc[e] = e
-	}
-
-	sort.Slice(enc, func(i, j int) bool { return floatExpKey(enc[i], maxE, bias) < floatExpKey(enc[j], maxE, bias) })
-
-	for i, e := range enc {
-		dec[e] = uint32(i)
-	}
-}
-
-func floatExpKey(e uint32, maxE uint32, bias uint32) uint32 {
-	if e == maxE {
-		return math.MaxInt32
-	}
-	if e < bias {
-		return math.MaxInt32/2 - e
-	} else {
-		return e
-	}
-}
-
-func encodeExp32(e uint32) uint32 { return float32ExpDec[e] }
-func decodeExp32(e uint32) uint32 { return float32ExpEnc[e] }
-func encodeExp64(e uint32) uint32 { return float64ExpDec[e] }
-func decodeExp64(e uint32) uint32 { return float64ExpEnc[e] }
 
 func reverseBits(x uint64, n uint) uint64 {
 	assert(n <= 64 && bits.Len64(x) <= int(n))
@@ -106,21 +66,21 @@ func float32ToLex(f float32) (bool, uint32, uint64) {
 	i := math.Float32bits(f)
 	u := i & math.MaxInt32
 	e := uint32(u >> float32MantBits)
-	m := uint64(u & float32MantMax)
-	return i&(1<<31) != 0, encodeExp32(e), transformMant32(e, m)
+	m := uint64(u & float32MantMask)
+	return i&(1<<31) != 0, e, transformMant32(e, m)
 }
 
 func float64ToLex(f float64) (bool, uint32, uint64) {
 	i := math.Float64bits(f)
 	u := i & math.MaxInt64
 	e := uint32(u >> float64MantBits)
-	m := uint64(u & float64MantMax)
-	return i&(1<<63) != 0, encodeExp64(e), transformMant64(e, m)
+	m := uint64(u & float64MantMask)
+	return i&(1<<63) != 0, e, transformMant64(e, m)
 }
 
 func lexToFloat32(sign bool, e uint32, m uint64) float32 {
-	e = decodeExp32(e & float32ExpMax)
-	m = transformMant32(e, m&float32MantMax)
+	e = e & float32ExpMask
+	m = transformMant32(e, m&float32MantMask)
 	u := e<<float32MantBits | uint32(m)
 	if sign {
 		u |= 1 << 31
@@ -129,8 +89,8 @@ func lexToFloat32(sign bool, e uint32, m uint64) float32 {
 }
 
 func lexToFloat64(sign bool, e uint32, m uint64) float64 {
-	e = decodeExp64(e & float64ExpMax)
-	m = transformMant64(e, m&float64MantMax)
+	e = e & float64ExpMask
+	m = transformMant64(e, m&float64MantMask)
 	u := uint64(e)<<float64MantBits | m
 	if sign {
 		u |= 1 << 63
@@ -149,8 +109,9 @@ func Float64s() *Generator {
 func Float32sEx(allowInf bool, allowNan bool) *Generator {
 	return newGenerator(&floatGen{
 		typ:      float32Type,
-		maxExp:   float32ExpMax,
-		maxMant:  float32MantMax,
+		minExp:   -float32ExpBias,
+		maxExp:   float32ExpBias + 1,
+		maxMant:  float32MantMask,
 		allowInf: allowInf,
 		allowNan: allowNan,
 	})
@@ -159,8 +120,9 @@ func Float32sEx(allowInf bool, allowNan bool) *Generator {
 func Float64sEx(allowInf bool, allowNan bool) *Generator {
 	return newGenerator(&floatGen{
 		typ:      float64Type,
-		maxExp:   float64ExpMax,
-		maxMant:  float64MantMax,
+		minExp:   -float64ExpBias,
+		maxExp:   float64ExpBias + 1,
+		maxMant:  float64MantMask,
 		allowInf: allowInf,
 		allowNan: allowNan,
 	})
@@ -168,7 +130,8 @@ func Float64sEx(allowInf bool, allowNan bool) *Generator {
 
 type floatGen struct {
 	typ      reflect.Type
-	maxExp   uint32
+	minExp   int32
+	maxExp   int32
 	maxMant  uint64
 	allowInf bool
 	allowNan bool
@@ -225,14 +188,14 @@ func (g *floatGen) value(s bitStream) Value {
 
 func (g *floatGen) value_(s bitStream) Value {
 	var (
-		e    = genUintN(s, uint64(g.maxExp), true)
+		e    = genIntRange(s, int64(g.minExp), int64(g.maxExp), true)
 		m    = genUintN(s, g.maxMant, false)
 		sign = s.drawBits(1)
 	)
 
 	if g.typ == float32Type {
-		return lexToFloat32(sign == 1, uint32(e), m)
+		return lexToFloat32(sign == 1, uint32(float32ExpBias+e), m)
 	} else {
-		return lexToFloat64(sign == 1, uint32(e), m)
+		return lexToFloat64(sign == 1, uint32(float64ExpBias+e), m)
 	}
 }
