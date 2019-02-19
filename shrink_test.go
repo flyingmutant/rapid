@@ -47,6 +47,22 @@ func TestShrink_NegIntGt(t *testing.T) {
 	}, Ints()), pack(0))
 }
 
+func TestShrink_NegFloatLe(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, f float64) {
+		if f <= 0 {
+			t.Fail()
+		}
+	}, Float64s()), pack(-1.0))
+}
+
+func TestShrink_NegFloatGt(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, f float64) {
+		if f > -1000000 {
+			t.Fail()
+		}
+	}, Float64s()), pack(1.0))
+}
+
 func TestShrink_IntSliceNElemsGt(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s []int) {
 		n := 0
