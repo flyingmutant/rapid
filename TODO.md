@@ -34,6 +34,7 @@
 
 ## Shrinking
 
+- use fewer bits for genFloat01 to make shrinking a bit faster
 - shrink duplicates together
   - generalize to arbitrary "offsets" for pairs
 - not all value groups are standalone!
@@ -59,6 +60,8 @@
 - non-greedy shrink
   - allow to increase the data size *between shrink passes*, if the net result is good
   - e.g. allow sort to do arbitrary? swaps
+- rejection sampling during shrinking leads to data misalignment, is this a problem?
+  - can we detect overruns early and re-roll only the last part of the bitstream?
 
 ## Misc
 
