@@ -15,7 +15,7 @@ import (
 
 const shrinkTestRuns = 10
 
-func TestShrink_Trivial(t *testing.T) {
+func TestShrink_IntGt(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, i int) {
 		if i > 1000000 {
 			t.Fail()
@@ -23,7 +23,7 @@ func TestShrink_Trivial(t *testing.T) {
 	}, Ints()), pack(1000001))
 }
 
-func TestShrink_NegativeLt(t *testing.T) {
+func TestShrink_NegIntLt(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, i int) {
 		if i < -1000000 {
 			t.Fail()
@@ -31,7 +31,7 @@ func TestShrink_NegativeLt(t *testing.T) {
 	}, Ints()), pack(-1000001))
 }
 
-func TestShrink_NegativeLe(t *testing.T) {
+func TestShrink_NegIntLe(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, i int) {
 		if i <= 0 {
 			t.Fail()
@@ -39,7 +39,7 @@ func TestShrink_NegativeLe(t *testing.T) {
 	}, Ints()), pack(0))
 }
 
-func TestShrink_NegativeGt(t *testing.T) {
+func TestShrink_NegIntGt(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, i int) {
 		if i > -1000000 {
 			t.Fail()
@@ -47,7 +47,7 @@ func TestShrink_NegativeGt(t *testing.T) {
 	}, Ints()), pack(0))
 }
 
-func TestShrink_CollectionElements(t *testing.T) {
+func TestShrink_IntSliceNElemsGt(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s []int) {
 		n := 0
 		for _, i := range s {
@@ -61,7 +61,7 @@ func TestShrink_CollectionElements(t *testing.T) {
 	}, SlicesOf(Ints())), pack([]int{1000001, 1000001}))
 }
 
-func TestShrink_CollectionIndex(t *testing.T) {
+func TestShrink_IntSliceElemGe(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s []int) {
 		ix := t.Draw(IntsRange(0, len(s)-1), "ix").(int)
 
@@ -72,7 +72,7 @@ func TestShrink_CollectionIndex(t *testing.T) {
 	}, SlicesOfN(Ints(), 1, -1)), pack([]int{100}), 0)
 }
 
-func TestShrink_CollectionSpan(t *testing.T) {
+func TestShrink_IntSliceElemSpanGe(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s []int) {
 		if len(s)%3 == 1 && s[len(s)-1] >= 100 {
 			t.Fail()
@@ -80,7 +80,7 @@ func TestShrink_CollectionSpan(t *testing.T) {
 	}, SlicesOfN(Ints(), 4, -1)), pack([]int{0, 0, 0, 100}))
 }
 
-func TestShrink_Sort(t *testing.T) {
+func TestShrink_IntSliceNoDuplicates(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s []int) {
 		sort.Ints(s)
 		last := 0
