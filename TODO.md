@@ -34,6 +34,14 @@
 
 ## Shrinking
 
+- just like we have lower+delete pass to deal with situations like generation/sampling, we need to have a pass for choice
+  - idea: lower (the "choice" block) + fill some region with random data
+  - to try to reproduce with a simpler choice
+  - this should work both OneOf and floats (where exponent is kind of a OneOf key)
+  - questions:
+    - how to deal with misalignment?
+    - how to determine the group to randomize?
+      - e.g. right now for floats it is not an explicit group but rather a bunch of nearby blocks 
 - use fewer bits for genFloat01 to make shrinking a bit faster
 - shrink duplicates together
   - generalize to arbitrary "offsets" for pairs
