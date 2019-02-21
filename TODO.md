@@ -45,6 +45,8 @@
 - use fewer bits for genFloat01 to make shrinking a bit faster
 - shrink duplicates together
   - generalize to arbitrary "offsets" for pairs
+- better caching
+  - detect when we are generating already generated values and abort early
 - not all value groups are standalone!
   - standalone might be too coarse, maybe should be replaced with a bunch of other traits
 - we are doing too much prop evaluations
@@ -70,6 +72,9 @@
   - e.g. allow sort to do arbitrary? swaps
 - rejection sampling during shrinking leads to data misalignment, is this a problem?
   - can we detect overruns early and re-roll only the last part of the bitstream?
+- maybe overwrite bitstream instead of prune?
+  - to never have an un-pruned version
+  - to guarantee? that we can draw values successfully while shrinking (working with bufBitStream)
 
 ## Misc
 
@@ -84,6 +89,7 @@
 - more powerful assume/filter (look at what hypothesis is doing)
 - builtin go-fuzz integration
   - compare property-based testing with fuzzing in README
+- incorporate special case checking (bounds esp.)
 
 ## Wild ideas
 
