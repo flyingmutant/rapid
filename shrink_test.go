@@ -48,15 +48,19 @@ func TestShrink_NegIntGt(t *testing.T) {
 }
 
 func TestShrink_FloatGt(t *testing.T) {
-	if !*flaky {
-		t.Skip() // TODO
-	}
-
 	checkShrink(t, Bind(func(t *T, f float64) {
 		if f > 1000000 {
 			t.Fail()
 		}
 	}, Float64s()), pack(1000000.5))
+}
+
+func TestShrink_NegFloatLt(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, f float64) {
+		if f < -1000000 {
+			t.Fail()
+		}
+	}, Float64s()), pack(-1000000.5))
 }
 
 func TestShrink_NegFloatLe(t *testing.T) {

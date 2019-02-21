@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	labelLowerFloatExponent  = "lower_exponent"
+	labelLowerFloatExponent  = "lower_float_exponent"
+	labelLowerFloatInteger   = "lower_float_integer"
 	labelMinBlockBinSearch   = "minblock_binsearch"
 	labelMinBlockShift       = "minblock_shift"
 	labelMinBlockSort        = "minblock_sort"
@@ -93,10 +94,10 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 		s.debugf(false, "round %v start", i)
 		s.removeGroups(deadline)
 		s.minimizeBlocks(deadline)
-		s.lowerFloatExponentHack(deadline)
 
 		if s.shrinks == shrinks {
 			s.debugf(false, "trying expensive algorithms for round %v", i)
+			s.lowerFloatHack(deadline)
 			s.removeGroupsAndLower(deadline)
 			s.sortGroups(deadline)
 			s.removeGroupSpans(deadline)
@@ -135,7 +136,7 @@ func (s *shrinker) minimizeBlocks(deadline time.Time) {
 	}
 }
 
-func (s *shrinker) lowerFloatExponentHack(deadline time.Time) {
+func (s *shrinker) lowerFloatHack(deadline time.Time) {
 	for i := 0; i < len(s.rec.groups) && time.Now().Before(deadline); i++ {
 		g := s.rec.groups[i]
 		if !g.standalone || g.end != g.begin+7 {
@@ -145,10 +146,15 @@ func (s *shrinker) lowerFloatExponentHack(deadline time.Time) {
 		buf := append([]uint64(nil), s.rec.data...)
 		buf[g.begin+2] -= 1
 		buf[g.begin+3] = math.MaxUint64
+
+		s.accept(buf, labelLowerFloatExponent, "lower float exponent of group %q at %v to %v", g.label, i, buf[g.begin+2])
+
+		buf = append([]uint64(nil), s.rec.data...)
+		buf[g.begin+3] -= 1
 		buf[g.begin+4] = math.MaxUint64
 		buf[g.begin+5] = math.MaxUint64
 
-		s.accept(buf, labelLowerFloatExponent, "lower float exponent of group %q at %v to %v", g.label, i, buf[g.begin+2])
+		s.accept(buf, labelLowerFloatInteger, "lower float integer of group %q at %v to %v", g.label, i, buf[g.begin+3])
 	}
 }
 
