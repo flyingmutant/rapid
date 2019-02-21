@@ -14,12 +14,10 @@ const (
 	float32ExpBits  = 8
 	float32ExpBias  = 1<<(float32ExpBits-1) - 1
 	float32MantBits = 23
-	float32MantMask = 1<<float32MantBits - 1
 
 	float64ExpBits  = 11
 	float64ExpBias  = 1<<(float64ExpBits-1) - 1
 	float64MantBits = 52
-	float64MantMask = 1<<float64MantBits - 1
 
 	floatGenTries    = 100
 	failedToGenFloat = "failed to generate suitable floating-point number"
