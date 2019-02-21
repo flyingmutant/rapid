@@ -7,7 +7,6 @@ package rapid
 import (
 	"fmt"
 	"math"
-	"math/bits"
 	"reflect"
 )
 
@@ -44,7 +43,7 @@ func Float32sEx(allowInf bool, allowNan bool) *Generator {
 		typ:      float32Type,
 		minExp:   -float32ExpBias,
 		maxExp:   float32ExpBias + 1,
-		maxMant:  float32MantMask,
+		mantBits: float32MantBits,
 		maxVal:   math.MaxFloat32,
 		allowInf: allowInf,
 		allowNan: allowNan,
@@ -56,7 +55,7 @@ func Float64sEx(allowInf bool, allowNan bool) *Generator {
 		typ:      float64Type,
 		minExp:   -float64ExpBias,
 		maxExp:   float64ExpBias + 1,
-		maxMant:  float64MantMask,
+		mantBits: float64MantBits,
 		maxVal:   math.MaxFloat64,
 		allowInf: allowInf,
 		allowNan: allowNan,
@@ -67,7 +66,7 @@ type floatGen struct {
 	typ      reflect.Type
 	minExp   int32
 	maxExp   int32
-	maxMant  uint64
+	mantBits uint
 	maxVal   float64
 	allowInf bool
 	allowNan bool
@@ -107,13 +106,20 @@ func (g *floatGen) value(s bitStream) Value {
 }
 
 func (g *floatGen) value_(s bitStream) Value {
-	var (
-		e    = genIntRange(s, int64(g.minExp), int64(g.maxExp), true)
-		m    = genUintN(s, g.maxMant, true)
-		sign = s.drawBits(1)
-	)
+	e := genIntRange(s, int64(g.minExp), int64(g.maxExp), true)
 
-	m <<= uint(bits.Len64(g.maxMant) - bits.Len64(m))
+	fracBits := uint(0)
+	if e <= 0 {
+		fracBits = g.mantBits
+	} else if uint(e) < g.mantBits {
+		fracBits = g.mantBits - uint(e)
+	}
+
+	m1 := genUintN(s, uint64(1<<uint(g.mantBits-fracBits)-1), false)
+	m2, m2w := genUintNWidth(s, uint64(1<<uint(fracBits)-1), true)
+	sign := s.drawBits(1)
+
+	m := m1<<fracBits | m2<<(fracBits-uint(m2w))
 
 	if g.typ == float32Type {
 		return math.Float32frombits(uint32(sign)<<31 | uint32(e+float32ExpBias)<<float32MantBits | uint32(m))
