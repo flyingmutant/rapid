@@ -5,6 +5,7 @@
 package rapid
 
 import (
+	"fmt"
 	"math"
 	"math/bits"
 	"reflect"
@@ -15,84 +16,57 @@ import (
 
 const shrinkTestRuns = 10
 
-func TestShrink_IntGt(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, i int) {
-		if i > 1000000 {
-			t.Fail()
-		}
-	}, Ints()), pack(1000001))
+func TestShrink_IntCmp(t *testing.T) {
+	ref := []struct {
+		gt bool
+		a  int
+		b  int
+		eq bool
+	}{
+		{true, 1000000, 1000001, false},
+		{true, -1000000, 0, false},
+		{true, 0, 0, true},
+		{false, 1000000, 0, false},
+		{false, -1000000, -1000001, false},
+		{false, 0, 0, true},
+	}
+
+	for _, r := range ref {
+		t.Run(fmt.Sprintf("%v", r), func(t *testing.T) {
+			checkShrink(t, Bind(func(t *T, i int) {
+				if ((r.gt && i > r.a) || (!r.gt && i < r.a)) || (r.eq && i == r.a) {
+					t.Fail()
+				}
+			}, Ints()), pack(r.b))
+		})
+	}
 }
 
-func TestShrink_NegIntLt(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, i int) {
-		if i < -1000000 {
-			t.Fail()
-		}
-	}, Ints()), pack(-1000001))
-}
+func TestShrink_FloatCmp(t *testing.T) {
+	ref := []struct {
+		gt bool
+		a  float64
+		b  float64
+		eq bool
+	}{
+		{true, 1000000, 1000000.5, false},
+		{true, math.Pi, 3.5, false},
+		{true, 1, 1, true},
+		{true, -1000000, 1, false},
+		{false, -1000000, -1000000.5, false},
+		{false, -math.E, -2.75, false},
+		{false, 0, -1, true},
+	}
 
-func TestShrink_NegIntLe(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, i int) {
-		if i <= 0 {
-			t.Fail()
-		}
-	}, Ints()), pack(0))
-}
-
-func TestShrink_NegIntGt(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, i int) {
-		if i > -1000000 {
-			t.Fail()
-		}
-	}, Ints()), pack(0))
-}
-
-func TestShrink_FloatGt(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, f float64) {
-		if f > 1000000 {
-			t.Fail()
-		}
-	}, Float64s()), pack(1000000.5))
-}
-
-func TestShrink_FloatGtF(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, f float64) {
-		if f > math.Pi {
-			t.Fail()
-		}
-	}, Float64s()), pack(3.5))
-}
-
-func TestShrink_NegFloatLt(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, f float64) {
-		if f < -1000000 {
-			t.Fail()
-		}
-	}, Float64s()), pack(-1000000.5))
-}
-
-func TestShrink_NegFloatLtF(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, f float64) {
-		if f < -math.E {
-			t.Fail()
-		}
-	}, Float64s()), pack(-2.75))
-}
-
-func TestShrink_NegFloatLe(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, f float64) {
-		if f <= 0 {
-			t.Fail()
-		}
-	}, Float64s()), pack(-1.0))
-}
-
-func TestShrink_NegFloatGt(t *testing.T) {
-	checkShrink(t, Bind(func(t *T, f float64) {
-		if f > -1000000 {
-			t.Fail()
-		}
-	}, Float64s()), pack(1.0))
+	for _, r := range ref {
+		t.Run(fmt.Sprintf("%v", r), func(t *testing.T) {
+			checkShrink(t, Bind(func(t *T, f float64) {
+				if ((r.gt && f > r.a) || (!r.gt && f < r.a)) || (r.eq && f == r.a) {
+					t.Fail()
+				}
+			}, Float64s()), pack(r.b))
+		})
+	}
 }
 
 func TestShrink_IntSliceNElemsGt(t *testing.T) {
