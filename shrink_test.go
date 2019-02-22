@@ -55,12 +55,28 @@ func TestShrink_FloatGt(t *testing.T) {
 	}, Float64s()), pack(1000000.5))
 }
 
+func TestShrink_FloatGtF(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, f float64) {
+		if f > math.Pi {
+			t.Fail()
+		}
+	}, Float64s()), pack(3.5))
+}
+
 func TestShrink_NegFloatLt(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, f float64) {
 		if f < -1000000 {
 			t.Fail()
 		}
 	}, Float64s()), pack(-1000000.5))
+}
+
+func TestShrink_NegFloatLtF(t *testing.T) {
+	checkShrink(t, Bind(func(t *T, f float64) {
+		if f < -math.E {
+			t.Fail()
+		}
+	}, Float64s()), pack(-2.75))
 }
 
 func TestShrink_NegFloatLe(t *testing.T) {
