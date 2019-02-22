@@ -11,14 +11,14 @@ import (
 )
 
 const (
-	float32MantBits = 23
+	float32SignifBits = 23
 
-	float64ExpBits  = 11
-	float64ExpBias  = 1<<(float64ExpBits-1) - 1
-	float64MantBits = 52
+	float64ExpBits    = 11
+	float64ExpBias    = 1<<(float64ExpBits-1) - 1
+	float64SignifBits = 52
 
-	floatExpLabel  = "floatexp"
-	floatMantLabel = "floatmant"
+	floatExpLabel    = "floatexp"
+	floatSignifLabel = "floatsignif"
 
 	floatGenTries    = 100
 	failedToGenFloat = "failed to generate suitable floating-point number"
@@ -39,30 +39,30 @@ func Float64s() *Generator {
 
 func Float32sEx(allowInf bool, allowNan bool) *Generator {
 	return newGenerator(&floatGen{
-		typ:      float32Type,
-		mantBits: float32MantBits,
-		maxVal:   math.MaxFloat32,
-		allowInf: allowInf,
-		allowNan: allowNan,
+		typ:        float32Type,
+		signifBits: float32SignifBits,
+		maxVal:     math.MaxFloat32,
+		allowInf:   allowInf,
+		allowNan:   allowNan,
 	})
 }
 
 func Float64sEx(allowInf bool, allowNan bool) *Generator {
 	return newGenerator(&floatGen{
-		typ:      float64Type,
-		mantBits: float64MantBits,
-		maxVal:   math.MaxFloat64,
-		allowInf: allowInf,
-		allowNan: allowNan,
+		typ:        float64Type,
+		signifBits: float64SignifBits,
+		maxVal:     math.MaxFloat64,
+		allowInf:   allowInf,
+		allowNan:   allowNan,
 	})
 }
 
 type floatGen struct {
-	typ      reflect.Type
-	mantBits uint
-	maxVal   float64
-	allowInf bool
-	allowNan bool
+	typ        reflect.Type
+	signifBits uint
+	maxVal     float64
+	allowInf   bool
+	allowNan   bool
 }
 
 func (g *floatGen) String() string {
@@ -99,7 +99,7 @@ func (g *floatGen) value(s bitStream) Value {
 }
 
 func (g *floatGen) value_(s bitStream) Value {
-	f := genUfloatRange(s, 0, g.maxVal, g.mantBits)
+	f := genUfloatRange(s, 0, g.maxVal, g.signifBits)
 
 	sign := s.drawBits(1)
 	if sign == 1 {
@@ -114,11 +114,11 @@ func (g *floatGen) value_(s bitStream) Value {
 }
 
 func ufloatExp(f float64) int32 {
-	return int32(math.Float64bits(f)>>float64MantBits) - float64ExpBias
+	return int32(math.Float64bits(f)>>float64SignifBits) - float64ExpBias
 }
 
 // TODO: rejection sampling is *really* bad for some ranges
-func genUfloatRange(s bitStream, min float64, max float64, mantBits uint) float64 {
+func genUfloatRange(s bitStream, min float64, max float64, signifBits uint) float64 {
 	assert(min >= 0 && min < max)
 
 	i := s.beginGroup(floatExpLabel, false)
@@ -127,17 +127,17 @@ func genUfloatRange(s bitStream, min float64, max float64, mantBits uint) float6
 
 	fracBits := uint(0)
 	if e <= 0 {
-		fracBits = mantBits
-	} else if uint(e) < mantBits {
-		fracBits = mantBits - uint(e)
+		fracBits = signifBits
+	} else if uint(e) < signifBits {
+		fracBits = signifBits - uint(e)
 	}
 
 	for {
-		i := s.beginGroup(floatMantLabel, false)
-		m1 := genUintN(s, uint64(1<<uint(mantBits-fracBits)-1), false)
-		m2, m2w := genUintNWidth(s, uint64(1<<uint(fracBits)-1), true)
-		m := m1<<fracBits | m2<<(fracBits-uint(m2w))
-		f := math.Float64frombits(uint64(e+float64ExpBias)<<float64MantBits | m)
+		i := s.beginGroup(floatSignifLabel, false)
+		si := genUintN(s, uint64(1<<uint(signifBits-fracBits)-1), false)
+		sf, sfw := genUintNWidth(s, uint64(1<<uint(fracBits)-1), true)
+		sg := si<<fracBits | sf<<(fracBits-uint(sfw))
+		f := math.Float64frombits(uint64(e+float64ExpBias)<<float64SignifBits | sg)
 		ok := f >= min && f <= max
 		s.endGroup(i, !ok)
 
