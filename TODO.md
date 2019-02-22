@@ -11,6 +11,7 @@
   - document every exported symbol
   - more examples
   - a tutorial?
+- mention similarity to SmallCheck
 
 ## Big things
 
