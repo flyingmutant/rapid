@@ -7,6 +7,7 @@ package rapid
 import (
 	"fmt"
 	"math"
+	"math/bits"
 	"reflect"
 )
 
@@ -113,36 +114,67 @@ func (g *floatGen) value_(s bitStream) Value {
 	}
 }
 
-func ufloatExp(f float64) int32 {
-	return int32(math.Float64bits(f)>>float64SignifBits) - float64ExpBias
+func ufloatFracBits(e int32, signifBits uint) uint {
+	if e <= 0 {
+		return signifBits
+	} else if uint(e) < signifBits {
+		return signifBits - uint(e)
+	} else {
+		return 0
+	}
 }
 
-// TODO: rejection sampling is *really* bad for some ranges
+func ufloatParts(f float64, signifBits uint) (int32, uint64, uint64) {
+	u := math.Float64bits(f)
+	e := int32(u>>float64SignifBits) - float64ExpBias
+	b := ufloatFracBits(e, signifBits)
+	s := (u & bitmask64(float64SignifBits)) >> (float64SignifBits - signifBits)
+	return e, s >> b, s & bitmask64(b)
+}
+
 func genUfloatRange(s bitStream, min float64, max float64, signifBits uint) float64 {
 	assert(min >= 0 && min < max)
 
+	minExp, minSignifI, minSignifF := ufloatParts(min, signifBits)
+	maxExp, maxSignifI, maxSignifF := ufloatParts(max, signifBits)
+
 	i := s.beginGroup(floatExpLabel, false)
-	e := genIntRange(s, int64(ufloatExp(min)), int64(ufloatExp(max)), true)
+	e := genIntRange(s, int64(minExp), int64(maxExp), true)
 	s.endGroup(i, false)
 
-	fracBits := uint(0)
-	if e <= 0 {
-		fracBits = signifBits
-	} else if uint(e) < signifBits {
-		fracBits = signifBits - uint(e)
+	fracBits := ufloatFracBits(int32(e), signifBits)
+
+	j := s.beginGroup(floatSignifLabel, false)
+	var siMin, siMax uint64
+	switch {
+	case minExp == maxExp:
+		siMin, siMax = minSignifI, maxSignifI
+	case int32(e) == minExp:
+		siMin, siMax = minSignifI, bitmask64(signifBits-fracBits)
+	case int32(e) == maxExp:
+		siMin, siMax = 0, maxSignifI
+	default:
+		siMin, siMax = 0, bitmask64(signifBits-fracBits)
+	}
+	si := genUintRange(s, siMin, siMax, false)
+	var sfMin, sfMax uint64
+	switch {
+	case minExp == maxExp && minSignifI == maxSignifI:
+		sfMin, sfMax = minSignifF, maxSignifF
+	case int32(e) == minExp && si == minSignifI:
+		sfMin, sfMax = minSignifF, bitmask64(fracBits)
+	case int32(e) == maxExp && si == maxSignifI:
+		sfMin, sfMax = 0, maxSignifF
+	default:
+		sfMin, sfMax = 0, bitmask64(fracBits)
+	}
+	sf := genUintRange(s, sfMin, sfMax, true)
+	s.endGroup(j, false)
+
+	sf <<= fracBits - uint(bits.Len64(sf))
+	for sf > sfMax {
+		sf >>= 1
 	}
 
-	for {
-		i := s.beginGroup(floatSignifLabel, false)
-		si := genUintN(s, bitmask64(signifBits-fracBits), false)
-		sf, sfw := genUintNWidth(s, bitmask64(fracBits), true)
-		sg := si<<fracBits | sf<<(fracBits-uint(sfw))
-		f := math.Float64frombits(uint64(e+float64ExpBias)<<float64SignifBits | sg)
-		ok := f >= min && f <= max
-		s.endGroup(i, !ok)
-
-		if ok {
-			return f
-		}
-	}
+	return math.Float64frombits(uint64(e+float64ExpBias)<<float64SignifBits | si<<fracBits | sf)
 }
