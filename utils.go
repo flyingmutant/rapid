@@ -64,13 +64,13 @@ func genUintN(s bitStream, max uint64, bias bool) uint64 {
 }
 
 func genUintRange(s bitStream, min uint64, max uint64, bias bool) uint64 {
-	assert(min <= max)
+	assertf(min <= max, "invalid range [%v,  %v]", min, max)
 
 	return min + genUintN(s, max-min, bias)
 }
 
 func genIntRange(s bitStream, min int64, max int64, bias bool) int64 {
-	assert(min <= max)
+	assertf(min <= max, "invalid range [%v,  %v]", min, max)
 
 	var posMin, negMin uint64
 	var pNeg float64
