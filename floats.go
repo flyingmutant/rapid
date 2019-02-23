@@ -134,8 +134,8 @@ func genUfloatRange(s bitStream, min float64, max float64, signifBits uint) floa
 
 	for {
 		i := s.beginGroup(floatSignifLabel, false)
-		si := genUintN(s, uint64(1<<uint(signifBits-fracBits)-1), false)
-		sf, sfw := genUintNWidth(s, uint64(1<<uint(fracBits)-1), true)
+		si := genUintN(s, bitmask64(signifBits-fracBits), false)
+		sf, sfw := genUintNWidth(s, bitmask64(fracBits), true)
 		sg := si<<fracBits | sf<<(fracBits-uint(sfw))
 		f := math.Float64frombits(uint64(e+float64ExpBias)<<float64SignifBits | sg)
 		ok := f >= min && f <= max

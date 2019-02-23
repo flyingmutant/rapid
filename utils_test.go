@@ -61,7 +61,7 @@ func TestUintsExamplesHist(t *testing.T) {
 		t.Run(strconv.Itoa(n), func(t *testing.T) {
 			var lines []string
 			for i := 0; i < 50; i++ {
-				n := genUintN(s, 1<<uint(n)-1, true)
+				n := genUintN(s, bitmask64(uint(n)), true)
 				b := bits.Len64(n)
 				l := fmt.Sprintf("% 24d %s % 3d", n, strings.Repeat("*", b)+strings.Repeat(" ", 64-b), b)
 				lines = append(lines, l)

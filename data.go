@@ -59,7 +59,7 @@ func newRandomBitStream(seed uint64, persist bool) *randomBitStream {
 func (s *randomBitStream) drawBits(n int) uint64 {
 	assert(n >= 0 && n <= 64)
 
-	u := s.rand() & (1<<uint(n) - 1)
+	u := s.rand() & bitmask64(uint(n))
 	s.record(u)
 
 	return u
@@ -85,7 +85,7 @@ func (s *bufBitStream) drawBits(n int) uint64 {
 		panic(invalidData("overrun"))
 	}
 
-	u := s.buf[0] & (1<<uint(n) - 1)
+	u := s.buf[0] & bitmask64(uint(n))
 	s.record(u)
 	s.buf = s.buf[1:]
 

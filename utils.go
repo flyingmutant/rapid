@@ -17,6 +17,10 @@ const (
 	repeatLabel   = "@repeat"
 )
 
+func bitmask64(n uint) uint64 {
+	return uint64(1)<<n - 1
+}
+
 func genFloat01(s bitStream) float64 {
 	return float64(s.drawBits(53)) / (1 << 53)
 }
