@@ -133,7 +133,7 @@ func ufloatParts(f float64, signifBits uint) (int32, uint64, uint64) {
 }
 
 func genUfloatRange(s bitStream, min float64, max float64, signifBits uint) float64 {
-	assert(min >= 0 && min < max)
+	assert(min >= 0 && min <= max)
 
 	minExp, minSignifI, minSignifF := ufloatParts(min, signifBits)
 	maxExp, maxSignifI, maxSignifF := ufloatParts(max, signifBits)
