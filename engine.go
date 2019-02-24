@@ -147,7 +147,7 @@ func checkTB(tb limitedTB, prop func(*T)) {
 	tb.Helper()
 
 	start := time.Now()
-	valid, invalid, buf, err1, err2 := doCheck(tb, prop)
+	valid, invalid, seed, buf, err1, err2 := doCheck(tb, prop)
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {
@@ -159,12 +159,12 @@ func checkTB(tb limitedTB, prop func(*T)) {
 	} else {
 		if traceback(err1) == traceback(err2) {
 			if err2.isStopTest() {
-				tb.Errorf("[rapid] failed after %v tests: %v\nFailed test output:", valid, err2)
+				tb.Errorf("[rapid] failed after %v tests: %v\nTo reproduce, specify -rapid.seed=%v\nFailed test output:", valid, err2, seed)
 			} else {
-				tb.Errorf("[rapid] panic after %v tests: %v\nTraceback:\n%vFailed test output:", valid, err2, traceback(err2))
+				tb.Errorf("[rapid] panic after %v tests: %v\nTo reproduce, specify -rapid.seed=%v\nTraceback:\n%vFailed test output:", valid, err2, seed, traceback(err2))
 			}
 		} else {
-			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", err2, traceback(err2), err1, traceback(err1))
+			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo reproduce, specify -rapid.seed=%v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", seed, err2, traceback(err2), err1, traceback(err1))
 		}
 
 		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
@@ -175,14 +175,14 @@ func checkTB(tb limitedTB, prop func(*T)) {
 	}
 }
 
-func doCheck(tb limitedTB, prop func(*T)) (int, int, []uint64, *testError, *testError) {
+func doCheck(tb limitedTB, prop func(*T)) (int, int, uint64, []uint64, *testError, *testError) {
 	tb.Helper()
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
 
 	seed, valid, invalid, err1 := findBug(tb, prop)
 	if err1 == nil {
-		return valid, invalid, nil, nil, nil
+		return valid, invalid, 0, nil, nil, nil
 	}
 
 	s := newRandomBitStream(seed, true)
@@ -190,13 +190,13 @@ func doCheck(tb limitedTB, prop func(*T)) (int, int, []uint64, *testError, *test
 	t.Logf("[rapid] trying to reproduce the failure")
 	err2 := checkOnce(t, prop)
 	if !sameError(err1, err2) {
-		return valid, invalid, s.data, err1, err2
+		return valid, invalid, seed, s.data, err1, err2
 	}
 
 	t.Logf("[rapid] trying to minimize the failing test case")
 	buf, err3 := shrink(tb, s.recordedBits, err2, prop)
 
-	return valid, invalid, buf, err2, err3
+	return valid, invalid, seed, buf, err2, err3
 }
 
 func findBug(tb limitedTB, prop func(*T)) (uint64, int, int, *testError) {

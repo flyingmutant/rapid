@@ -162,12 +162,12 @@ func checkShrink(t *testing.T, prop func(*T), draws ...Value) {
 
 	for i := 0; i < shrinkTestRuns; i++ {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			_, _, buf, err1, err2 := doCheck(t, prop)
+			_, _, seed, buf, err1, err2 := doCheck(t, prop)
 			if err1 == nil && err2 == nil {
-				t.Fatalf("shrink test did not fail")
+				t.Fatalf("shrink test did not fail (seed %v)", seed)
 			}
 			if traceback(err1) != traceback(err2) {
-				t.Fatalf("flaky shrink test\nTraceback (%v):\n%vOriginal traceback (%v):\n%v", err2, traceback(err2), err1, traceback(err1))
+				t.Fatalf("flaky shrink test (seed %v)\nTraceback (%v):\n%vOriginal traceback (%v):\n%v", seed, err2, traceback(err2), err1, traceback(err1))
 			}
 
 			_ = checkOnce(newT(t, newBufBitStream(buf, false), false, draws...), prop)
