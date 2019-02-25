@@ -125,7 +125,7 @@ func ufloatFracBits(e int32, signifBits uint) uint {
 }
 
 func ufloatParts(f float64, signifBits uint) (int32, uint64, uint64) {
-	u := math.Float64bits(f)
+	u := math.Float64bits(f) & math.MaxInt64
 	e := int32(u>>float64SignifBits) - float64ExpBias
 	b := ufloatFracBits(e, signifBits)
 	s := (u & bitmask64(float64SignifBits)) >> (float64SignifBits - signifBits)
@@ -177,4 +177,25 @@ func genUfloatRange(s bitStream, min float64, max float64, signifBits uint) floa
 	}
 
 	return math.Float64frombits(uint64(e+float64ExpBias)<<float64SignifBits | si<<fracBits | sf)
+}
+
+func genFloatRange(s bitStream, min float64, max float64, signifBits uint) float64 {
+	var posMin, negMin, pNeg float64
+	if min >= 0 {
+		posMin = min
+		pNeg = 0
+	} else if max <= 0 {
+		negMin = -max
+		pNeg = 1
+	} else {
+		pos := math.Log1p(max)
+		neg := math.Log1p(-min)
+		pNeg = neg / (neg + pos)
+	}
+
+	if flipBiasedCoin(s, pNeg) {
+		return -genUfloatRange(s, negMin, -min, signifBits)
+	} else {
+		return genUfloatRange(s, posMin, max, signifBits)
+	}
 }
