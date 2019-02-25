@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -157,14 +158,15 @@ func checkTB(tb limitedTB, prop func(*T)) {
 			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
 		}
 	} else {
+		name := regexp.QuoteMeta(tb.Name())
 		if traceback(err1) == traceback(err2) {
 			if err2.isStopTest() {
-				tb.Errorf("[rapid] failed after %v tests: %v\nTo reproduce, specify -rapid.seed=%v\nFailed test output:", valid, err2, seed)
+				tb.Errorf("[rapid] failed after %v tests: %v\nTo reproduce, specify -run=%q -rapid.seed=%v\nFailed test output:", valid, err2, name, seed)
 			} else {
-				tb.Errorf("[rapid] panic after %v tests: %v\nTo reproduce, specify -rapid.seed=%v\nTraceback:\n%vFailed test output:", valid, err2, seed, traceback(err2))
+				tb.Errorf("[rapid] panic after %v tests: %v\nTo reproduce, specify -run=%q -rapid.seed=%v\nTraceback:\n%vFailed test output:", valid, err2, name, seed, traceback(err2))
 			}
 		} else {
-			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo reproduce, specify -rapid.seed=%v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", seed, err2, traceback(err2), err1, traceback(err1))
+			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo try to reproduce, specify -run=%q -rapid.seed=%v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", name, seed, err2, traceback(err2), err1, traceback(err1))
 		}
 
 		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
