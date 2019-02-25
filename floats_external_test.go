@@ -6,40 +6,45 @@ package rapid_test
 
 import (
 	"math"
+	"reflect"
 	"sort"
 	"testing"
 
 	. "github.com/flyingmutant/rapid"
 )
 
-const floatExampleFormat = "%30g %10.3g % 5d % 20d % 16x"
-
-func TestFloat32sExamples(t *testing.T) {
-	g := Float32s()
-
-	var vals []float64
-	for i := 0; i < 100; i++ {
-		f_, _, _ := g.Example()
-		vals = append(vals, float64(f_.(float32)))
+func TestFloatsExamples(t *testing.T) {
+	gens := []*Generator{
+		Float32s(),
+		Float32sMin(-0.1),
+		Float32sMin(1),
+		Float32sMax(0.1),
+		Float32sMax(2.5),
+		Float32sRange(0, 1),
+		Float32sRange(1, 2.5),
+		Float32sRange(0, 100),
+		Float64s(),
+		Float64sMin(-0.1),
+		Float64sMin(1),
+		Float64sMax(0.1),
+		Float64sMax(2.5),
+		Float64sRange(0, 1),
+		Float64sRange(1, 2.5),
+		Float64sRange(0, 100),
 	}
-	sort.Float64s(vals)
 
-	for _, f := range vals {
-		t.Logf(floatExampleFormat, f, f, int(math.Log10(math.Abs(f))), int64(f), math.Float32bits(float32(f)))
-	}
-}
+	for _, g := range gens {
+		t.Run(g.String(), func(t *testing.T) {
+			var vals []float64
+			for i := 0; i < 100; i++ {
+				f, _, _ := g.Example()
+				vals = append(vals, reflect.ValueOf(f).Float())
+			}
+			sort.Float64s(vals)
 
-func TestFloat64sExamples(t *testing.T) {
-	g := Float64s()
-
-	var vals []float64
-	for i := 0; i < 100; i++ {
-		f_, _, _ := g.Example()
-		vals = append(vals, f_.(float64))
-	}
-	sort.Float64s(vals)
-
-	for _, f := range vals {
-		t.Logf(floatExampleFormat, f, f, int(math.Log10(math.Abs(f))), int64(f), math.Float64bits(f))
+			for _, f := range vals {
+				t.Logf("%30g %10.3g % 5d % 20d % 16x", f, f, int(math.Log10(math.Abs(f))), int64(f), math.Float64bits(f))
+			}
+		})
 	}
 }

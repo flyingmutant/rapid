@@ -144,17 +144,17 @@ func (s *shrinker) lowerFloatHack(deadline time.Time) {
 		}
 
 		buf := append([]uint64(nil), s.rec.data...)
-		buf[g.begin+2] -= 1
-		buf[g.begin+3] = math.MaxUint64
+		buf[g.begin+3] -= 1
 		buf[g.begin+4] = math.MaxUint64
 		buf[g.begin+5] = math.MaxUint64
+		buf[g.begin+6] = math.MaxUint64
 
 		s.accept(buf, labelLowerFloatExponent, "lower float exponent of group %q at %v to %v", g.label, i, buf[g.begin+2])
 
 		buf = append([]uint64(nil), s.rec.data...)
-		buf[g.begin+3] -= 1
-		buf[g.begin+4] = math.MaxUint64
+		buf[g.begin+4] -= 1
 		buf[g.begin+5] = math.MaxUint64
+		buf[g.begin+6] = math.MaxUint64
 
 		s.accept(buf, labelLowerFloatInteger, "lower float integer of group %q at %v to %v", g.label, i, buf[g.begin+3])
 	}
