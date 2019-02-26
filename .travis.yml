@@ -11,7 +11,7 @@ os:
 
 go:
   - 1.11.x
-  - 1.12rc1
+  - 1.12.x
 
 before_install:
   - go get -v golang.org/x/tools/cmd/goimports
