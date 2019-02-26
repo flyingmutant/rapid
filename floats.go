@@ -7,7 +7,6 @@ package rapid
 import (
 	"fmt"
 	"math"
-	"math/bits"
 	"reflect"
 )
 
@@ -187,12 +186,15 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	default:
 		sfMin, sfMax = 0, bitmask64(fracBits)
 	}
-	sf := genUintRange(s, sfMin, sfMax, true)
+	sf, w := genUintRangeWidth(s, sfMin, sfMax, true)
 	s.endGroup(j, false)
 
-	sf <<= fracBits - uint(bits.Len64(sf))
-	for sf > sfMax {
-		sf >>= 1
+	for i := 0; i < int(fracBits)-w; i++ {
+		sf_ := sf << 1
+		if sf_ < sfMin || sf_ > sfMax || sf_ < sf {
+			break
+		}
+		sf = sf_
 	}
 
 	e_ := (uint64(e) + bitmask64(float64ExpBits-1)) << float64SignifBits

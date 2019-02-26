@@ -21,7 +21,7 @@
 
 - floats
   - actually generate *zero* with decent probability
-  - bounded generators which are not terrible
+  - less focus on near-zero (large negative exponents)?
   - unbounded generators that can generate inf/nan
 - times, durations, locations
 - complex numbers
