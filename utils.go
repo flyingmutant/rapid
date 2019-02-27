@@ -114,10 +114,21 @@ func flipBiasedCoin(s bitStream, p float64) bool {
 	assert(p >= 0 && p <= 1)
 
 	i := s.beginGroup(coinFlipLabel, false)
-	f := genFloat01(s)
+	var ok bool
+	switch p {
+	case 0:
+		s.drawBits(0)
+		ok = false
+	case 1:
+		s.drawBits(0)
+		ok = true
+	default:
+		f := genFloat01(s)
+		ok = f >= 1-p
+	}
 	s.endGroup(i, false)
 
-	return f >= 1-p
+	return ok
 }
 
 type loadedDie struct {
