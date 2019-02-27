@@ -91,12 +91,10 @@ func genIntRange(s bitStream, min int64, max int64, bias bool) int64 {
 		negMin = 1
 		pos := uint64(max) + 1
 		neg := uint64(-min)
-		if bias {
-			// biases more towards negative
-			pos = uint64(bits.Len64(pos))
-			neg = uint64(bits.Len64(neg))
-		}
 		pNeg = float64(neg) / (float64(neg) + float64(pos))
+		if bias {
+			pNeg = 0.5
+		}
 	}
 
 	if flipBiasedCoin(s, pNeg) {
