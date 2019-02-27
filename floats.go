@@ -212,8 +212,8 @@ func genFloatRange(s bitStream, min float64, max float64, expBits uint, signifBi
 		negMin = -max
 		pNeg = 1
 	} else {
-		pos := math.Log1p(math.Log1p(max))
-		neg := math.Log1p(math.Log1p(-min))
+		pos := math.Max(math.Log1p(math.Log1p(max)), 1)
+		neg := math.Max(math.Log1p(math.Log1p(-min)), 1)
 		pNeg = neg / (neg + pos)
 	}
 
