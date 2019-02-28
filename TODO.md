@@ -81,6 +81,7 @@
 
 ## Misc
 
+- modify biased integer generation rejection sampling to "snap to the right" to generate right bound with decent probability
 - bitStream -> blockStream?
 - log action drawn together with the args
 - do not play with filter games for the state machine, just find all valid actions
