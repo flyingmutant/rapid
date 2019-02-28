@@ -20,20 +20,24 @@ var (
 )
 
 func TestIntsExamples(t *testing.T) {
-	g := Ints()
-
-	for i := 0; i < 100; i++ {
-		n, _, _ := g.Example()
-		t.Log(n)
+	gens := []*Generator{
+		Ints(),
+		IntsMin(-3),
+		IntsMax(3),
+		IntsRange(-1000, 1000000),
+		Uints(),
+		UintsMin(1000),
+		UintsMax(1000000),
+		UintsRange(100, 1000000),
 	}
-}
 
-func TestUintsExamples(t *testing.T) {
-	g := Uints()
-
-	for i := 0; i < 100; i++ {
-		n, _, _ := g.Example()
-		t.Log(n)
+	for _, g := range gens {
+		t.Run(g.String(), func(t *testing.T) {
+			for i := 0; i < 100; i++ {
+				n, _, _ := g.Example()
+				t.Log(n)
+			}
+		})
 	}
 }
 

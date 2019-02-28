@@ -34,18 +34,8 @@ func genGeom(s bitStream, p float64) uint64 {
 	return uint64(n)
 }
 
-func genUintNWidth(s bitStream, max uint64, bias bool) (uint64, int) {
+func genUintNWidthUnbiased(s bitStream, max uint64) (uint64, int) {
 	bitlen := bits.Len64(max)
-	if bias {
-		i := s.beginGroup(biasLabel, false)
-		m := math.Max(8, (float64(bitlen)+48)/7)
-		n := genGeom(s, 1/(m+1))
-		s.endGroup(i, false)
-
-		if int(n)+1 < bitlen {
-			bitlen = int(n) + 1
-		}
-	}
 
 	for {
 		i := s.beginGroup(intBitsLabel, false)
@@ -55,6 +45,36 @@ func genUintNWidth(s bitStream, max uint64, bias bool) (uint64, int) {
 		if ok {
 			return u, bitlen
 		}
+	}
+}
+
+func genUintNWidthBiased(s bitStream, max uint64) (uint64, int) {
+	bitlen := bits.Len64(max)
+	i := s.beginGroup(biasLabel, false)
+	m := math.Max(8, (float64(bitlen)+48)/7)
+	n := genGeom(s, 1/(m+1))
+	s.endGroup(i, false)
+
+	if bitlen > int(n)+1 {
+		bitlen = int(n) + 1
+	}
+
+	j := s.beginGroup(intBitsLabel, false)
+	u := s.drawBits(bitlen)
+	s.endGroup(j, false)
+
+	if u > max {
+		u = max
+	}
+
+	return u, bitlen
+}
+
+func genUintNWidth(s bitStream, max uint64, bias bool) (uint64, int) {
+	if bias {
+		return genUintNWidthBiased(s, max)
+	} else {
+		return genUintNWidthUnbiased(s, max)
 	}
 }
 
