@@ -22,7 +22,6 @@
 - floats
   - actually generate *zero* with decent probability
     - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
-    - more reliable upper bound generation for integers close to 2**n
   - unbounded generators that can generate inf/nan
   - less focus on near-zero (large negative exponents)?
 - discoverability tests for float/integer bounds

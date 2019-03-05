@@ -6,7 +6,6 @@ package rapid_test
 
 import (
 	"math"
-	"reflect"
 	"sort"
 	"testing"
 
@@ -38,7 +37,7 @@ func TestFloatsExamples(t *testing.T) {
 			var vals []float64
 			for i := 0; i < 100; i++ {
 				f, _, _ := g.Example()
-				vals = append(vals, reflect.ValueOf(f).Float())
+				vals = append(vals, rv(f).Float())
 			}
 			sort.Float64s(vals)
 

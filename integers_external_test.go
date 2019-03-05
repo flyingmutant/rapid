@@ -8,6 +8,7 @@ import (
 	"flag"
 	"math/bits"
 	"reflect"
+	"sort"
 	"strconv"
 	"testing"
 
@@ -24,18 +25,27 @@ func TestIntsExamples(t *testing.T) {
 		Ints(),
 		IntsMin(-3),
 		IntsMax(3),
+		IntsRange(-3, 7),
 		IntsRange(-1000, 1000000),
-		Uints(),
-		UintsMin(1000),
-		UintsMax(1000000),
-		UintsRange(100, 1000000),
+		IntsRange(0, 9),
+		IntsRange(0, 15),
+		IntsRange(10, 100),
+		IntsRange(100, 10000),
+		IntsRange(100, 1000000),
+		IntsRange(100, 1<<60-1),
 	}
 
 	for _, g := range gens {
 		t.Run(g.String(), func(t *testing.T) {
+			var vals []int
 			for i := 0; i < 100; i++ {
 				n, _, _ := g.Example()
-				t.Log(n)
+				vals = append(vals, int(rv(n).Int()))
+			}
+			sort.Ints(vals)
+
+			for _, i := range vals {
+				t.Log(i)
 			}
 		})
 	}
@@ -132,6 +142,34 @@ func TestUintsMinMaxRange(t *testing.T) {
 			}
 		}))
 	}
+}
+
+func TestIntsBoundCoverage(t *testing.T) {
+	Check(t, func(t *T, min int, max int) {
+		Assume(min <= max)
+
+		g := IntsRange(min, max)
+		var gotMin, gotMax, gotZero bool
+		for i := 0; i < 300; i++ {
+			n_, _, _ := g.Example(uint64(i) + 1)
+			n := int(rv(n_).Int())
+
+			if n == min {
+				gotMin = true
+			}
+			if n == max {
+				gotMax = true
+			}
+			if n == 0 {
+				gotZero = true
+			}
+			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
+				return
+			}
+		}
+
+		t.Fatalf("[%v, %v]: got min %v, got max %v, got zero %v", min, max, gotMin, gotMax, gotZero)
+	}, Ints(), Ints())
 }
 
 func TestBytesCoverage(t *testing.T) {
