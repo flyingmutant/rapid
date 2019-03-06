@@ -55,18 +55,16 @@ func genUintNWidthBiased(s bitStream, max uint64) (uint64, int) {
 	n := genGeom(s, 1/(m+1)) + 1
 	s.endGroup(i, false)
 
-	wrap := false
 	if int(n) < bitlen {
 		bitlen = int(n)
 	} else if int(n) >= 64-(16-int(m))*4 {
-		bitlen = 64
-		wrap = true
+		bitlen = 65
 	}
 
 	for {
 		i := s.beginGroup(intBitsLabel, false)
 		u := s.drawBits(bitlen)
-		ok := wrap || u <= max
+		ok := bitlen > 64 || u <= max
 		s.endGroup(i, !ok)
 		if ok {
 			if u > max {

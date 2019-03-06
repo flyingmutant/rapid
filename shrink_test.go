@@ -90,7 +90,6 @@ func TestShrink_IntSliceElemGe(t *testing.T) {
 		if s[ix] >= 100 {
 			t.Fail()
 		}
-
 	}, SlicesOfN(Ints(), 1, -1)), pack([]int{100}), 0)
 }
 

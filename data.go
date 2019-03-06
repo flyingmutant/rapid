@@ -5,6 +5,7 @@
 package rapid
 
 import (
+	"math"
 	"reflect"
 	"sync/atomic"
 	"time"
@@ -57,9 +58,14 @@ func newRandomBitStream(seed uint64, persist bool) *randomBitStream {
 }
 
 func (s *randomBitStream) drawBits(n int) uint64 {
-	assert(n >= 0 && n <= 64)
+	assert(n >= 0)
 
-	u := s.rand() & bitmask64(uint(n))
+	var u uint64
+	if n <= 64 {
+		u = s.rand() & bitmask64(uint(n))
+	} else {
+		u = math.MaxUint64
+	}
 	s.record(u)
 
 	return u
@@ -79,7 +85,7 @@ func newBufBitStream(buf []uint64, persist bool) *bufBitStream {
 }
 
 func (s *bufBitStream) drawBits(n int) uint64 {
-	assert(n >= 0 && n <= 64)
+	assert(n >= 0)
 
 	if len(s.buf) == 0 {
 		panic(invalidData("overrun"))
