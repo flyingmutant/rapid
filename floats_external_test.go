@@ -27,6 +27,7 @@ func TestFloatsExamples(t *testing.T) {
 		Float64sMin(1),
 		Float64sMax(0.1),
 		Float64sMax(2.5),
+		Float64sRange(math.E, math.Pi),
 		Float64sRange(0, 1),
 		Float64sRange(1, 2.5),
 		Float64sRange(0, 100),
