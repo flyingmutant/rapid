@@ -60,10 +60,10 @@ func TestTupleHoldover(t *testing.T) {
 func TestTupleUnpackArgs(t *testing.T) {
 	g := Custom(genPair).
 		Filter(func(x int, y int) bool { return x != y }).
-		Map(func(x int, y int) (int, int, int) { return x, x * 2, y * 2 })
+		Map(func(x int, y int) (int, int, int) { return x, x * 3, y * 3 })
 
 	Check(t, func(t *T, a int, b int, c int) {
-		if b != a*2 || b == c {
+		if b != a*3 || b == c {
 			t.Fatalf("got impossible %v, %v, %v", a, b, c)
 		}
 	}, g)
