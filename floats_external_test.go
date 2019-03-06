@@ -48,3 +48,67 @@ func TestFloatsExamples(t *testing.T) {
 		})
 	}
 }
+
+func TestFloat32sBoundCoverage(t *testing.T) {
+	if !*flaky {
+		t.Skip()
+	}
+
+	Check(t, func(t *T, min float32, max float32) {
+		Assume(min <= max)
+
+		g := Float32sRange(min, max)
+		var gotMin, gotMax, gotZero bool
+		for i := 0; i < 300; i++ {
+			f_, _, _ := g.Example(uint64(i) + 1)
+			f := float32(rv(f_).Float())
+
+			if f == min {
+				gotMin = true
+			}
+			if f == max {
+				gotMax = true
+			}
+			if f == 0 {
+				gotZero = true
+			}
+			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
+				return
+			}
+		}
+
+		t.Fatalf("[%v, %v]: got min %v, got max %v, got zero %v", min, max, gotMin, gotMax, gotZero)
+	}, Float32s(), Float32s())
+}
+
+func TestFloat64sBoundCoverage(t *testing.T) {
+	if !*flaky {
+		t.Skip()
+	}
+
+	Check(t, func(t *T, min float64, max float64) {
+		Assume(min <= max)
+
+		g := Float64sRange(min, max)
+		var gotMin, gotMax, gotZero bool
+		for i := 0; i < 300; i++ {
+			f_, _, _ := g.Example(uint64(i) + 1)
+			f := rv(f_).Float()
+
+			if f == min {
+				gotMin = true
+			}
+			if f == max {
+				gotMax = true
+			}
+			if f == 0 {
+				gotZero = true
+			}
+			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
+				return
+			}
+		}
+
+		t.Fatalf("[%v, %v]: got min %v, got max %v, got zero %v", min, max, gotMin, gotMax, gotZero)
+	}, Float64s(), Float64s())
+}
