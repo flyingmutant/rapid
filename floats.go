@@ -7,6 +7,7 @@ package rapid
 import (
 	"fmt"
 	"math"
+	"math/bits"
 	"reflect"
 )
 
@@ -175,7 +176,6 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 		siMin, siMax = 0, bitmask64(signifBits-fracBits)
 	}
 	si := genUintRange(s, siMin, siMax, false)
-	r := genUintNNoReject(s, uint64(fracBits))
 	var sfMin, sfMax uint64
 	switch {
 	case minExp == maxExp && minSignifI == maxSignifI:
@@ -187,10 +187,12 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	default:
 		sfMin, sfMax = 0, bitmask64(fracBits)
 	}
+	maxR := bits.Len64(sfMax - sfMin)
+	r := genUintNNoReject(s, uint64(maxR))
 	sf := genUintRange(s, sfMin, sfMax, false)
 	s.endGroup(j, false)
 
-	for i := uint(0); i < uint(fracBits)-uint(r); i++ {
+	for i := uint(0); i < uint(maxR)-uint(r); i++ {
 		mask := uint64(1) << i
 		if sf&mask == 0 {
 			continue
