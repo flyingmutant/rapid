@@ -17,6 +17,7 @@ import (
 const (
 	labelLowerFloatExp       = "lower_float_exp"
 	labelLowerFloatSignif    = "lower_float_signif"
+	labelLowerFloatFrac      = "lower_float_frac"
 	labelMinBlockBinSearch   = "minblock_binsearch"
 	labelMinBlockShift       = "minblock_shift"
 	labelMinBlockSort        = "minblock_sort"
@@ -155,7 +156,13 @@ func (s *shrinker) lowerFloatHack(deadline time.Time) {
 			buf[g.begin+5] = math.MaxUint64
 			buf[g.begin+6] = math.MaxUint64
 
-			s.accept(buf, labelLowerFloatSignif, "lower float significant of group %q at %v to %v", g.label, i, buf[g.begin+4])
+			if !s.accept(buf, labelLowerFloatSignif, "lower float significant of group %q at %v to %v", g.label, i, buf[g.begin+4]) {
+				buf := append([]uint64(nil), s.rec.data...)
+				buf[g.begin+5] -= 1
+				buf[g.begin+6] = math.MaxUint64
+
+				s.accept(buf, labelLowerFloatFrac, "lower float frac of group %q at %v to %v", g.label, i, buf[g.begin+5])
+			}
 		}
 	}
 }

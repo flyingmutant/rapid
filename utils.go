@@ -34,7 +34,18 @@ func genGeom(s bitStream, p float64) uint64 {
 	return uint64(n)
 }
 
-func genUintNWidthUnbiased(s bitStream, max uint64) (uint64, int) {
+func genUintNNoReject(s bitStream, max uint64) uint64 {
+	bitlen := bits.Len64(max)
+	i := s.beginGroup(intBitsLabel, false)
+	u := s.drawBits(bitlen)
+	s.endGroup(i, false)
+	if u > max {
+		u = max
+	}
+	return u
+}
+
+func genUintNUnbiased(s bitStream, max uint64) uint64 {
 	bitlen := bits.Len64(max)
 
 	for {
@@ -43,12 +54,12 @@ func genUintNWidthUnbiased(s bitStream, max uint64) (uint64, int) {
 		ok := u <= max
 		s.endGroup(i, !ok)
 		if ok {
-			return u, bitlen
+			return u
 		}
 	}
 }
 
-func genUintNWidthBiased(s bitStream, max uint64) (uint64, int) {
+func genUintNBiased(s bitStream, max uint64) uint64 {
 	bitlen := bits.Len64(max)
 	i := s.beginGroup(biasLabel, false)
 	m := math.Max(8, (float64(bitlen)+48)/7)
@@ -70,34 +81,23 @@ func genUintNWidthBiased(s bitStream, max uint64) (uint64, int) {
 			if u > max {
 				u = max
 			}
-			return u, bitlen
+			return u
 		}
 	}
 }
 
-func genUintNWidth(s bitStream, max uint64, bias bool) (uint64, int) {
+func genUintN(s bitStream, max uint64, bias bool) uint64 {
 	if bias {
-		return genUintNWidthBiased(s, max)
+		return genUintNBiased(s, max)
 	} else {
-		return genUintNWidthUnbiased(s, max)
+		return genUintNUnbiased(s, max)
 	}
 }
 
-func genUintN(s bitStream, max uint64, bias bool) uint64 {
-	u, _ := genUintNWidth(s, max, bias)
-	return u
-}
-
-func genUintRangeWidth(s bitStream, min uint64, max uint64, bias bool) (uint64, int) {
+func genUintRange(s bitStream, min uint64, max uint64, bias bool) uint64 {
 	assertf(min <= max, "invalid range [%v,  %v]", min, max)
 
-	u, w := genUintNWidth(s, max-min, bias)
-	return min + u, w
-}
-
-func genUintRange(s bitStream, min uint64, max uint64, bias bool) uint64 {
-	u, _ := genUintRangeWidth(s, min, max, bias)
-	return u
+	return min + genUintN(s, max-min, bias)
 }
 
 func genIntRange(s bitStream, min int64, max int64, bias bool) int64 {

@@ -175,6 +175,7 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 		siMin, siMax = 0, bitmask64(signifBits-fracBits)
 	}
 	si := genUintRange(s, siMin, siMax, false)
+	r := genUintNNoReject(s, uint64(fracBits))
 	var sfMin, sfMax uint64
 	switch {
 	case minExp == maxExp && minSignifI == maxSignifI:
@@ -186,15 +187,18 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	default:
 		sfMin, sfMax = 0, bitmask64(fracBits)
 	}
-	sf, w := genUintRangeWidth(s, sfMin, sfMax, true)
+	sf := genUintRange(s, sfMin, sfMax, false)
 	s.endGroup(j, false)
 
-	for i := 0; i < int(fracBits)-w; i++ {
-		sf_ := sf << 1
-		if sf_ < sfMin || sf_ > sfMax || sf_ < sf {
+	for i := uint(0); i < uint(fracBits)-uint(r); i++ {
+		mask := uint64(1) << i
+		if sf&mask == 0 {
+			continue
+		}
+		if sf^mask < sfMin {
 			break
 		}
-		sf = sf_
+		sf ^= mask
 	}
 
 	e_ := (uint64(e) + bitmask64(float64ExpBits-1)) << float64SignifBits
