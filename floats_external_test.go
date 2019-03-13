@@ -19,18 +19,23 @@ func TestFloatsExamples(t *testing.T) {
 		Float32sMin(1),
 		Float32sMax(0.1),
 		Float32sMax(2.5),
+		Float32sRange(0.3, 0.7),
+		Float32sRange(math.E, math.Pi),
 		Float32sRange(0, 1),
 		Float32sRange(1, 2.5),
 		Float32sRange(0, 100),
+		Float32sRange(0, 10000),
 		Float64s(),
 		Float64sMin(-0.1),
 		Float64sMin(1),
 		Float64sMax(0.1),
 		Float64sMax(2.5),
+		Float64sRange(0.3, 0.7),
 		Float64sRange(math.E, math.Pi),
 		Float64sRange(0, 1),
 		Float64sRange(1, 2.5),
 		Float64sRange(0, 100),
+		Float64sRange(0, 10000),
 	}
 
 	for _, g := range gens {
