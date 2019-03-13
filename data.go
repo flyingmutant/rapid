@@ -137,12 +137,11 @@ func (rec *recordedBits) beginGroup(label string, standalone bool) int {
 }
 
 func (rec *recordedBits) endGroup(i int, discard bool) {
+	assertf((!rec.persist && rec.dataLen != i) || (rec.persist && len(rec.data) != rec.groups[i].begin), "group did not use any data from bitstream")
+
 	if !rec.persist {
-		assertf(rec.dataLen != i, "group did not use any data from bitstream")
 		return
 	}
-
-	assertf(len(rec.data) != rec.groups[i].begin, "group did not use any data from bitstream")
 
 	rec.groups[i].end = len(rec.data)
 	rec.groups[i].discard = discard
