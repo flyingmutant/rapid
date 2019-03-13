@@ -24,6 +24,9 @@
     - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
   - unbounded generators that can generate inf/nan
   - less focus on near-zero (large negative exponents)?
+  - bias significant generation so that we get bounds reasonably often
+    - probably need to separate geom/bound feature of integer generators
+    - natural way to generate float bounds?
 - discoverability tests for float/integer bounds
 - times, durations, locations
 - complex numbers
