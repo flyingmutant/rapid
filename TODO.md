@@ -2,6 +2,10 @@
 
 ## Now
 
+- Go SPb Meetup feedback:
+  - more examples (buffers?)
+  - consider removing state machines entirely?
+  - add nasty queue bug (commented out)
 - reddit feedback:
   - show the intended output of the examples, so the people know that shrinking works indeed
   - docs!
