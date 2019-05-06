@@ -3,7 +3,7 @@
 ## Now
 
 - Go SPb Meetup feedback:
-  - more examples (buffers?)
+  - more examples (buffers?, DI?)
   - consider removing state machines entirely?
   - add nasty queue bug (commented out)
 - reddit feedback:
