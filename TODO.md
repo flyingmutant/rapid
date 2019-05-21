@@ -10,6 +10,10 @@
   - show the intended output of the examples, so the people know that shrinking works indeed
   - docs!
   - HTTP API testing example
+- go-fuzz feedback:
+  - generator API too verbose
+  - any API that is not dead-simple and obvious will alienate people
+  - try a struct-less state machine API
 - doc.go paragraph about defining properties
 - better docs
   - document every exported symbol
