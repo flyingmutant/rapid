@@ -85,7 +85,7 @@ func TestShrink_IntSliceNElemsGt(t *testing.T) {
 
 func TestShrink_IntSliceElemGe(t *testing.T) {
 	checkShrink(t, Bind(func(t *T, s []int) {
-		ix := t.Draw(IntsRange(0, len(s)-1), "ix").(int)
+		ix := IntsRange(0, len(s)-1).Draw(t, "ix").(int)
 
 		if s[ix] >= 100 {
 			t.Fail()
@@ -146,8 +146,8 @@ func TestMinimize_SortBits(t *testing.T) {
 
 func TestMinimize_LowerBound(t *testing.T) {
 	Check(t, func(t *T) {
-		min := t.Draw(Uint64s(), "min").(uint64)
-		u := t.Draw(Uint64sMin(min), "u").(uint64)
+		min := Uint64s().Draw(t, "min").(uint64)
+		u := Uint64sMin(min).Draw(t, "u").(uint64)
 
 		best := minimize(u, func(x uint64, s string) bool { return x >= min })
 		if best != min {

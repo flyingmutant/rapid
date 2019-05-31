@@ -23,7 +23,7 @@ func TestPanicTraceback(t *testing.T) {
 func BenchmarkCheckOverhead(b *testing.B) {
 	g := Uints()
 	f := func(t *T) {
-		t.Draw(g, "")
+		g.Draw(t, "")
 	}
 	b.ResetTimer()
 

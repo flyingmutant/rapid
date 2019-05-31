@@ -88,19 +88,19 @@ type haltingMachine struct {
 
 func (m *haltingMachine) A() func(*T) {
 	return BindIf(len(m.a) < 3, func(t *T) {
-		m.a = append(m.a, t.Draw(Ints(), "a").(int))
+		m.a = append(m.a, Ints().Draw(t, "a").(int))
 	})
 }
 
 func (m *haltingMachine) B() func(*T) {
 	return BindIf(len(m.b) < 3, func(t *T) {
-		m.b = append(m.b, t.Draw(Ints(), "b").(int))
+		m.b = append(m.b, Ints().Draw(t, "b").(int))
 	})
 }
 
 func (m *haltingMachine) C() func(*T) {
 	return BindIf(len(m.c) < 3, func(t *T) {
-		m.c = append(m.c, t.Draw(Ints(), "c").(int))
+		m.c = append(m.c, Ints().Draw(t, "c").(int))
 	})
 }
 

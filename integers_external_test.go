@@ -76,24 +76,21 @@ func TestIntsMinMaxRange(t *testing.T) {
 
 	for _, d := range data {
 		t.Run(d.g.String(), MakeCheck(func(t *T) {
-			min := t.Draw(d.g, "min")
-			max := t.Draw(d.g, "max")
+			min := d.g.Draw(t, "min")
+			max := d.g.Draw(t, "max")
 			Assume(rv(min).Int() <= rv(max).Int())
 
-			minG := createGen(d.min, min)
-			i := t.Draw(minG, "i")
+			i := createGen(d.min, min).Draw(t, "i")
 			if rv(i).Int() < rv(min).Int() {
 				t.Fatalf("got %v which is less than min %v", i, min)
 			}
 
-			maxG := createGen(d.max, max)
-			j := t.Draw(maxG, "j")
+			j := createGen(d.max, max).Draw(t, "j")
 			if rv(j).Int() > rv(max).Int() {
 				t.Fatalf("got %v which is more than max %v", j, max)
 			}
 
-			rangeG := createGen(d.range_, min, max)
-			k := t.Draw(rangeG, "k")
+			k := createGen(d.range_, min, max).Draw(t, "k")
 			if rv(k).Int() < rv(min).Int() || rv(k).Int() > rv(max).Int() {
 				t.Fatalf("got %v which is out of bounds [%v, %v]", k, min, max)
 			}
@@ -119,24 +116,21 @@ func TestUintsMinMaxRange(t *testing.T) {
 
 	for _, d := range data {
 		t.Run(d.g.String(), MakeCheck(func(t *T) {
-			min := t.Draw(d.g, "min")
-			max := t.Draw(d.g, "max")
+			min := d.g.Draw(t, "min")
+			max := d.g.Draw(t, "max")
 			Assume(rv(min).Uint() <= rv(max).Uint())
 
-			minG := createGen(d.min, min)
-			i := t.Draw(minG, "i")
+			i := createGen(d.min, min).Draw(t, "i")
 			if rv(i).Uint() < rv(min).Uint() {
 				t.Fatalf("got %v which is less than min %v", i, min)
 			}
 
-			maxG := createGen(d.max, max)
-			j := t.Draw(maxG, "j")
+			j := createGen(d.max, max).Draw(t, "j")
 			if rv(j).Uint() > rv(max).Uint() {
 				t.Fatalf("got %v which is more than max %v", j, max)
 			}
 
-			rangeG := createGen(d.range_, min, max)
-			k := t.Draw(rangeG, "k")
+			k := createGen(d.range_, min, max).Draw(t, "k")
 			if rv(k).Uint() < rv(min).Uint() || rv(k).Uint() > rv(max).Uint() {
 				t.Fatalf("got %v which is out of bounds [%v, %v]", k, min, max)
 			}

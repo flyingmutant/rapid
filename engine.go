@@ -99,7 +99,7 @@ func Bind(prop interface{}, args ...*Generator) func(*T) {
 	return func(t *T) {
 		t.Helper()
 
-		v := reflect.ValueOf(t.Draw(args_, "args"))
+		v := reflect.ValueOf(args_.Draw(t, "args"))
 
 		n := v.NumField()
 		in := make([]reflect.Value, n+1)

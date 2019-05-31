@@ -18,25 +18,25 @@ type testStruct struct {
 }
 
 func genBool(data Data) bool {
-	return data.Draw(Booleans(), "").(bool)
+	return Booleans().Draw(data, "").(bool)
 }
 
 func genSlice(data Data) []uint64 {
 	return []uint64{
-		data.Draw(Uint64s(), "").(uint64),
-		data.Draw(Uint64s(), "").(uint64),
+		Uint64s().Draw(data, "").(uint64),
+		Uint64s().Draw(data, "").(uint64),
 	}
 }
 
 func genStruct(data Data) testStruct {
 	return testStruct{
-		x: data.Draw(Ints(), "x").(int),
-		y: data.Draw(Ints(), "y").(int),
+		x: Ints().Draw(data, "x").(int),
+		y: Ints().Draw(data, "y").(int),
 	}
 }
 
 func genPair(data Data) (int, int) {
-	return data.Draw(Ints(), "").(int), data.Draw(Ints(), "").(int)
+	return Ints().Draw(data, "").(int), Ints().Draw(data, "").(int)
 }
 
 func TestCustom(t *testing.T) {
@@ -47,7 +47,7 @@ func TestCustom(t *testing.T) {
 	}
 
 	for _, g := range gens {
-		t.Run(g.String(), MakeCheck(func(t *T) { t.Draw(g, "") }))
+		t.Run(g.String(), MakeCheck(func(t *T) { g.Draw(t, "") }))
 	}
 }
 
@@ -75,7 +75,7 @@ func TestTupleUnpackDraw(t *testing.T) {
 	Check(t, func(t *T) {
 		var a int
 		var b string
-		t.Draw(g, "pair", &a, &b)
+		g.Draw(t, "pair", &a, &b)
 		if strconv.Itoa(a) != b {
 			t.Fatalf("got impossible %v, %v", a, b)
 		}
@@ -85,7 +85,7 @@ func TestTupleUnpackDraw(t *testing.T) {
 func TestTupleCompatibility(t *testing.T) {
 	g := MapsOfNValues(OneOf(Custom(genPair), Custom(genPair), Custom(genPair)), 10, -1, nil)
 
-	Check(t, func(t *T) { t.Draw(g, "") })
+	Check(t, func(t *T) { g.Draw(t, "") })
 }
 
 func TestFilter(t *testing.T) {

@@ -59,7 +59,7 @@ func TestStringRuneCountLimits(t *testing.T) {
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, minRunes int, maxRunes int) {
 			Assume(minRunes <= maxRunes)
-			s := t.Draw(gf(minRunes, maxRunes), "s").(string)
+			s := gf(minRunes, maxRunes).Draw(t, "s").(string)
 			n := utf8.RuneCountInString(s)
 			if n < minRunes {
 				t.Fatalf("got string with %v runes with lower limit %v", n, minRunes)
@@ -80,7 +80,7 @@ func TestStringsNMaxLen(t *testing.T) {
 
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, maxLen int) {
-			s := t.Draw(gf(maxLen), "s").(string)
+			s := gf(maxLen).Draw(t, "s").(string)
 			if len(s) > maxLen {
 				t.Fatalf("got string of length %v with maxLen %v", len(s), maxLen)
 			}

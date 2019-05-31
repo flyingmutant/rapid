@@ -119,7 +119,7 @@ func TestCollectionLenLimits(t *testing.T) {
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, minLen int, maxLen int) {
 			Assume(minLen <= maxLen)
-			s := rv(t.Draw(gf(minLen, maxLen), "s"))
+			s := rv(gf(minLen, maxLen).Draw(t, "s"))
 			if s.Len() < minLen {
 				t.Fatalf("got collection of length %v with minLen %v", s.Len(), minLen)
 			}

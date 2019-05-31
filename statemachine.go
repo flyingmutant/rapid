@@ -113,7 +113,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 func (sm *stateMachine) init(t *T) {
 	if sm.initKeys != nil {
 		t.Helper()
-		sm.inits[t.Draw(sm.initKeys, "initializer").(string)]()(t)
+		sm.inits[sm.initKeys.Draw(t, "initializer").(string)]()(t)
 	}
 }
 
@@ -126,7 +126,7 @@ func (sm *stateMachine) cleanup() {
 func (sm *stateMachine) selectAction(t *T) func(*T) {
 	t.Helper()
 
-	return sm.actions[t.Draw(sm.actionKeys, "action").(string)]()
+	return sm.actions[sm.actionKeys.Draw(t, "action").(string)]()
 }
 
 func (sm *stateMachine) checkInvariants(t *T) {
