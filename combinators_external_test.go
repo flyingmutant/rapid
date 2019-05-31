@@ -17,26 +17,26 @@ type testStruct struct {
 	y int
 }
 
-func genBool(data Data) bool {
-	return Booleans().Draw(data, "").(bool)
+func genBool(src Source) bool {
+	return Booleans().Draw(src, "").(bool)
 }
 
-func genSlice(data Data) []uint64 {
+func genSlice(src Source) []uint64 {
 	return []uint64{
-		Uint64s().Draw(data, "").(uint64),
-		Uint64s().Draw(data, "").(uint64),
+		Uint64s().Draw(src, "").(uint64),
+		Uint64s().Draw(src, "").(uint64),
 	}
 }
 
-func genStruct(data Data) testStruct {
+func genStruct(src Source) testStruct {
 	return testStruct{
-		x: Ints().Draw(data, "x").(int),
-		y: Ints().Draw(data, "y").(int),
+		x: Ints().Draw(src, "x").(int),
+		y: Ints().Draw(src, "y").(int),
 	}
 }
 
-func genPair(data Data) (int, int) {
-	return Ints().Draw(data, "").(int), Ints().Draw(data, "").(int)
+func genPair(src Source) (int, int) {
+	return Ints().Draw(src, "").(int), Ints().Draw(src, "").(int)
 }
 
 func TestCustom(t *testing.T) {

@@ -13,15 +13,15 @@ import (
 const tryLabel = "try"
 
 var (
-	boolType = reflect.TypeOf(false)
-	dataType = reflect.TypeOf((*Data)(nil)).Elem()
+	boolType   = reflect.TypeOf(false)
+	sourceType = reflect.TypeOf((*Source)(nil)).Elem()
 )
 
 func Custom(fn interface{}) *Generator {
 	f := reflect.ValueOf(fn)
 	t := f.Type()
 
-	assertCallable(t, dataType, "fn", 0)
+	assertCallable(t, sourceType, "fn", 0)
 	assertf(t.NumOut() > 0, "fn should have at least one output parameter")
 
 	return newGenerator(&customGen{
@@ -44,9 +44,9 @@ func (g *customGen) type_() reflect.Type {
 }
 
 func (g *customGen) value(s bitStream) Value {
-	data := &bitStreamData{s}
+	src := &bitStreamSource{s}
 
-	return call(g.fn, reflect.ValueOf(data), g.typ)
+	return call(g.fn, reflect.ValueOf(src), g.typ)
 }
 
 func Tuple(gens ...*Generator) *Generator {

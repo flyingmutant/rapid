@@ -36,7 +36,7 @@ func StateMachine(i interface{}) func(*T) {
 		defer sm.cleanup()
 
 		sm.checkInvariants(t)
-		for repeat.more(t.data.s, typ.String()) {
+		for repeat.more(t.src.s, typ.String()) {
 			sm.selectAction(t)(t)
 			sm.checkInvariants(t)
 		}

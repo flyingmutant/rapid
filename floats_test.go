@@ -14,7 +14,7 @@ func TestGenUfloat32Range(t *testing.T) {
 		min := math.Abs(float64(min_))
 		max := math.Abs(float64(max_))
 		Assume(min <= max)
-		f := genUfloatRange(t.data.s, min, max, float32ExpBits, float32SignifBits)
+		f := genUfloatRange(t.src.s, min, max, float32ExpBits, float32SignifBits)
 		if float64(float32(f)) != f {
 			t.Fatalf("%v (0x%x) is not a float32", f, math.Float64bits(f))
 		}
@@ -29,7 +29,7 @@ func TestGenUfloat64Range(t *testing.T) {
 		min = math.Abs(min)
 		max = math.Abs(max)
 		Assume(min <= max)
-		f := genUfloatRange(t.data.s, min, max, float64ExpBits, float64SignifBits)
+		f := genUfloatRange(t.src.s, min, max, float64ExpBits, float64SignifBits)
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float64bits(f), min, max, math.Float64bits(min), math.Float64bits(max))
 		}
@@ -41,7 +41,7 @@ func TestGenFloat32Range(t *testing.T) {
 		min := float64(min_)
 		max := float64(max_)
 		Assume(min <= max)
-		f := genFloatRange(t.data.s, min, max, float32ExpBits, float32SignifBits)
+		f := genFloatRange(t.src.s, min, max, float32ExpBits, float32SignifBits)
 		if float64(float32(f)) != f {
 			t.Fatalf("%v (0x%x) is not a float32", f, math.Float64bits(f))
 		}
@@ -54,7 +54,7 @@ func TestGenFloat32Range(t *testing.T) {
 func TestGenFloat64Range(t *testing.T) {
 	Check(t, func(t *T, min float64, max float64) {
 		Assume(min <= max)
-		f := genFloatRange(t.data.s, min, max, float64ExpBits, float64SignifBits)
+		f := genFloatRange(t.src.s, min, max, float64ExpBits, float64SignifBits)
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float64bits(f), min, max, math.Float64bits(min), math.Float64bits(max))
 		}

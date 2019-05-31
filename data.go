@@ -13,7 +13,7 @@ import (
 
 var seedCounter uint32
 
-type Data interface {
+type Source interface {
 	Draw(g *Generator, label string, unpack ...interface{}) Value
 }
 
@@ -23,12 +23,12 @@ type bitStream interface {
 	endGroup(i int, discard bool)
 }
 
-type bitStreamData struct {
+type bitStreamSource struct {
 	s bitStream
 }
 
-func (d *bitStreamData) Draw(g *Generator, label string, unpack ...interface{}) Value {
-	v := g.value(d.s)
+func (src *bitStreamSource) Draw(g *Generator, label string, unpack ...interface{}) Value {
+	v := g.value(src.s)
 
 	if len(unpack) > 0 {
 		unpackTuple(reflect.ValueOf(v), unpack...)

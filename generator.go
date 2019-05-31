@@ -36,8 +36,8 @@ func (g *Generator) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *Generator) Draw(data Data, label string, unpack ...interface{}) Value {
-	return data.Draw(g, label, unpack...)
+func (g *Generator) Draw(src Source, label string, unpack ...interface{}) Value {
+	return src.Draw(g, label, unpack...)
 }
 
 func (g *Generator) value(s bitStream) Value {
