@@ -362,8 +362,8 @@ func newT(tb limitedTB, s bitStream, log_ bool, refDraws ...Value) *T {
 	return t
 }
 
-func (t *T) Draw(g *Generator, label string, unpack ...interface{}) Value {
-	v := t.src.Draw(g, label, unpack...)
+func (t *T) draw(g *Generator, label string, unpack ...interface{}) Value {
+	v := t.src.draw(g, label, unpack...)
 
 	if len(t.refDraws) > 0 {
 		ref := t.refDraws[t.draws]

@@ -14,7 +14,7 @@ import (
 var seedCounter uint32
 
 type Source interface {
-	Draw(g *Generator, label string, unpack ...interface{}) Value
+	draw(g *Generator, label string, unpack ...interface{}) Value
 }
 
 type bitStream interface {
@@ -27,7 +27,7 @@ type bitStreamSource struct {
 	s bitStream
 }
 
-func (src *bitStreamSource) Draw(g *Generator, label string, unpack ...interface{}) Value {
+func (src *bitStreamSource) draw(g *Generator, label string, unpack ...interface{}) Value {
 	v := g.value(src.s)
 
 	if len(unpack) > 0 {
