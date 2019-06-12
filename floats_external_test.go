@@ -45,14 +45,20 @@ func TestFloatsExamples(t *testing.T) {
 	for _, g := range gens {
 		t.Run(g.String(), func(t *testing.T) {
 			var vals []float64
+			var vals32 bool
 			for i := 0; i < 100; i++ {
 				f, _, _ := g.Example()
+				_, vals32 = f.(float32)
 				vals = append(vals, rv(f).Float())
 			}
 			sort.Float64s(vals)
 
 			for _, f := range vals {
-				t.Logf("%30g %10.3g % 5d % 20d % 16x", f, f, int(math.Log10(math.Abs(f))), int64(f), math.Float64bits(f))
+				if vals32 {
+					t.Logf("%30g %10.3g % 5d % 20d % 16x", f, f, int(math.Log10(math.Abs(f))), int64(f), math.Float32bits(float32(f)))
+				} else {
+					t.Logf("%30g %10.3g % 5d % 20d % 16x", f, f, int(math.Log10(math.Abs(f))), int64(f), math.Float64bits(f))
+				}
 			}
 		})
 	}
