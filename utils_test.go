@@ -54,6 +54,36 @@ func TestGenGeom(t *testing.T) {
 	}
 }
 
+func TestGenGeomMean(t *testing.T) {
+	if !*flaky {
+		t.Skip()
+	}
+
+	s := newRandomBitStream(prngSeed(), false)
+
+	for i := 0; i < 100; i++ {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			p := genFloat01(s)
+
+			var geoms []uint64
+			for i := 0; i < 10000; i++ {
+				geoms = append(geoms, genGeom(s, p))
+			}
+
+			avg := 0.0
+			for _, f := range geoms {
+				avg += float64(f)
+			}
+			avg /= float64(len(geoms))
+
+			mean := (1 - p) / p
+			if math.Abs(avg-mean) > 0.5 { // true science
+				t.Fatalf("for p=%v geom avg=%v vs expected mean=%v", p, avg, mean)
+			}
+		})
+	}
+}
+
 func TestUintsExamplesHist(t *testing.T) {
 	s := newRandomBitStream(prngSeed(), false)
 
