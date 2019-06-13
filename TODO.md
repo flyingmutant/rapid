@@ -28,6 +28,7 @@
 ## Generators
 
 - floats
+  - generate floats like X.0000YYY like we do with X.YYY0000 now
   - test that we do not generate Inf (we do now!)
   - test frequency of lOverflow & rOverflow events
   - actually generate *zero* with decent probability
