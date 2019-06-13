@@ -151,6 +151,15 @@ func ufloatParts(f float64, expBits uint, signifBits uint) (int32, uint64, uint6
 	return e, s >> n, s & bitmask64(n)
 }
 
+func ufloatFromParts(signifBits uint, e int32, si uint64, sf uint64) float64 {
+	n := ufloatFracBits(e, signifBits)
+
+	e_ := (uint64(e) + bitmask64(float64ExpBits-1)) << float64SignifBits
+	s_ := (si<<n | sf) << (float64SignifBits - signifBits)
+
+	return math.Float64frombits(e_ | s_)
+}
+
 func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifBits uint) float64 {
 	assert(min >= 0 && min <= max)
 
@@ -208,10 +217,7 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 		sf &= mask
 	}
 
-	e_ := (uint64(e) + bitmask64(float64ExpBits-1)) << float64SignifBits
-	s_ := (si<<fracBits | sf) << (float64SignifBits - signifBits)
-
-	return math.Float64frombits(e_ | s_)
+	return ufloatFromParts(signifBits, int32(e), si, sf)
 }
 
 func genFloatRange(s bitStream, min float64, max float64, expBits uint, signifBits uint) float64 {

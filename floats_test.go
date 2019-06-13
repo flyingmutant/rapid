@@ -9,6 +9,26 @@ import (
 	"testing"
 )
 
+func TestUfloat32FromParts(t *testing.T) {
+	Check(t, func(t *T, f float32) {
+		e, si, sf := ufloatParts(float64(f), float32ExpBits, float32SignifBits)
+		g := float32(ufloatFromParts(float32SignifBits, e, si, sf))
+		if g != f {
+			t.Fatalf("got %v (0x%x) back from %v (0x%x)", g, math.Float32bits(g), f, math.Float32bits(g))
+		}
+	}, Float32sMin(0))
+}
+
+func TestUfloat64FromParts(t *testing.T) {
+	Check(t, func(t *T, f float64) {
+		e, si, sf := ufloatParts(f, float64ExpBits, float64SignifBits)
+		g := ufloatFromParts(float64SignifBits, e, si, sf)
+		if g != f {
+			t.Fatalf("got %v (0x%x) back from %v (0x%x)", g, math.Float64bits(g), f, math.Float64bits(g))
+		}
+	}, Float64sMin(0))
+}
+
 func TestGenUfloat32Range(t *testing.T) {
 	Check(t, func(t *T, min_ float32, max_ float32) {
 		min := math.Abs(float64(min_))
