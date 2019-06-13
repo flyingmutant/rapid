@@ -59,7 +59,7 @@ func genUintNUnbiased(s bitStream, max uint64) uint64 {
 	}
 }
 
-func genUintNBiased(s bitStream, max uint64) uint64 {
+func genUintNBiased(s bitStream, max uint64) (uint64, bool, bool) {
 	bitlen := bits.Len64(max)
 	i := s.beginGroup(biasLabel, false)
 	m := math.Max(8, (float64(bitlen)+48)/7)
@@ -77,30 +77,32 @@ func genUintNBiased(s bitStream, max uint64) uint64 {
 		u := s.drawBits(bitlen)
 		ok := bitlen > 64 || u <= max
 		s.endGroup(i, !ok)
-		if ok {
-			if u > max {
-				u = max
-			}
-			return u
+		if bitlen > 64 {
+			u = max
+		}
+		if u <= max {
+			return u, u == 0 && n == 1, u == max && bitlen >= int(n)
 		}
 	}
 }
 
-func genUintN(s bitStream, max uint64, bias bool) uint64 {
+func genUintN(s bitStream, max uint64, bias bool) (uint64, bool, bool) {
 	if bias {
 		return genUintNBiased(s, max)
 	} else {
-		return genUintNUnbiased(s, max)
+		return genUintNUnbiased(s, max), false, false
 	}
 }
 
-func genUintRange(s bitStream, min uint64, max uint64, bias bool) uint64 {
+func genUintRange(s bitStream, min uint64, max uint64, bias bool) (uint64, bool, bool) {
 	assertf(min <= max, "invalid range [%v,  %v]", min, max)
 
-	return min + genUintN(s, max-min, bias)
+	u, lOverflow, rOverflow := genUintN(s, max-min, bias)
+
+	return min + u, lOverflow, rOverflow
 }
 
-func genIntRange(s bitStream, min int64, max int64, bias bool) int64 {
+func genIntRange(s bitStream, min int64, max int64, bias bool) (int64, bool, bool) {
 	assertf(min <= max, "invalid range [%v,  %v]", min, max)
 
 	var posMin, negMin uint64
@@ -123,16 +125,20 @@ func genIntRange(s bitStream, min int64, max int64, bias bool) int64 {
 	}
 
 	if flipBiasedCoin(s, pNeg) {
-		return -int64(genUintRange(s, negMin, uint64(-min), bias))
+		u, lOverflow, rOverflow := genUintRange(s, negMin, uint64(-min), bias)
+		return -int64(u), rOverflow, lOverflow && max <= 0
 	} else {
-		return int64(genUintRange(s, posMin, uint64(max), bias))
+		u, lOverflow, rOverflow := genUintRange(s, posMin, uint64(max), bias)
+		return int64(u), lOverflow && min >= 0, rOverflow
 	}
 }
 
 func genIndex(s bitStream, n int, bias bool) int {
 	assert(n > 0)
 
-	return int(genUintN(s, uint64(n-1), bias))
+	u, _, _ := genUintN(s, uint64(n-1), bias)
+
+	return int(u)
 }
 
 func flipBiasedCoin(s bitStream, p float64) bool {

@@ -91,7 +91,7 @@ func TestUintsExamplesHist(t *testing.T) {
 		t.Run(strconv.Itoa(n), func(t *testing.T) {
 			var lines []string
 			for i := 0; i < 50; i++ {
-				n := genUintN(s, bitmask64(uint(n)), true)
+				n, _, _ := genUintN(s, bitmask64(uint(n)), true)
 				b := bits.Len64(n)
 				l := fmt.Sprintf("% 24d %s % 3d", n, strings.Repeat("*", b)+strings.Repeat(" ", 64-b), b)
 				lines = append(lines, l)
@@ -130,7 +130,7 @@ func TestGenUintN(t *testing.T) {
 		r := make([]int, m+1)
 		n := 1000
 		for i := 0; i < n; i++ {
-			u := genUintN(s, m, false)
+			u, _, _ := genUintN(s, m, false)
 			r[u]++
 		}
 
@@ -162,7 +162,7 @@ func TestGenUintRange(t *testing.T) {
 		m := map[uint64]int{}
 		n := 1000
 		for i := 0; i < n; i++ {
-			u := genUintRange(s, r[0], r[1], false)
+			u, _, _ := genUintRange(s, r[0], r[1], false)
 			m[u]++
 		}
 
@@ -207,7 +207,7 @@ func TestGenIntRange(t *testing.T) {
 		m := map[int64]int{}
 		n := 1000
 		for i := 0; i < n; i++ {
-			u := genIntRange(s, r[0], r[1], false)
+			u, _, _ := genIntRange(s, r[0], r[1], false)
 			m[u]++
 		}
 

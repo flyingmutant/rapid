@@ -158,7 +158,7 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	maxExp, maxSignifI, maxSignifF := ufloatParts(max, expBits, signifBits)
 
 	i := s.beginGroup(floatExpLabel, false)
-	e := genIntRange(s, int64(minExp), int64(maxExp), true)
+	e, lOverflow, rOverflow := genIntRange(s, int64(minExp), int64(maxExp), true)
 	s.endGroup(i, false)
 
 	fracBits := ufloatFracBits(int32(e), signifBits)
@@ -166,6 +166,10 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	j := s.beginGroup(floatSignifLabel, false)
 	var siMin, siMax uint64
 	switch {
+	case lOverflow:
+		siMin, siMax = minSignifI, minSignifI
+	case rOverflow:
+		siMin, siMax = maxSignifI, maxSignifI
 	case minExp == maxExp:
 		siMin, siMax = minSignifI, maxSignifI
 	case int32(e) == minExp:
@@ -175,9 +179,13 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	default:
 		siMin, siMax = 0, bitmask64(signifBits-fracBits)
 	}
-	si := genUintRange(s, siMin, siMax, false)
+	si, _, _ := genUintRange(s, siMin, siMax, false)
 	var sfMin, sfMax uint64
 	switch {
+	case lOverflow:
+		sfMin, sfMax = minSignifF, minSignifF
+	case rOverflow:
+		sfMin, sfMax = maxSignifF, maxSignifF
 	case minExp == maxExp && minSignifI == maxSignifI:
 		sfMin, sfMax = minSignifF, maxSignifF
 	case int32(e) == minExp && si == minSignifI:
@@ -189,7 +197,7 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 	}
 	maxR := bits.Len64(sfMax - sfMin)
 	r := genUintNNoReject(s, uint64(maxR))
-	sf := genUintRange(s, sfMin, sfMax, false)
+	sf, _, _ := genUintRange(s, sfMin, sfMax, false)
 	s.endGroup(j, false)
 
 	for i := uint(0); i < uint(maxR)-uint(r); i++ {

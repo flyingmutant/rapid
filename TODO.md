@@ -28,13 +28,13 @@
 ## Generators
 
 - floats
+  - test that we do not generate Inf (we do now!)
+  - test frequency of lOverflow & rOverflow events
   - actually generate *zero* with decent probability
     - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
   - unbounded generators that can generate inf/nan
   - less focus on near-zero (large negative exponents)?
-  - bias significant generation so that we get bounds reasonably often
-    - probably need to separate geom/bound feature of integer generators
-    - natural way to generate float bounds?
+  - bias significant as well?
 - discoverability tests for float/integer bounds
 - times, durations, locations
 - complex numbers
@@ -49,7 +49,6 @@
 
 ## Shrinking
 
-- floats: shrinker assumes that float groups have fixed size and layout
 - floats: maybe shrink towards lower *biased* exponent?
 - just like we have lower+delete pass to deal with situations like generation/sampling, we need to have a pass for choice
   - idea: lower (the "choice" block) + fill some region with random data
@@ -110,6 +109,7 @@
 
 ## Wild ideas
 
+- global path-based generation (kind of like simplex method), which makes most of the generators hit corner cases simultaneously
 - recurrence-based generation, because it is hard to stumble upon interesting stuff purely by random
   - start generating already generated stuff, overriding random for some number of draws
     - zip the sequence with itself

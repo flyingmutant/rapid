@@ -278,9 +278,9 @@ func (g *integerGen) value(s bitStream) Value {
 	var u uint64
 
 	if g.signed {
-		i = genIntRange(s, g.smin, g.smax, true)
+		i, _, _ = genIntRange(s, g.smin, g.smax, true)
 	} else {
-		u = genUintRange(s, g.umin, g.umax, true)
+		u, _, _ = genUintRange(s, g.umin, g.umax, true)
 	}
 
 	switch g.typ {

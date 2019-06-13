@@ -403,12 +403,12 @@ func (g *regexpGen) loadGen(re *syntax.Regexp) *Generator {
 }
 
 func maybeFoldCase(s bitStream, r rune, flags syntax.Flags) rune {
-	n := 0
+	n := uint64(0)
 	if flags&syntax.FoldCase != 0 {
-		n = int(genUintN(s, 4, false))
+		n, _, _ = genUintN(s, 4, false)
 	}
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < int(n); i++ {
 		r = unicode.SimpleFold(r)
 	}
 
