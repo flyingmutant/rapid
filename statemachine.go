@@ -63,7 +63,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 		initKeys   []string
 		actionKeys []string
 		check      func(*T)
-		cleanup_   func()
+		cleanup    func()
 	)
 
 	for i := 0; i < n; i++ {
@@ -87,8 +87,8 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	}
 
 	if cleanupM := v.MethodByName(cleanupMethodName); cleanupM.IsValid() {
-		cleanup_, _ = cleanupM.Interface().(func())
-		assertf(cleanup_ != nil, "method %v should have type func(), not %v", cleanupMethodName, cleanupM.Type())
+		cleanup, _ = cleanupM.Interface().(func())
+		assertf(cleanup != nil, "method %v should have type func(), not %v", cleanupMethodName, cleanupM.Type())
 	}
 
 	assertf(len(actions) > 0, "state machine of type %v has no actions specified", typ)
@@ -101,7 +101,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 		actions:    actions,
 		actionKeys: filter(SampledFrom(actionKeys), func(key string) bool { return actions[key]() != nil }, validActionTries, noValidActionsMsg),
 		check:      check,
-		cleanup_:   cleanup_,
+		cleanup_:   cleanup,
 	}
 	if len(initKeys) > 0 {
 		sm.initKeys = SampledFrom(initKeys)
