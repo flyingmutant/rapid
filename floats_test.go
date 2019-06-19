@@ -12,7 +12,7 @@ import (
 func TestUfloat32FromParts(t *testing.T) {
 	Check(t, func(t *T, f float32) {
 		e, si, sf := ufloatParts(float64(f), float32ExpBits, float32SignifBits)
-		g := float32(ufloatFromParts(float32SignifBits, e, si, sf))
+		g := float32(ufloatFromParts(float32ExpBits, float32SignifBits, e, si, sf))
 		if g != f {
 			t.Fatalf("got %v (0x%x) back from %v (0x%x)", g, math.Float32bits(g), f, math.Float32bits(g))
 		}
@@ -22,7 +22,7 @@ func TestUfloat32FromParts(t *testing.T) {
 func TestUfloat64FromParts(t *testing.T) {
 	Check(t, func(t *T, f float64) {
 		e, si, sf := ufloatParts(f, float64ExpBits, float64SignifBits)
-		g := ufloatFromParts(float64SignifBits, e, si, sf)
+		g := ufloatFromParts(float64ExpBits, float64SignifBits, e, si, sf)
 		if g != f {
 			t.Fatalf("got %v (0x%x) back from %v (0x%x)", g, math.Float64bits(g), f, math.Float64bits(g))
 		}

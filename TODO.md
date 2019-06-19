@@ -31,9 +31,8 @@
   - generate floats like X.0000YYY like we do with X.YYY0000 now
   - test that we do not generate Inf (we do now!)
   - test frequency of lOverflow & rOverflow events
-  - actually generate *zero* with decent probability
-    - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
   - unbounded generators that can generate inf/nan
+    - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
   - less focus on near-zero (large negative exponents)?
   - bias significant as well?
 - discoverability tests for float/integer bounds

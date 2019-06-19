@@ -139,10 +139,10 @@ func ufloatParts(f float64, expBits uint, signifBits uint) (int32, uint64, uint6
 
 	e := int32(u>>float64SignifBits) - int32(bitmask64(float64ExpBits-1))
 	b := int32(bitmask64(expBits - 1))
-	if e < -b+1 {
-		e = -b + 1 // -b is subnormal
-	} else if e > b {
-		e = b // b+1 is Inf/NaN
+	if e < -b {
+		e = -b // -b is subnormal
+	} else if e > b+1 {
+		e = b + 1 // b+1 is Inf/NaN
 	}
 
 	s := (u & bitmask64(float64SignifBits)) >> (float64SignifBits - signifBits)
@@ -151,7 +151,16 @@ func ufloatParts(f float64, expBits uint, signifBits uint) (int32, uint64, uint6
 	return e, s >> n, s & bitmask64(n)
 }
 
-func ufloatFromParts(signifBits uint, e int32, si uint64, sf uint64) float64 {
+func ufloatFromParts(expBits uint, signifBits uint, e int32, si uint64, sf uint64) float64 {
+	b := int32(bitmask64(expBits - 1))
+	if e == -b && si == 0 && sf == 0 {
+		return 0
+	} else if e == b+1 && si == 0 && sf == 0 {
+		return math.Inf(0)
+	} else if e == b+1 {
+		return math.NaN()
+	}
+
 	n := ufloatFracBits(e, signifBits)
 
 	e_ := (uint64(e) + bitmask64(float64ExpBits-1)) << float64SignifBits
@@ -217,7 +226,7 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 		sf &= mask
 	}
 
-	return ufloatFromParts(signifBits, int32(e), si, sf)
+	return ufloatFromParts(expBits, signifBits, int32(e), si, sf)
 }
 
 func genFloatRange(s bitStream, min float64, max float64, expBits uint, signifBits uint) float64 {
