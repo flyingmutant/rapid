@@ -5,6 +5,7 @@
 package rapid_test
 
 import (
+	"math"
 	"testing"
 
 	. "github.com/flyingmutant/rapid"
@@ -75,6 +76,32 @@ func TestFailure_Make(t *testing.T) {
 	Check(t, func(t *T, n int) {
 		_ = make([]int, n)
 	}, IntsMin(0))
+}
+
+func TestFailure_Mean(t *testing.T) {
+	t.Skip()
+
+	Check(t, func(t *T, s []float64) {
+		mean := 0.0
+		for _, f := range s {
+			mean += f
+		}
+		mean /= float64(len(s))
+
+		min, max := math.Inf(0), math.Inf(-1)
+		for _, f := range s {
+			if f < min {
+				min = f
+			}
+			if f > max {
+				max = f
+			}
+		}
+
+		if mean < min || mean > max {
+			t.Fatalf("got mean %v for range [%v, %v]", mean, min, max)
+		}
+	}, SlicesOf(Float64s()))
 }
 
 func TestFailure_ExampleParseDate(t *testing.T) {
