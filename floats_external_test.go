@@ -108,7 +108,7 @@ func TestFloat64sBoundCoverage(t *testing.T) {
 			if f == max {
 				gotMax = true
 			}
-			if f == 0 || true { // TODO
+			if f == 0 {
 				gotZero = true
 			}
 			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
