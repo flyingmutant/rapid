@@ -145,8 +145,8 @@ func TestIntsBoundCoverage(t *testing.T) {
 		g := IntsRange(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 250; i++ {
-			n_, _, _ := g.Example(uint64(i) + 1)
-			n := int(rv(n_).Int())
+			n_, _, _ := g.Example(uint64(i))
+			n := n_.(int)
 
 			if n == min {
 				gotMin = true
