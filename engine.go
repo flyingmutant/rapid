@@ -182,7 +182,7 @@ func doCheck(tb limitedTB, prop func(*T)) (int, int, uint64, []uint64, *testErro
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
 
-	seed, valid, invalid, err1 := findBug(tb, prop)
+	seed, valid, invalid, err1 := findBug(tb, prngSeed(), prop)
 	if err1 == nil {
 		return valid, invalid, 0, nil, nil, nil
 	}
@@ -201,14 +201,14 @@ func doCheck(tb limitedTB, prop func(*T)) (int, int, uint64, []uint64, *testErro
 	return valid, invalid, seed, buf, err2, err3
 }
 
-func findBug(tb limitedTB, prop func(*T)) (uint64, int, int, *testError) {
+func findBug(tb limitedTB, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 	tb.Helper()
 
 	valid := 0
 	invalid := 0
 	for valid < *checks && invalid < *checks*invalidChecksMult {
 		start := time.Now()
-		seed := prngSeed() + uint64(valid) + uint64(invalid)
+		seed += uint64(valid) + uint64(invalid)
 		t := newT(tb, newRandomBitStream(seed, false), *verbose)
 		t.Logf("[rapid] test #%v start (seed %v)", valid+invalid+1, seed)
 		err := checkOnce(t, prop)
