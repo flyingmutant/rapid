@@ -7,7 +7,7 @@ package rapid
 import "testing"
 
 func BenchmarkHeavyChain3(b *testing.B) {
-	s := newRandomBitStream(prngSeed(), false)
+	s := newRandomBitStream(baseSeed(), false)
 	g := Custom(func(src Source) int { return Ints().Draw(src, "").(int) }).
 		Map(func(i int) (int, int) { return i, i << 13 }).
 		Map(func(x int, y int) int { return x + y })

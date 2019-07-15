@@ -37,7 +37,7 @@ func (src *bitStreamSource) draw(g *Generator, label string, unpack ...interface
 	return v
 }
 
-func prngSeed() uint64 {
+func baseSeed() uint64 {
 	if *startSeed != 0 {
 		return *startSeed
 	}

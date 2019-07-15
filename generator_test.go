@@ -16,7 +16,7 @@ func (trivialGenImpl) type_() reflect.Type     { return uint64Type }
 func (trivialGenImpl) value(s bitStream) Value { return s.drawBits(64) }
 
 func BenchmarkTrivialGenImplValue(b *testing.B) {
-	s := newRandomBitStream(prngSeed(), false)
+	s := newRandomBitStream(baseSeed(), false)
 	g := trivialGenImpl{}
 	b.ResetTimer()
 
@@ -26,7 +26,7 @@ func BenchmarkTrivialGenImplValue(b *testing.B) {
 }
 
 func BenchmarkGenerator_Value(b *testing.B) {
-	s := newRandomBitStream(prngSeed(), false)
+	s := newRandomBitStream(baseSeed(), false)
 	g := newGenerator(trivialGenImpl{})
 	b.ResetTimer()
 

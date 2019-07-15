@@ -50,7 +50,7 @@ func TestDataVis(t *testing.T) {
 
 	g := SlicesOf(SlicesOf(Uints().Filter(func(i uint) bool { return i%2 == 1 }))).Filter(func(s [][]uint) bool { return len(s) > 0 })
 	for {
-		s := newRandomBitStream(prngSeed(), true)
+		s := newRandomBitStream(baseSeed(), true)
 		_, err := recoverValue(g, s)
 		if err != nil && !err.isInvalidData() {
 			t.Errorf("unexpected error %v", err)

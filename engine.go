@@ -182,7 +182,7 @@ func doCheck(tb limitedTB, prop func(*T)) (int, int, uint64, []uint64, *testErro
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
 
-	seed, valid, invalid, err1 := findBug(tb, prngSeed(), prop)
+	seed, valid, invalid, err1 := findBug(tb, baseSeed(), prop)
 	if err1 == nil {
 		return valid, invalid, 0, nil, nil, nil
 	}
