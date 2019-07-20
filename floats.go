@@ -45,13 +45,11 @@ func Float32sRange(min float32, max float32) *Generator {
 	assertf(min <= max, "invalid range [%v, %v]", min, max)
 
 	return newGenerator(&floatGen{
-		typ:        float32Type,
-		expBits:    float32ExpBits,
-		signifBits: float32SignifBits,
-		min:        float64(min),
-		max:        float64(max),
-		minVal:     -math.MaxFloat32,
-		maxVal:     math.MaxFloat32,
+		typ:    float32Type,
+		min:    float64(min),
+		max:    float64(max),
+		minVal: -math.MaxFloat32,
+		maxVal: math.MaxFloat32,
 	})
 }
 
@@ -73,24 +71,20 @@ func Float64sRange(min float64, max float64) *Generator {
 	assertf(min <= max, "invalid range [%v, %v]", min, max)
 
 	return newGenerator(&floatGen{
-		typ:        float64Type,
-		expBits:    float64ExpBits,
-		signifBits: float64SignifBits,
-		min:        min,
-		max:        max,
-		minVal:     -math.MaxFloat64,
-		maxVal:     math.MaxFloat64,
+		typ:    float64Type,
+		min:    min,
+		max:    max,
+		minVal: -math.MaxFloat64,
+		maxVal: math.MaxFloat64,
 	})
 }
 
 type floatGen struct {
-	typ        reflect.Type
-	expBits    uint
-	signifBits uint
-	min        float64
-	max        float64
-	minVal     float64
-	maxVal     float64
+	typ    reflect.Type
+	min    float64
+	max    float64
+	minVal float64
+	maxVal float64
 }
 
 func (g *floatGen) String() string {
@@ -115,12 +109,10 @@ func (g *floatGen) type_() reflect.Type {
 }
 
 func (g *floatGen) value(s bitStream) Value {
-	f := genFloatRange(s, g.min, g.max, g.expBits, g.signifBits)
-
 	if g.typ == float32Type {
-		return float32(f)
+		return float32FromParts(genFloatRange(s, g.min, g.max, float32SignifBits))
 	} else {
-		return f
+		return float64FromParts(genFloatRange(s, g.min, g.max, float64SignifBits))
 	}
 }
 
@@ -134,46 +126,72 @@ func ufloatFracBits(e int32, signifBits uint) uint {
 	}
 }
 
-func ufloatParts(f float64, expBits uint, signifBits uint) (int32, uint64, uint64) {
-	u := math.Float64bits(f) & math.MaxInt64
+func ufloat32Parts(f float32) (int32, uint64, uint64) {
+	u := math.Float32bits(f) & math.MaxInt32
 
-	e := int32(u>>float64SignifBits) - int32(bitmask64(float64ExpBits-1))
-	b := int32(bitmask64(expBits - 1))
-	if e < -b {
-		e = -b // -b is subnormal
-	} else if e > b+1 {
-		e = b + 1 // b+1 is Inf/NaN
-	}
-
-	s := (u & bitmask64(float64SignifBits)) >> (float64SignifBits - signifBits)
-	n := ufloatFracBits(e, signifBits)
+	e := int32(u>>float32SignifBits) - int32(bitmask64(float32ExpBits-1))
+	s := uint64(u) & bitmask64(float32SignifBits)
+	n := ufloatFracBits(e, float32SignifBits)
 
 	return e, s >> n, s & bitmask64(n)
 }
 
-func ufloatFromParts(expBits uint, signifBits uint, e int32, si uint64, sf uint64) float64 {
-	b := int32(bitmask64(expBits - 1))
-	if e == -b && si == 0 && sf == 0 {
-		return 0
-	} else if e == b+1 && si == 0 && sf == 0 {
-		return math.Inf(0)
-	} else if e == b+1 {
-		return math.NaN()
-	}
+func ufloat64Parts(f float64) (int32, uint64, uint64) {
+	u := math.Float64bits(f) & math.MaxInt64
 
-	n := ufloatFracBits(e, signifBits)
+	e := int32(u>>float64SignifBits) - int32(bitmask64(float64ExpBits-1))
+	s := u & bitmask64(float64SignifBits)
+	n := ufloatFracBits(e, float64SignifBits)
 
+	return e, s >> n, s & bitmask64(n)
+}
+
+func ufloat32FromParts(e int32, si uint64, sf uint64) float32 {
+	e_ := (uint32(e) + uint32(bitmask64(float32ExpBits-1))) << float32SignifBits
+	s_ := (uint32(si) << ufloatFracBits(e, float32SignifBits)) | uint32(sf)
+
+	return math.Float32frombits(e_ | s_)
+}
+
+func ufloat64FromParts(e int32, si uint64, sf uint64) float64 {
 	e_ := (uint64(e) + bitmask64(float64ExpBits-1)) << float64SignifBits
-	s_ := (si<<n | sf) << (float64SignifBits - signifBits)
+	s_ := (si << ufloatFracBits(e, float64SignifBits)) | sf
 
 	return math.Float64frombits(e_ | s_)
 }
 
-func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifBits uint) float64 {
+func float32FromParts(sign bool, e int32, si uint64, sf uint64) float32 {
+	f := ufloat32FromParts(e, si, sf)
+	if sign {
+		return -f
+	} else {
+		return f
+	}
+}
+
+func float64FromParts(sign bool, e int32, si uint64, sf uint64) float64 {
+	f := ufloat64FromParts(e, si, sf)
+	if sign {
+		return -f
+	} else {
+		return f
+	}
+}
+
+func genUfloatRange(s bitStream, min float64, max float64, signifBits uint) (int32, uint64, uint64) {
 	assert(min >= 0 && min <= max)
 
-	minExp, minSignifI, minSignifF := ufloatParts(min, expBits, signifBits)
-	maxExp, maxSignifI, maxSignifF := ufloatParts(max, expBits, signifBits)
+	var (
+		minExp, maxExp                                 int32
+		minSignifI, maxSignifI, minSignifF, maxSignifF uint64
+	)
+	if signifBits == float32SignifBits {
+		minExp, minSignifI, minSignifF = ufloat32Parts(float32(min))
+		maxExp, maxSignifI, maxSignifF = ufloat32Parts(float32(max))
+	} else {
+		minExp, minSignifI, minSignifF = ufloat64Parts(min)
+		maxExp, maxSignifI, maxSignifF = ufloat64Parts(max)
+	}
 
 	i := s.beginGroup(floatExpLabel, false)
 	e, lOverflow, rOverflow := genIntRange(s, int64(minExp), int64(maxExp), true)
@@ -226,10 +244,10 @@ func genUfloatRange(s bitStream, min float64, max float64, expBits uint, signifB
 		sf &= mask
 	}
 
-	return ufloatFromParts(expBits, signifBits, int32(e), si, sf)
+	return int32(e), si, sf
 }
 
-func genFloatRange(s bitStream, min float64, max float64, expBits uint, signifBits uint) float64 {
+func genFloatRange(s bitStream, min float64, max float64, signifBits uint) (bool, int32, uint64, uint64) {
 	var posMin, negMin, pNeg float64
 	if min >= 0 {
 		posMin = min
@@ -242,8 +260,10 @@ func genFloatRange(s bitStream, min float64, max float64, expBits uint, signifBi
 	}
 
 	if flipBiasedCoin(s, pNeg) {
-		return -genUfloatRange(s, negMin, -min, expBits, signifBits)
+		e, si, sf := genUfloatRange(s, negMin, -min, signifBits)
+		return true, e, si, sf
 	} else {
-		return genUfloatRange(s, posMin, max, expBits, signifBits)
+		e, si, sf := genUfloatRange(s, posMin, max, signifBits)
+		return false, e, si, sf
 	}
 }
