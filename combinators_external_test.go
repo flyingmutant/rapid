@@ -42,6 +42,8 @@ func genPair(src Source) (int, int) {
 }
 
 func TestCustom(t *testing.T) {
+	t.Parallel()
+
 	gens := []*Generator{
 		Custom(genBool),
 		Custom(genSlice),
@@ -54,12 +56,16 @@ func TestCustom(t *testing.T) {
 }
 
 func TestTupleHoldover(t *testing.T) {
+	t.Parallel()
+
 	g := Tuple(Bytes(), Ints()).Map(func(b byte, i int) bool { return i > int(b) })
 
 	Check(t, func(*T, bool) {}, g)
 }
 
 func TestTupleUnpackArgs(t *testing.T) {
+	t.Parallel()
+
 	g := Custom(genPair).
 		Filter(func(x int, y int) bool { return x != y }).
 		Map(func(x int, y int) (int, int, int) { return x, x * 3, y * 3 })
@@ -72,6 +78,8 @@ func TestTupleUnpackArgs(t *testing.T) {
 }
 
 func TestTupleUnpackDraw(t *testing.T) {
+	t.Parallel()
+
 	g := Custom(genPair).Map(func(x int, y int) (int, string) { return x, strconv.Itoa(x) })
 
 	Check(t, func(t *T) {
@@ -85,12 +93,16 @@ func TestTupleUnpackDraw(t *testing.T) {
 }
 
 func TestTupleCompatibility(t *testing.T) {
+	t.Parallel()
+
 	g := MapsOfNValues(OneOf(Custom(genPair), Custom(genPair), Custom(genPair)), 10, -1, nil)
 
 	Check(t, func(t *T) { g.Draw(t, "") })
 }
 
 func TestFilter(t *testing.T) {
+	t.Parallel()
+
 	g := Ints().Filter(func(i int) bool { return i >= 0 })
 
 	Check(t, func(t *T, v int) {
@@ -101,6 +113,8 @@ func TestFilter(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
+	t.Parallel()
+
 	g := Ints().Map(strconv.Itoa)
 
 	Check(t, func(t *T, s string) {
@@ -112,6 +126,8 @@ func TestMap(t *testing.T) {
 }
 
 func TestSampledFrom(t *testing.T) {
+	t.Parallel()
+
 	gens := []*Generator{
 		Just(3),
 		SampledFrom([]int{3, 5, 7}),
@@ -127,6 +143,8 @@ func TestSampledFrom(t *testing.T) {
 }
 
 func TestOneOf(t *testing.T) {
+	t.Parallel()
+
 	pos := Ints().Filter(func(v int) bool { return v >= 10 })
 	neg := Ints().Filter(func(v int) bool { return v <= -10 })
 	g := OneOf(pos, neg)
@@ -139,6 +157,8 @@ func TestOneOf(t *testing.T) {
 }
 
 func TestPtrs(t *testing.T) {
+	t.Parallel()
+
 	for _, allowNil := range []bool{false, true} {
 		t.Run(fmt.Sprintf("allowNil=%v", allowNil), MakeCheck(func(t *T, i *int) {
 			if i == nil && !allowNil {

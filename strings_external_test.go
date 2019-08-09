@@ -34,6 +34,8 @@ func TestRegexpExamples(t *testing.T) {
 }
 
 func TestStringsOfRunesAreUTF8(t *testing.T) {
+	t.Parallel()
+
 	gens := []*Generator{
 		Strings(),
 		StringsN(2, 10, -1),
@@ -53,6 +55,8 @@ func TestStringsOfRunesAreUTF8(t *testing.T) {
 }
 
 func TestStringRuneCountLimits(t *testing.T) {
+	t.Parallel()
+
 	genFuncs := []func(i, j int) *Generator{
 		func(i, j int) *Generator { return StringsN(i, j, -1) },
 		func(i, j int) *Generator { return StringsOfN(Runes(), i, j, -1) },
@@ -74,6 +78,8 @@ func TestStringRuneCountLimits(t *testing.T) {
 }
 
 func TestStringsNMaxLen(t *testing.T) {
+	t.Parallel()
+
 	genFuncs := []func(int) *Generator{
 		func(i int) *Generator { return StringsN(-1, -1, i) },
 		func(i int) *Generator { return StringsOfN(Runes(), -1, -1, i) },

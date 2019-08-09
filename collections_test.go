@@ -9,6 +9,8 @@ package rapid
 import "testing"
 
 func TestCollectionsWithImpossibleMinSize(t *testing.T) {
+	t.Parallel()
+
 	s := createRandomBitStream(t)
 	gens := []*Generator{
 		MapsOfN(Booleans(), Ints(), 10, -1),

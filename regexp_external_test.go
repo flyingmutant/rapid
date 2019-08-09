@@ -1056,6 +1056,8 @@ var crateRegexps = []string{
 }
 
 func TestStringsMatching(t *testing.T) {
+	t.Parallel()
+
 	for _, expr := range crateRegexps {
 		t.Run(expr, func(t *testing.T) {
 			re, err := regexp.Compile(expr)
@@ -1073,6 +1075,8 @@ func TestStringsMatching(t *testing.T) {
 }
 
 func TestSlicesOfBytesMatching(t *testing.T) {
+	t.Parallel()
+
 	for _, expr := range crateRegexps {
 		t.Run(expr, func(t *testing.T) {
 			re, err := regexp.Compile(expr)

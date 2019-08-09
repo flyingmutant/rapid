@@ -12,6 +12,8 @@ import (
 )
 
 func TestFloatConversionRoundtrip(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T) {
 		u := uint32(t.src.s.drawBits(32))
 		f := math.Float32frombits(u)
@@ -24,6 +26,8 @@ func TestFloatConversionRoundtrip(t *testing.T) {
 }
 
 func TestUfloat32FromParts(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, f float32) {
 		g := ufloat32FromParts(ufloat32Parts(f))
 		if g != f {
@@ -33,6 +37,8 @@ func TestUfloat32FromParts(t *testing.T) {
 }
 
 func TestUfloat64FromParts(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, f float64) {
 		g := ufloat64FromParts(ufloat64Parts(f))
 		if g != f {
@@ -42,6 +48,8 @@ func TestUfloat64FromParts(t *testing.T) {
 }
 
 func TestGenUfloat32Range(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, min float32, max float32) {
 		Assume(min <= max)
 		f := ufloat32FromParts(genUfloatRange(t.src.s, float64(min), float64(max), float32SignifBits))
@@ -52,6 +60,8 @@ func TestGenUfloat32Range(t *testing.T) {
 }
 
 func TestGenUfloat64Range(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, min float64, max float64) {
 		Assume(min <= max)
 		f := ufloat64FromParts(genUfloatRange(t.src.s, min, max, float64SignifBits))
@@ -62,6 +72,8 @@ func TestGenUfloat64Range(t *testing.T) {
 }
 
 func TestGenFloat32Range(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, min float32, max float32) {
 		Assume(min <= max)
 		f := float32FromParts(genFloatRange(t.src.s, float64(min), float64(max), float32SignifBits))
@@ -72,6 +84,8 @@ func TestGenFloat32Range(t *testing.T) {
 }
 
 func TestGenFloat64Range(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, min float64, max float64) {
 		Assume(min <= max)
 		f := float64FromParts(genFloatRange(t.src.s, min, max, float64SignifBits))

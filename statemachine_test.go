@@ -73,6 +73,8 @@ func (m *counterMachine) Check(t *T) {
 }
 
 func TestStateMachine_Counter(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, StateMachine(&counterMachine{}),
 		"Inc",
 		"Inc",
@@ -107,6 +109,8 @@ func (m *haltingMachine) C() func(*T) {
 }
 
 func TestStateMachine_Halting(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, StateMachine(&haltingMachine{}),
 		"A",
 		0,
@@ -190,6 +194,8 @@ func (m *queueMachine) Check(t *T) {
 }
 
 func TestStateMachine_Queue(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, StateMachine(&queueMachine{}),
 		"Init",
 		pack(1),

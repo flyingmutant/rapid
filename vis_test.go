@@ -13,6 +13,8 @@ import (
 )
 
 func TestDataVis(t *testing.T) {
+	t.Parallel()
+
 	f, err := os.Create("vis-test.html")
 	if err != nil {
 		t.Fatalf("failed to create vis html file: %v", err)

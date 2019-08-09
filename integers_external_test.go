@@ -63,6 +63,8 @@ func createGen(ctor interface{}, args ...interface{}) *Generator {
 }
 
 func TestIntsMinMaxRange(t *testing.T) {
+	t.Parallel()
+
 	data := []struct {
 		g      *Generator
 		min    interface{}
@@ -101,6 +103,8 @@ func TestIntsMinMaxRange(t *testing.T) {
 }
 
 func TestUintsMinMaxRange(t *testing.T) {
+	t.Parallel()
+
 	data := []struct {
 		g      *Generator
 		min    interface{}
@@ -141,6 +145,8 @@ func TestUintsMinMaxRange(t *testing.T) {
 }
 
 func TestIntsBoundCoverage(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, min int, max int) {
 		Assume(min <= max)
 
@@ -169,6 +175,7 @@ func TestIntsBoundCoverage(t *testing.T) {
 }
 
 func TestBytesCoverage(t *testing.T) {
+	t.Parallel()
 	if !*flaky {
 		t.Skip()
 	}
@@ -185,6 +192,7 @@ func TestBytesCoverage(t *testing.T) {
 }
 
 func TestIntsCoverage(t *testing.T) {
+	t.Parallel()
 	if !*flaky {
 		t.Skip()
 	}
@@ -218,6 +226,7 @@ func TestIntsCoverage(t *testing.T) {
 }
 
 func TestUintsCoverage(t *testing.T) {
+	t.Parallel()
 	if !*flaky {
 		t.Skip()
 	}

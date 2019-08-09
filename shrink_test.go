@@ -19,6 +19,8 @@ import (
 const shrinkTestRuns = 10
 
 func TestShrink_IntCmp(t *testing.T) {
+	t.Parallel()
+
 	ref := []struct {
 		gt bool
 		a  int
@@ -45,6 +47,8 @@ func TestShrink_IntCmp(t *testing.T) {
 }
 
 func TestShrink_FloatCmp(t *testing.T) {
+	t.Parallel()
+
 	type cmp struct {
 		gt bool
 		a  float64
@@ -76,6 +80,8 @@ func TestShrink_FloatCmp(t *testing.T) {
 }
 
 func TestShrink_IntSliceNElemsGt(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, Bind(func(t *T, s []int) {
 		n := 0
 		for _, i := range s {
@@ -90,6 +96,8 @@ func TestShrink_IntSliceNElemsGt(t *testing.T) {
 }
 
 func TestShrink_IntSliceElemGe(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, Bind(func(t *T, s []int) {
 		ix := IntsRange(0, len(s)-1).Draw(t, "ix").(int)
 
@@ -100,6 +108,8 @@ func TestShrink_IntSliceElemGe(t *testing.T) {
 }
 
 func TestShrink_IntSliceElemSpanGe(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, Bind(func(t *T, s []int) {
 		if len(s)%3 == 1 && s[len(s)-1] >= 100 {
 			t.Fail()
@@ -108,6 +118,8 @@ func TestShrink_IntSliceElemSpanGe(t *testing.T) {
 }
 
 func TestShrink_IntSliceNoDuplicates(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, Bind(func(t *T, s []int) {
 		sort.Ints(s)
 		last := 0
@@ -122,6 +134,8 @@ func TestShrink_IntSliceNoDuplicates(t *testing.T) {
 }
 
 func TestShrink_Strings(t *testing.T) {
+	t.Parallel()
+
 	checkShrink(t, Bind(func(t *T, s1 string, s2 string) {
 		if len(s1) > len(s2) {
 			t.Fail()
@@ -130,6 +144,8 @@ func TestShrink_Strings(t *testing.T) {
 }
 
 func TestMinimize_UnsetBits(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, mask uint64) {
 		best := minimize(math.MaxUint64, func(x uint64, s string) bool { return x&mask == mask })
 		if best != mask {
@@ -139,6 +155,8 @@ func TestMinimize_UnsetBits(t *testing.T) {
 }
 
 func TestMinimize_SortBits(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T, u uint64) {
 		n := bits.OnesCount64(u)
 		v := uint64(1<<uint(n) - 1)
@@ -151,6 +169,8 @@ func TestMinimize_SortBits(t *testing.T) {
 }
 
 func TestMinimize_LowerBound(t *testing.T) {
+	t.Parallel()
+
 	Check(t, func(t *T) {
 		min := Uint64s().Draw(t, "min").(uint64)
 		u := Uint64sMin(min).Draw(t, "u").(uint64)

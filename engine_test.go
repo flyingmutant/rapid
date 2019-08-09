@@ -12,6 +12,8 @@ import (
 )
 
 func TestPanicTraceback(t *testing.T) {
+	t.Parallel()
+
 	s := createRandomBitStream(t)
 	g := Booleans().Filter(func(bool) bool { return false })
 

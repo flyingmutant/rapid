@@ -14,6 +14,8 @@ import (
 )
 
 func TestJsfRand(t *testing.T) {
+	t.Parallel()
+
 	// using https://gist.github.com/imneme/85cff47d4bad8de6bdeb671f9c76c814
 	golden := [10]uint64{
 		0xe7ac7348cb3c6182,
@@ -59,6 +61,8 @@ func BenchmarkMathRand(b *testing.B) {
 }
 
 func TestRandomBitSteam_DrawBits(t *testing.T) {
+	t.Parallel()
+
 	s := createRandomBitStream(t)
 
 	for n := 1; n <= 64; n++ {

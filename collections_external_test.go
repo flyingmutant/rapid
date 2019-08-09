@@ -15,6 +15,8 @@ import (
 )
 
 func TestSlicesOf(t *testing.T) {
+	t.Parallel()
+
 	gens := []*Generator{
 		SlicesOf(Booleans()),
 		SlicesOf(Bytes()),
@@ -34,6 +36,8 @@ func TestSlicesOf(t *testing.T) {
 }
 
 func TestSlicesOfDistinct(t *testing.T) {
+	t.Parallel()
+
 	g := SlicesOfDistinct(Ints(), nil)
 
 	Check(t, func(t *T, s []int) {
@@ -48,6 +52,8 @@ func TestSlicesOfDistinct(t *testing.T) {
 }
 
 func TestSlicesOfDistinctBy(t *testing.T) {
+	t.Parallel()
+
 	g := SlicesOfDistinct(Ints(), func(i int) string { return strconv.Itoa(i % 5) })
 
 	Check(t, func(t *T, s []int) {
@@ -62,6 +68,8 @@ func TestSlicesOfDistinctBy(t *testing.T) {
 }
 
 func TestMapsOf(t *testing.T) {
+	t.Parallel()
+
 	gens := []*Generator{
 		MapsOf(Booleans(), Ints()),
 		MapsOf(Ints(), Uints()),
@@ -80,6 +88,8 @@ func TestMapsOf(t *testing.T) {
 }
 
 func TestMapsOfValues(t *testing.T) {
+	t.Parallel()
+
 	g := MapsOfValues(Custom(genStruct), func(s testStruct) int { return s.x })
 
 	Check(t, func(t *T, m map[int]testStruct) {
@@ -92,6 +102,8 @@ func TestMapsOfValues(t *testing.T) {
 }
 
 func TestArraysOf(t *testing.T) {
+	t.Parallel()
+
 	elems := []*Generator{Booleans(), Ints(), Uints()}
 	counts := []int{0, 1, 3, 17}
 
@@ -108,6 +120,8 @@ func TestArraysOf(t *testing.T) {
 }
 
 func TestCollectionLenLimits(t *testing.T) {
+	t.Parallel()
+
 	genFuncs := []func(i, j int) *Generator{
 		func(i, j int) *Generator { return StringsOfNBytes(i, j) },
 		func(i, j int) *Generator { return SlicesOfN(Bytes(), i, j) },
