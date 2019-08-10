@@ -51,17 +51,37 @@ type queueMachine struct {
 
 // Init is an action for initializing  a queueMachine instance.
 func (m *queueMachine) Init() func(*rapid.T) {
-	return rapid.Bind(m.init, rapid.IntsRange(1, 1000))
+	return rapid.Bind(func(t *rapid.T, n int) {
+		m.q = NewQueue(n)
+		m.n = n
+	}, rapid.IntsRange(1, 1000))
 }
 
 // Get is a conditional action which removes an item from the queue.
 func (m *queueMachine) Get() func(*rapid.T) {
-	return rapid.BindIf(m.q.Size() > 0, m.get)
+	if m.q.Size() == 0 {
+		return nil
+	}
+
+	return func(t *rapid.T) {
+		i := m.q.Get()
+		if i != m.state[0] {
+			t.Fatalf("got invalid value: %v vs expected %v", i, m.state[0])
+		}
+		m.state = m.state[1:]
+	}
 }
 
 // Put is a conditional action which adds an items to the queue.
 func (m *queueMachine) Put() func(*rapid.T) {
-	return rapid.BindIf(m.q.Size() < m.n, m.put, rapid.Ints())
+	if m.q.Size() == m.n {
+		return nil
+	}
+
+	return rapid.Bind(func(t *rapid.T, i int) {
+		m.q.Put(i)
+		m.state = append(m.state, i)
+	}, rapid.Ints())
 }
 
 // Check verifies that all required invariants hold.
@@ -69,24 +89,6 @@ func (m *queueMachine) Check(t *rapid.T) {
 	if m.q.Size() != len(m.state) {
 		t.Fatalf("queue size mismatch: %v vs expected %v", m.q.Size(), len(m.state))
 	}
-}
-
-func (m *queueMachine) init(t *rapid.T, n int) {
-	m.q = NewQueue(n)
-	m.n = n
-}
-
-func (m *queueMachine) get(t *rapid.T) {
-	i := m.q.Get()
-	if i != m.state[0] {
-		t.Fatalf("got invalid value: %v vs expected %v", i, m.state[0])
-	}
-	m.state = m.state[1:]
-}
-
-func (m *queueMachine) put(t *rapid.T, i int) {
-	m.q.Put(i)
-	m.state = append(m.state, i)
 }
 
 // Rename to TestQueue to make an actual (failing) test.

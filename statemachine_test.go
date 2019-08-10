@@ -91,21 +91,33 @@ type haltingMachine struct {
 }
 
 func (m *haltingMachine) A() func(*T) {
-	return BindIf(len(m.a) < 3, func(t *T) {
+	if len(m.a) == 3 {
+		return nil
+	}
+
+	return func(t *T) {
 		m.a = append(m.a, Ints().Draw(t, "a").(int))
-	})
+	}
 }
 
 func (m *haltingMachine) B() func(*T) {
-	return BindIf(len(m.b) < 3, func(t *T) {
+	if len(m.b) == 3 {
+		return nil
+	}
+
+	return func(t *T) {
 		m.b = append(m.b, Ints().Draw(t, "b").(int))
-	})
+	}
 }
 
 func (m *haltingMachine) C() func(*T) {
-	return BindIf(len(m.c) < 3, func(t *T) {
+	if len(m.c) == 3 {
+		return nil
+	}
+
+	return func(t *T) {
 		m.c = append(m.c, Ints().Draw(t, "c").(int))
-	})
+	}
 }
 
 func TestStateMachine_Halting(t *testing.T) {
@@ -171,17 +183,25 @@ func (m *queueMachine) Init() func(*T) {
 }
 
 func (m *queueMachine) Get() func(*T) {
-	return BindIf(m.q.Size() > 0, func(t *T) {
+	if m.q.Size() == 0 {
+		return nil
+	}
+
+	return func(t *T) {
 		n := m.q.Get()
 		if n != m.state[0] {
 			t.Fatalf("got invalid value: %v vs expected %v", n, m.state[0])
 		}
 		m.state = m.state[1:]
-	})
+	}
 }
 
 func (m *queueMachine) Put() func(*T) {
-	return BindIf(m.q.Size() < m.size, func(t *T, n int) {
+	if m.q.Size() == m.size {
+		return nil
+	}
+
+	return Bind(func(t *T, n int) {
 		m.q.Put(n)
 		m.state = append(m.state, n)
 	}, Ints())

@@ -115,19 +115,6 @@ func Bind(prop interface{}, args ...*Generator) func(*T) {
 	}
 }
 
-// BindIf is a convenience function for writing conditional state machine
-// transition rules.
-//
-// BindIf behaves exactly like Bind, except that it returns nil if
-// the precondition is false.
-func BindIf(precondition bool, prop interface{}, args ...*Generator) func(*T) {
-	if !precondition {
-		return nil
-	}
-
-	return Bind(prop, args...)
-}
-
 // Check fails the current test if rapid can find a test case which falsifies
 // the property created by Bind(prop, args...). Property is falsified in case
 // of a panic or a call to (*T).Fatalf, (*T).Fatal, (*T).Errorf, (*T).Error,
