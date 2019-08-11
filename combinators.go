@@ -23,11 +23,10 @@ func Custom(fn interface{}) *Generator {
 	f := reflect.ValueOf(fn)
 	t := f.Type()
 
-	assertCallable(t, sourceType, "fn", 0)
-	assertf(t.NumOut() > 0, "fn should have at least one output parameter")
+	assertCallable(t, sourceType, "fn")
 
 	return newGenerator(&customGen{
-		typ: retTypeOf(t),
+		typ: t.Out(0),
 		fn:  f,
 	})
 }
@@ -38,7 +37,7 @@ type customGen struct {
 }
 
 func (g *customGen) String() string {
-	return fmt.Sprintf("Custom(func(...) %v)", prettyType{g.typ})
+	return fmt.Sprintf("Custom(func(...) %v)", g.typ)
 }
 
 func (g *customGen) type_() reflect.Type {
@@ -48,73 +47,20 @@ func (g *customGen) type_() reflect.Type {
 func (g *customGen) value(s bitStream) Value {
 	src := &bitStreamSource{s}
 
-	return call(g.fn, reflect.ValueOf(src), g.typ)
-}
-
-func Tuple(gens ...*Generator) *Generator {
-	assertf(len(gens) > 0, "at least one generator should be specified")
-
-	if len(gens) == 1 && isTuple(gens[0].type_()) {
-		return gens[0]
-	}
-
-	genTypes := make([]reflect.Type, len(gens))
-	for i, g := range gens {
-		genTypes[i] = g.type_()
-	}
-
-	return newGenerator(&tupleGen{
-		typ:  tupleOf(genTypes),
-		gens: gens,
-	})
-}
-
-type tupleGen struct {
-	typ  reflect.Type
-	gens []*Generator
-}
-
-func (g *tupleGen) String() string {
-	b := &strings.Builder{}
-
-	b.WriteString("Tuple(")
-	for i, f := range g.gens {
-		b.WriteString(f.String())
-		if i != len(g.gens)-1 {
-			b.WriteString(", ")
-		}
-	}
-	b.WriteString(")")
-
-	return b.String()
-}
-
-func (g *tupleGen) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *tupleGen) value(s bitStream) Value {
-	v := reflect.Indirect(reflect.New(g.typ))
-
-	for i, g := range g.gens {
-		v.Field(i).Set(reflect.ValueOf(g.value(s)))
-	}
-
-	return v.Interface()
+	return call(g.fn, reflect.ValueOf(src))
 }
 
 func filter(g *Generator, fn interface{}, tries int, stopMsg string) *Generator {
 	f := reflect.ValueOf(fn)
 	t := f.Type()
 
-	assertCallable(t, g.type_(), "fn", 0)
-	assertf(t.NumOut() == 1, "fn should have 1 output parameter, not %v", t.NumOut())
+	assertCallable(t, g.type_(), "fn")
 	assertf(t.Out(0) == boolType, "fn should return bool, not %v", t.Out(0))
 
 	return newGenerator(&filteredGen{
 		g: g,
 		fn: func(v Value) bool {
-			return call(f, reflect.ValueOf(v), nil).(bool)
+			return call(f, reflect.ValueOf(v)).(bool)
 		},
 		tries:   tries,
 		stopMsg: stopMsg,
@@ -163,11 +109,10 @@ func map_(g *Generator, fn interface{}) *Generator {
 	f := reflect.ValueOf(fn)
 	t := f.Type()
 
-	assertCallable(t, g.type_(), "fn", 0)
-	assertf(t.NumOut() > 0, "fn should have at least one output parameter")
+	assertCallable(t, g.type_(), "fn")
 
 	return newGenerator(&mappedGen{
-		typ: retTypeOf(t),
+		typ: t.Out(0),
 		g:   g,
 		fn:  f,
 	})
@@ -180,7 +125,7 @@ type mappedGen struct {
 }
 
 func (g *mappedGen) String() string {
-	return fmt.Sprintf("%v.Map(func(...) %v)", g.g, prettyType{g.typ})
+	return fmt.Sprintf("%v.Map(func(...) %v)", g.g, g.typ)
 }
 
 func (g *mappedGen) type_() reflect.Type {
@@ -189,7 +134,7 @@ func (g *mappedGen) type_() reflect.Type {
 
 func (g *mappedGen) value(s bitStream) Value {
 	v := reflect.ValueOf(g.g.value(s))
-	return call(g.fn, v, g.typ)
+	return call(g.fn, v)
 }
 
 func Just(value Value) *Generator {
@@ -243,7 +188,7 @@ func (g *sampledGen) value(s bitStream) Value {
 func OneOf(gens ...*Generator) *Generator {
 	assertf(len(gens) > 0, "at least one generator should be specified")
 	for i, g := range gens {
-		assertf(g.type_() == gens[0].type_(), "generator %v (%v) should generate %v, not %v", i, g, prettyType{gens[0].type_()}, prettyType{g.type_()})
+		assertf(g.type_() == gens[0].type_(), "generator %v (%v) should generate %v, not %v", i, g, gens[0].type_(), g.type_())
 	}
 
 	return newGenerator(&oneOfGen{

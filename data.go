@@ -8,7 +8,6 @@ package rapid
 
 import (
 	"math"
-	"reflect"
 	"sync/atomic"
 	"time"
 )
@@ -16,7 +15,7 @@ import (
 var seedCounter uint32
 
 type Source interface {
-	draw(g *Generator, label string, unpack ...interface{}) Value
+	draw(g *Generator, label string) Value
 }
 
 type bitStream interface {
@@ -29,14 +28,8 @@ type bitStreamSource struct {
 	s bitStream
 }
 
-func (src *bitStreamSource) draw(g *Generator, label string, unpack ...interface{}) Value {
-	v := g.value(src.s)
-
-	if len(unpack) > 0 {
-		unpackTuple(reflect.ValueOf(v), unpack...)
-	}
-
-	return v
+func (src *bitStreamSource) draw(g *Generator, label string) Value {
+	return g.value(src.s)
 }
 
 func baseSeed() uint64 {

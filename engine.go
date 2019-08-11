@@ -298,8 +298,8 @@ func newT(tb limitedTB, s bitStream, log_ bool, refDraws ...Value) *T {
 	return t
 }
 
-func (t *T) draw(g *Generator, label string, unpack ...interface{}) Value {
-	v := t.src.draw(g, label, unpack...)
+func (t *T) draw(g *Generator, label string) Value {
+	v := t.src.draw(g, label)
 
 	if len(t.refDraws) > 0 {
 		ref := t.refDraws[t.draws]
@@ -413,4 +413,30 @@ func (t *T) fail(now bool, msg string) {
 	if now {
 		panic(t.failed)
 	}
+}
+
+func assertCallable(fn reflect.Type, t reflect.Type, name string) {
+	assertf(fn.Kind() == reflect.Func, "%v should be a function, not %v", name, fn.Kind())
+	assertf(fn.NumIn() == 1, "%v should have 1 parameter, not %v", name, fn.NumIn())
+	assertf(fn.NumOut() == 1, "%v should have 1 output parameter, not %v", name, fn.NumOut())
+	assertf(t.AssignableTo(fn.In(0)), "parameter #0 (%v) of %v should be assignable from %v", fn.In(0), name, t)
+}
+
+func call(fn reflect.Value, arg reflect.Value) Value {
+	r := fn.Call([]reflect.Value{arg})
+
+	if len(r) == 0 {
+		return nil
+	} else {
+		assert(len(r) == 1)
+		return r[0].Interface()
+	}
+}
+
+type prettyValue struct {
+	Value
+}
+
+func (v prettyValue) String() string {
+	return fmt.Sprintf("%#v", v.Value)
 }

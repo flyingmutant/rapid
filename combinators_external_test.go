@@ -37,10 +37,6 @@ func genStruct(src Source) testStruct {
 	}
 }
 
-func genPair(src Source) (int, int) {
-	return Ints().Draw(src, "").(int), Ints().Draw(src, "").(int)
-}
-
 func TestCustom(t *testing.T) {
 	t.Parallel()
 
@@ -53,55 +49,6 @@ func TestCustom(t *testing.T) {
 	for _, g := range gens {
 		t.Run(g.String(), MakeCheck(func(t *T) { g.Draw(t, "") }))
 	}
-}
-
-func TestTupleHoldover(t *testing.T) {
-	t.Parallel()
-
-	g := Tuple(Bytes(), Ints()).Map(func(b byte, i int) bool { return i > int(b) })
-
-	Check(t, func(t *T) {
-		_ = g.Draw(t, "b").(bool)
-	})
-}
-
-func TestTupleUnpackArgs(t *testing.T) {
-	t.Parallel()
-
-	g := Custom(genPair).
-		Filter(func(x int, y int) bool { return x != y }).
-		Map(func(x int, y int) (int, int, int) { return x, x * 3, y * 3 })
-
-	Check(t, func(t *T) {
-		var a, b, c int
-		g.Draw(t, "a, b, c", &a, &b, &c)
-		if b != a*3 || b == c {
-			t.Fatalf("got impossible %v, %v, %v", a, b, c)
-		}
-	})
-}
-
-func TestTupleUnpackDraw(t *testing.T) {
-	t.Parallel()
-
-	g := Custom(genPair).Map(func(x int, y int) (int, string) { return x, strconv.Itoa(x) })
-
-	Check(t, func(t *T) {
-		var a int
-		var b string
-		g.Draw(t, "pair", &a, &b)
-		if strconv.Itoa(a) != b {
-			t.Fatalf("got impossible %v, %v", a, b)
-		}
-	})
-}
-
-func TestTupleCompatibility(t *testing.T) {
-	t.Parallel()
-
-	g := MapsOfNValues(OneOf(Custom(genPair), Custom(genPair), Custom(genPair)), 10, -1, nil)
-
-	Check(t, func(t *T) { g.Draw(t, "") })
 }
 
 func TestFilter(t *testing.T) {

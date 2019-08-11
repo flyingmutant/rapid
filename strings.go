@@ -159,7 +159,7 @@ func StringsOf(rune_ *Generator) *Generator {
 
 func StringsOfN(rune_ *Generator, minRunes int, maxRunes int, maxLen int) *Generator {
 	assertValidRange(minRunes, maxRunes)
-	assertf(rune_.type_() == int32Type, "rune generator should generate %v, not %v", int32Type, prettyType{rune_.type_()})
+	assertf(rune_.type_() == int32Type, "rune generator should generate %v, not %v", int32Type, rune_.type_())
 	assertf(maxLen < 0 || maxLen >= maxRunes, "maximum length (%v) should not be less than maximum number of runes (%v)", maxLen, maxRunes)
 
 	return newGenerator(&stringGen{

@@ -36,11 +36,10 @@ func SlicesOfNDistinct(elem *Generator, minLen int, maxLen int, keyFn interface{
 	keyTyp := elem.type_()
 	if keyFn != nil {
 		t := reflect.TypeOf(keyFn)
-		assertCallable(t, elem.type_(), "keyFn", 0)
-		assertf(t.NumOut() == 1, "keyFn should have 1 output parameter, not %v", t.NumOut())
+		assertCallable(t, elem.type_(), "keyFn")
 		keyTyp = t.Out(0)
 	}
-	assertf(keyTyp.Comparable(), "key type should be comparable (got %v)", prettyType{keyTyp})
+	assertf(keyTyp.Comparable(), "key type should be comparable (got %v)", keyTyp)
 
 	return newGenerator(&sliceGen{
 		typ:    reflect.SliceOf(elem.type_()),
@@ -71,7 +70,7 @@ func (g *sliceGen) String() string {
 	} else {
 		key := ""
 		if g.keyFn.IsValid() {
-			key = fmt.Sprintf(", key=func(%v) %v", prettyType{g.elem.type_()}, prettyType{g.keyTyp})
+			key = fmt.Sprintf(", key=func(%v) %v", g.elem.type_(), g.keyTyp)
 		}
 
 		if g.minLen < 0 && g.maxLen < 0 {
@@ -123,7 +122,7 @@ func MapsOf(key *Generator, val *Generator) *Generator {
 
 func MapsOfN(key *Generator, val *Generator, minLen int, maxLen int) *Generator {
 	assertValidRange(minLen, maxLen)
-	assertf(key.type_().Comparable(), "key type should be comparable (got %v)", prettyType{key.type_()})
+	assertf(key.type_().Comparable(), "key type should be comparable (got %v)", key.type_())
 
 	return newGenerator(&mapGen{
 		typ:    reflect.MapOf(key.type_(), val.type_()),
@@ -144,11 +143,10 @@ func MapsOfNValues(val *Generator, minLen int, maxLen int, keyFn interface{}) *G
 	keyTyp := val.type_()
 	if keyFn != nil {
 		t := reflect.TypeOf(keyFn)
-		assertCallable(t, val.type_(), "keyFn", 0)
-		assertf(t.NumOut() == 1, "keyFn should have 1 output parameter, not %v", t.NumOut())
+		assertCallable(t, val.type_(), "keyFn")
 		keyTyp = t.Out(0)
 	}
-	assertf(keyTyp.Comparable(), "key type should be comparable (got %v)", prettyType{keyTyp})
+	assertf(keyTyp.Comparable(), "key type should be comparable (got %v)", keyTyp)
 
 	return newGenerator(&mapGen{
 		typ:    reflect.MapOf(keyTyp, val.type_()),
@@ -180,7 +178,7 @@ func (g *mapGen) String() string {
 	} else {
 		key := ""
 		if g.keyFn.IsValid() {
-			key = fmt.Sprintf(", key=func(%v) %v", prettyType{g.val.type_()}, prettyType{g.keyTyp})
+			key = fmt.Sprintf(", key=func(%v) %v", g.val.type_(), g.keyTyp)
 		}
 
 		if g.minLen < 0 && g.maxLen < 0 {

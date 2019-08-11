@@ -38,8 +38,8 @@ func (g *Generator) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *Generator) Draw(src Source, label string, unpack ...interface{}) Value {
-	return src.draw(g, label, unpack...)
+func (g *Generator) Draw(src Source, label string) Value {
+	return src.draw(g, label)
 }
 
 func (g *Generator) value(s bitStream) Value {
@@ -48,7 +48,7 @@ func (g *Generator) value(s bitStream) Value {
 	v := g.impl.value(s)
 	t := reflect.TypeOf(v)
 	assertf(v != nil, "%v has generated a nil value", g)
-	assertf(t.AssignableTo(g.typ), "%v has generated a value of type %v which is not assignable to %v", g, prettyType{t}, prettyType{g.typ})
+	assertf(t.AssignableTo(g.typ), "%v has generated a value of type %v which is not assignable to %v", g, t, g.typ)
 
 	s.endGroup(i, false)
 
