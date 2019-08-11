@@ -46,11 +46,12 @@ func TestStringsOfRunesAreUTF8(t *testing.T) {
 	}
 
 	for _, g := range gens {
-		t.Run(g.String(), MakeCheck(func(t *T, s string) {
+		t.Run(g.String(), MakeCheck(func(t *T) {
+			s := g.Draw(t, "s").(string)
 			if !utf8.ValidString(s) {
 				t.Fatalf("invalid UTF-8 string: %q", s)
 			}
-		}, g))
+		}))
 	}
 }
 
@@ -63,7 +64,9 @@ func TestStringRuneCountLimits(t *testing.T) {
 	}
 
 	for i, gf := range genFuncs {
-		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, minRunes int, maxRunes int) {
+		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
+			minRunes := IntsRange(0, 256).Draw(t, "minRunes").(int)
+			maxRunes := IntsMin(0).Draw(t, "maxRunes").(int)
 			if minRunes > maxRunes {
 				t.Skip("minRunes > maxRunes")
 			}
@@ -76,7 +79,7 @@ func TestStringRuneCountLimits(t *testing.T) {
 			if n > maxRunes {
 				t.Fatalf("got string with %v runes with upper limit %v", n, maxRunes)
 			}
-		}, IntsRange(0, 256), IntsMin(0)))
+		}))
 	}
 }
 
@@ -90,11 +93,12 @@ func TestStringsNMaxLen(t *testing.T) {
 	}
 
 	for i, gf := range genFuncs {
-		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, maxLen int) {
+		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
+			maxLen := IntsMin(0).Draw(t, "maxLen").(int)
 			s := gf(maxLen).Draw(t, "s").(string)
 			if len(s) > maxLen {
 				t.Fatalf("got string of length %v with maxLen %v", len(s), maxLen)
 			}
-		}, IntsMin(0)))
+		}))
 	}
 }

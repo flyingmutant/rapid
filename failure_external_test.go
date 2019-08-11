@@ -22,33 +22,39 @@ func fatalf(t *T, format string, args ...interface{}) {
 func TestFailure_ImpossibleData(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, i int) {}, Ints().Filter(func(i int) bool { return false }))
+	Check(t, func(t *T) {
+		_ = Ints().Filter(func(i int) bool { return false }).Draw(t, "i")
+	})
 }
 
 func TestFailure_Trivial(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, i int) {
+	Check(t, func(t *T) {
+		i := Ints().Draw(t, "i").(int)
 		if i > 1000000000 {
 			fatalf(t, "got a huge integer: %v", i)
 		}
-	}, Ints())
+	})
 }
 
 func TestFailure_SimpleCollection(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, s []int) {
+	Check(t, func(t *T) {
+		s := SlicesOf(Ints().Filter(func(i int) bool { return i%2 == -1 })).Draw(t, "s").([]int)
 		if len(s) > 3 {
 			fatalf(t, "got a long sequence: %v", s)
 		}
-	}, SlicesOf(Ints().Filter(func(i int) bool { return i%2 == -1 })))
+	})
 }
 
 func TestFailure_CollectionElements(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, s []int) {
+	Check(t, func(t *T) {
+		s := SlicesOfN(Ints(), 2, -1).Draw(t, "s").([]int)
+
 		n := 0
 		for _, i := range s {
 			if i > 1000000 {
@@ -59,31 +65,35 @@ func TestFailure_CollectionElements(t *testing.T) {
 		if n > 1 {
 			fatalf(t, "got %v huge elements", n)
 		}
-	}, SlicesOfN(Ints(), 2, -1))
+	})
 }
 
 func TestFailure_TrivialString(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, s string) {
+	Check(t, func(t *T) {
+		s := Strings().Draw(t, "s").(string)
 		if len(s) > 7 {
 			fatalf(t, "got bad string %v", s)
 		}
-	}, Strings())
+	})
 }
 
 func TestFailure_Make(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, n int) {
+	Check(t, func(t *T) {
+		n := IntsMin(0).Draw(t, "n").(int)
 		_ = make([]int, n)
-	}, IntsMin(0))
+	})
 }
 
 func TestFailure_Mean(t *testing.T) {
 	t.Skip("failure")
 
-	Check(t, func(t *T, s []float64) {
+	Check(t, func(t *T) {
+		s := SlicesOf(Float64s()).Draw(t, "s").([]float64)
+
 		mean := 0.0
 		for _, f := range s {
 			mean += f
@@ -103,7 +113,7 @@ func TestFailure_Mean(t *testing.T) {
 		if mean < min || mean > max {
 			t.Fatalf("got mean %v for range [%v, %v]", mean, min, max)
 		}
-	}, SlicesOf(Float64s()))
+	})
 }
 
 func TestFailure_ExampleParseDate(t *testing.T) {

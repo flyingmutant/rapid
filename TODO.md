@@ -2,9 +2,10 @@
 
 ## Now
 
-- API
-  - rename rapid.Bind, rapid.BindIf to something more human
-  - make sure we print out functionName(arg1, ..., argN) in state machine output
+- refactoring
+  - dynamic ranges
+  - state machines
+    - with skip
 - Go SPb Meetup feedback:
   - more examples (buffers?, DI?)
   - consider removing state machines entirely?

@@ -51,10 +51,11 @@ type queueMachine struct {
 
 // Init is an action for initializing  a queueMachine instance.
 func (m *queueMachine) Init() func(*rapid.T) {
-	return rapid.Bind(func(t *rapid.T, n int) {
+	return func(t *rapid.T) {
+		n := rapid.IntsRange(1, 1000).Draw(t, "n").(int)
 		m.q = NewQueue(n)
 		m.n = n
-	}, rapid.IntsRange(1, 1000))
+	}
 }
 
 // Get is a conditional action which removes an item from the queue.
@@ -78,10 +79,11 @@ func (m *queueMachine) Put() func(*rapid.T) {
 		return nil
 	}
 
-	return rapid.Bind(func(t *rapid.T, i int) {
+	return func(t *rapid.T) {
+		i := rapid.Ints().Draw(t, "i").(int)
 		m.q.Put(i)
 		m.state = append(m.state, i)
-	}, rapid.Ints())
+	}
 }
 
 // Check verifies that all required invariants hold.

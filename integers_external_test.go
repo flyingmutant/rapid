@@ -151,7 +151,9 @@ func TestUintsMinMaxRange(t *testing.T) {
 func TestIntsBoundCoverage(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min int, max int) {
+	Check(t, func(t *T) {
+		min := Ints().Draw(t, "min").(int)
+		max := Ints().Draw(t, "max").(int)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -177,7 +179,7 @@ func TestIntsBoundCoverage(t *testing.T) {
 		}
 
 		t.Fatalf("[%v, %v]: got min %v, got max %v, got zero %v", min, max, gotMin, gotMax, gotZero)
-	}, Ints(), Ints())
+	})
 }
 
 func TestBytesCoverage(t *testing.T) {

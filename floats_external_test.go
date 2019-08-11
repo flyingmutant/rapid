@@ -69,7 +69,9 @@ func TestFloatsExamples(t *testing.T) {
 func TestFloat32sBoundCoverage(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min float32, max float32) {
+	Check(t, func(t *T) {
+		min := Float32s().Draw(t, "min").(float32)
+		max := Float32s().Draw(t, "max").(float32)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -95,13 +97,15 @@ func TestFloat32sBoundCoverage(t *testing.T) {
 		}
 
 		t.Fatalf("[%v, %v]: got min %v, got max %v, got zero %v", min, max, gotMin, gotMax, gotZero)
-	}, Float32s(), Float32s())
+	})
 }
 
 func TestFloat64sBoundCoverage(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min float64, max float64) {
+	Check(t, func(t *T) {
+		min := Float64s().Draw(t, "min").(float64)
+		max := Float64s().Draw(t, "max").(float64)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -127,5 +131,5 @@ func TestFloat64sBoundCoverage(t *testing.T) {
 		}
 
 		t.Fatalf("[%v, %v]: got min %v, got max %v, got zero %v", min, max, gotMin, gotMax, gotZero)
-	}, Float64s(), Float64s())
+	})
 }

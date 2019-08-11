@@ -1065,11 +1065,12 @@ func TestStringsMatching(t *testing.T) {
 				t.Fatalf("failed to compile %q: %v", expr, err)
 			}
 
-			Check(t, func(t *T, s string) {
+			Check(t, func(t *T) {
+				s := StringsMatching(expr).Draw(t, "s").(string)
 				if !re.MatchString(s) {
 					t.Fatalf("%q does not match %q", s, expr)
 				}
-			}, StringsMatching(expr))
+			})
 		})
 	}
 }
@@ -1084,11 +1085,12 @@ func TestSlicesOfBytesMatching(t *testing.T) {
 				t.Fatalf("failed to compile %q: %v", expr, err)
 			}
 
-			Check(t, func(t *T, s []byte) {
+			Check(t, func(t *T) {
+				s := SlicesOfBytesMatching(expr).Draw(t, "s").([]byte)
 				if !re.Match(s) {
 					t.Fatalf("%q does not match %q", s, expr)
 				}
-			}, SlicesOfBytesMatching(expr))
+			})
 		})
 	}
 }

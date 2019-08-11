@@ -60,7 +60,9 @@ func TestTupleHoldover(t *testing.T) {
 
 	g := Tuple(Bytes(), Ints()).Map(func(b byte, i int) bool { return i > int(b) })
 
-	Check(t, func(*T, bool) {}, g)
+	Check(t, func(t *T) {
+		_ = g.Draw(t, "b").(bool)
+	})
 }
 
 func TestTupleUnpackArgs(t *testing.T) {
@@ -70,11 +72,13 @@ func TestTupleUnpackArgs(t *testing.T) {
 		Filter(func(x int, y int) bool { return x != y }).
 		Map(func(x int, y int) (int, int, int) { return x, x * 3, y * 3 })
 
-	Check(t, func(t *T, a int, b int, c int) {
+	Check(t, func(t *T) {
+		var a, b, c int
+		g.Draw(t, "a, b, c", &a, &b, &c)
 		if b != a*3 || b == c {
 			t.Fatalf("got impossible %v, %v, %v", a, b, c)
 		}
-	}, g)
+	})
 }
 
 func TestTupleUnpackDraw(t *testing.T) {
@@ -105,11 +109,12 @@ func TestFilter(t *testing.T) {
 
 	g := Ints().Filter(func(i int) bool { return i >= 0 })
 
-	Check(t, func(t *T, v int) {
+	Check(t, func(t *T) {
+		v := g.Draw(t, "v").(int)
 		if v < 0 {
 			t.Fatalf("got negative %v", v)
 		}
-	}, g)
+	})
 }
 
 func TestMap(t *testing.T) {
@@ -117,12 +122,13 @@ func TestMap(t *testing.T) {
 
 	g := Ints().Map(strconv.Itoa)
 
-	Check(t, func(t *T, s string) {
+	Check(t, func(t *T) {
+		s := g.Draw(t, "s").(string)
 		_, err := strconv.Atoi(s)
 		if err != nil {
 			t.Fatalf("Atoi() error %v", err)
 		}
-	}, g)
+	})
 }
 
 func TestSampledFrom(t *testing.T) {
@@ -134,11 +140,12 @@ func TestSampledFrom(t *testing.T) {
 	}
 
 	for _, g := range gens {
-		t.Run(g.String(), MakeCheck(func(t *T, n int) {
+		t.Run(g.String(), MakeCheck(func(t *T) {
+			n := g.Draw(t, "n").(int)
 			if n != 3 && n != 5 && n != 7 {
 				t.Fatalf("got impossible %v", n)
 			}
-		}, g))
+		}))
 	}
 }
 
@@ -149,21 +156,23 @@ func TestOneOf(t *testing.T) {
 	neg := Ints().Filter(func(v int) bool { return v <= -10 })
 	g := OneOf(pos, neg)
 
-	Check(t, func(t *T, n int) {
+	Check(t, func(t *T) {
+		n := g.Draw(t, "n").(int)
 		if n > -10 && n < 10 {
 			t.Fatalf("got impossible %v", n)
 		}
-	}, g)
+	})
 }
 
 func TestPtrs(t *testing.T) {
 	t.Parallel()
 
 	for _, allowNil := range []bool{false, true} {
-		t.Run(fmt.Sprintf("allowNil=%v", allowNil), MakeCheck(func(t *T, i *int) {
+		t.Run(fmt.Sprintf("allowNil=%v", allowNil), MakeCheck(func(t *T) {
+			i := Ptrs(Ints(), allowNil).Draw(t, "i").(*int)
 			if i == nil && !allowNil {
 				t.Fatalf("got nil pointer")
 			}
-		}, Ptrs(Ints(), allowNil)))
+		}))
 	}
 }

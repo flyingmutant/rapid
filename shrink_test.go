@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
-	"reflect"
 	"sort"
 	"strconv"
 	"testing"
@@ -37,11 +36,12 @@ func TestShrink_IntCmp(t *testing.T) {
 
 	for _, r := range ref {
 		t.Run(fmt.Sprintf("%v", r), func(t *testing.T) {
-			checkShrink(t, Bind(func(t *T, i int) {
+			checkShrink(t, func(t *T) {
+				i := Ints().Draw(t, "i").(int)
 				if ((r.gt && i > r.a) || (!r.gt && i < r.a)) || (r.eq && i == r.a) {
 					t.Fail()
 				}
-			}, Ints()), pack(r.b))
+			}, r.b)
 		})
 	}
 }
@@ -70,11 +70,12 @@ func TestShrink_FloatCmp(t *testing.T) {
 
 	for _, r := range ref {
 		t.Run(fmt.Sprintf("%v", r), func(t *testing.T) {
-			checkShrink(t, Bind(func(t *T, f float64) {
+			checkShrink(t, func(t *T) {
+				f := Float64s().Draw(t, "f").(float64)
 				if ((r.gt && f > r.a) || (!r.gt && f < r.a)) || (r.eq && f == r.a) {
 					t.Fail()
 				}
-			}, Float64s()), pack(r.b))
+			}, r.b)
 		})
 	}
 }
@@ -82,7 +83,8 @@ func TestShrink_FloatCmp(t *testing.T) {
 func TestShrink_IntSliceNElemsGt(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Bind(func(t *T, s []int) {
+	checkShrink(t, func(t *T) {
+		s := SlicesOf(Ints()).Draw(t, "s").([]int)
 		n := 0
 		for _, i := range s {
 			if i > 1000000 {
@@ -92,35 +94,38 @@ func TestShrink_IntSliceNElemsGt(t *testing.T) {
 		if n > 1 {
 			t.Fail()
 		}
-	}, SlicesOf(Ints())), pack([]int{1000001, 1000001}))
+	}, []int{1000001, 1000001})
 }
 
 func TestShrink_IntSliceElemGe(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Bind(func(t *T, s []int) {
+	checkShrink(t, func(t *T) {
+		s := SlicesOfN(Ints(), 1, -1).Draw(t, "s").([]int)
 		ix := IntsRange(0, len(s)-1).Draw(t, "ix").(int)
 
 		if s[ix] >= 100 {
 			t.Fail()
 		}
-	}, SlicesOfN(Ints(), 1, -1)), pack([]int{100}), 0)
+	}, []int{100}, 0)
 }
 
 func TestShrink_IntSliceElemSpanGe(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Bind(func(t *T, s []int) {
+	checkShrink(t, func(t *T) {
+		s := SlicesOfN(Ints(), 4, -1).Draw(t, "s").([]int)
 		if len(s)%3 == 1 && s[len(s)-1] >= 100 {
 			t.Fail()
 		}
-	}, SlicesOfN(Ints(), 4, -1)), pack([]int{0, 0, 0, 100}))
+	}, []int{0, 0, 0, 100})
 }
 
 func TestShrink_IntSliceNoDuplicates(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Bind(func(t *T, s []int) {
+	checkShrink(t, func(t *T) {
+		s := SlicesOfN(IntsMin(1), 5, -1).Draw(t, "s").([]int)
 		sort.Ints(s)
 		last := 0
 		for _, i := range s {
@@ -130,34 +135,38 @@ func TestShrink_IntSliceNoDuplicates(t *testing.T) {
 			last = i
 		}
 		t.Fail()
-	}, SlicesOfN(IntsMin(1), 5, -1)), pack([]int{1, 2, 3, 4, 5}))
+	}, []int{1, 2, 3, 4, 5})
 }
 
 func TestShrink_Strings(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Bind(func(t *T, s1 string, s2 string) {
+	checkShrink(t, func(t *T) {
+		s1 := Strings().Draw(t, "s1").(string)
+		s2 := Strings().Draw(t, "s2").(string)
 		if len(s1) > len(s2) {
 			t.Fail()
 		}
-	}, Strings(), Strings()), pack("?", ""))
+	}, "?", "")
 }
 
 func TestMinimize_UnsetBits(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, mask uint64) {
+	Check(t, func(t *T) {
+		mask := Uint64sRange(0, math.MaxUint64).Draw(t, "mask").(uint64)
 		best := minimize(math.MaxUint64, func(x uint64, s string) bool { return x&mask == mask })
 		if best != mask {
 			t.Fatalf("unset to %v instead of %v", bin(best), bin(mask))
 		}
-	}, Uint64sRange(0, math.MaxUint64))
+	})
 }
 
 func TestMinimize_SortBits(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, u uint64) {
+	Check(t, func(t *T) {
+		u := Uint64sRange(0, math.MaxUint64).Draw(t, "u").(uint64)
 		n := bits.OnesCount64(u)
 		v := uint64(1<<uint(n) - 1)
 
@@ -165,7 +174,7 @@ func TestMinimize_SortBits(t *testing.T) {
 		if best != v {
 			t.Fatalf("minimized to %v instead of %v (%v bits set)", bin(best), bin(v), n)
 		}
-	}, Uint64sRange(0, math.MaxUint64))
+	})
 }
 
 func TestMinimize_LowerBound(t *testing.T) {
@@ -198,18 +207,6 @@ func checkShrink(t *testing.T, prop func(*T), draws ...Value) {
 			_ = checkOnce(newT(t, newBufBitStream(buf, false), false, draws...), prop)
 		})
 	}
-}
-
-func pack(fields ...Value) Value {
-	vals := make([]reflect.Value, len(fields))
-	typs := make([]reflect.Type, len(fields))
-
-	for i, field := range fields {
-		vals[i] = reflect.ValueOf(field)
-		typs[i] = vals[i].Type()
-	}
-
-	return packTuple(tupleOf(typs), vals...).Interface()
 }
 
 func bin(u uint64) string {

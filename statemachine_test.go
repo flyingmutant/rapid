@@ -176,10 +176,11 @@ type queueMachine struct {
 }
 
 func (m *queueMachine) Init() func(*T) {
-	return Bind(func(t *T, size int) {
+	return func(t *T) {
+		size := IntsRange(1, 1000).Draw(t, "size").(int)
 		m.q = newBuggyQueue(size)
 		m.size = size
-	}, IntsRange(1, 1000))
+	}
 }
 
 func (m *queueMachine) Get() func(*T) {
@@ -201,10 +202,11 @@ func (m *queueMachine) Put() func(*T) {
 		return nil
 	}
 
-	return Bind(func(t *T, n int) {
+	return func(t *T) {
+		n := Ints().Draw(t, "n").(int)
 		m.q.Put(n)
 		m.state = append(m.state, n)
-	}, Ints())
+	}
 }
 
 func (m *queueMachine) Check(t *T) {
@@ -218,12 +220,12 @@ func TestStateMachine_Queue(t *testing.T) {
 
 	checkShrink(t, StateMachine(&queueMachine{}),
 		"Init",
-		pack(1),
+		1,
 		"Put",
-		pack(0),
+		0,
 		"Get",
 		"Put",
-		pack(0),
+		0,
 	)
 }
 

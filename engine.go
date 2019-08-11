@@ -42,7 +42,6 @@ var (
 
 	errCantGenDueToFilter = errors.New("generation failed due to Filter() or Assume() conditions being too strong")
 
-	tPtrType         = reflect.TypeOf((*T)(nil))
 	emptyStructType  = reflect.TypeOf(struct{}{})
 	emptyStructValue = reflect.ValueOf(struct{}{})
 )
@@ -63,61 +62,21 @@ func assertValidRange(min int, max int) {
 	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%d, %d]", min, max))
 }
 
-// Bind is a convenience function for writing state machine transition rules.
+// Check fails the current test if rapid can find a test case which falsifies prop.
 //
-// Given prop with signature func(*T, Arg1,  ..., ArgN) and N generators
-// producing values of types Arg1, ...,  ArgN, Bind returns a function
-// of type func(*T) which calls prop with the values drawn from the
-// generators as arguments 1...N.
-func Bind(prop interface{}, args ...*Generator) func(*T) {
-	if len(args) == 0 {
-		fn, ok := prop.(func(*T))
-		assertf(ok, "prop should have type func(*T), not %v", reflect.TypeOf(prop))
-		return fn
-	}
-
-	var (
-		args_ = Tuple(args...)
-		pv    = reflect.ValueOf(prop)
-		pt    = reflect.TypeOf(prop)
-	)
-
-	assertCallable(pt, args_.type_(), "prop", 1)
-	assertf(pt.In(0) == tPtrType, "prop should have first parameter of type %v, not %v", tPtrType, pt.In(0))
-	assertf(pt.NumOut() == 0, "prop should have no output parameters (got %v)", pt.NumOut())
-
-	return func(t *T) {
-		t.Helper()
-
-		v := reflect.ValueOf(args_.Draw(t, "args"))
-
-		n := v.NumField()
-		in := make([]reflect.Value, n+1)
-		in[0] = reflect.ValueOf(t)
-
-		for i := 0; i < n; i++ {
-			in[i+1] = v.Field(i)
-		}
-
-		pv.Call(in)
-	}
-}
-
-// Check fails the current test if rapid can find a test case which falsifies
-// the property created by Bind(prop, args...). Property is falsified in case
-// of a panic or a call to (*T).Fatalf, (*T).Fatal, (*T).Errorf, (*T).Error,
-// (*T).FailNow or (*T).Fail.
-func Check(t *testing.T, prop interface{}, args ...*Generator) {
+// Property is falsified in case of a panic or a call to
+// (*T).Fatalf, (*T).Fatal, (*T).Errorf, (*T).Error, (*T).FailNow or (*T).Fail.
+func Check(t *testing.T, prop func(*T)) {
 	t.Helper()
-	checkTB(t, Bind(prop, args...))
+	checkTB(t, prop)
 }
 
 // MakeCheck is a convenience function for defining subtests suitable for
 // (*testing.T).Run.
-func MakeCheck(prop interface{}, args ...*Generator) func(*testing.T) {
+func MakeCheck(prop func(*T)) func(*testing.T) {
 	return func(t *testing.T) {
 		t.Helper()
-		checkTB(t, Bind(prop, args...))
+		checkTB(t, prop)
 	}
 }
 

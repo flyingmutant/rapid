@@ -30,29 +30,33 @@ func TestFloatConversionRoundtrip(t *testing.T) {
 func TestUfloat32FromParts(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, f float32) {
+	Check(t, func(t *T) {
+		f := Float32sMin(0).Draw(t, "f").(float32)
 		g := ufloat32FromParts(ufloat32Parts(f))
 		if g != f {
 			t.Fatalf("got %v (0x%x) back from %v (0x%x)", g, math.Float32bits(g), f, math.Float32bits(f))
 		}
-	}, Float32sMin(0))
+	})
 }
 
 func TestUfloat64FromParts(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, f float64) {
+	Check(t, func(t *T) {
+		f := Float64sMin(0).Draw(t, "f").(float64)
 		g := ufloat64FromParts(ufloat64Parts(f))
 		if g != f {
 			t.Fatalf("got %v (0x%x) back from %v (0x%x)", g, math.Float64bits(g), f, math.Float64bits(f))
 		}
-	}, Float64sMin(0))
+	})
 }
 
 func TestGenUfloat32Range(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min float32, max float32) {
+	Check(t, func(t *T) {
+		min := Float32sMin(0).Draw(t, "min").(float32)
+		max := Float32sMin(0).Draw(t, "max").(float32)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -61,13 +65,15 @@ func TestGenUfloat32Range(t *testing.T) {
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float32bits(f), min, max, math.Float32bits(min), math.Float32bits(max))
 		}
-	}, Float32sMin(0), Float32sMin(0))
+	})
 }
 
 func TestGenUfloat64Range(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min float64, max float64) {
+	Check(t, func(t *T) {
+		min := Float64sMin(0).Draw(t, "min").(float64)
+		max := Float64sMin(0).Draw(t, "max").(float64)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -76,13 +82,15 @@ func TestGenUfloat64Range(t *testing.T) {
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float64bits(f), min, max, math.Float64bits(min), math.Float64bits(max))
 		}
-	}, Float64sMin(0), Float64sMin(0))
+	})
 }
 
 func TestGenFloat32Range(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min float32, max float32) {
+	Check(t, func(t *T) {
+		min := Float32s().Draw(t, "min").(float32)
+		max := Float32s().Draw(t, "max").(float32)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -91,13 +99,15 @@ func TestGenFloat32Range(t *testing.T) {
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float32bits(f), min, max, math.Float32bits(min), math.Float32bits(max))
 		}
-	}, Float32s(), Float32s())
+	})
 }
 
 func TestGenFloat64Range(t *testing.T) {
 	t.Parallel()
 
-	Check(t, func(t *T, min float64, max float64) {
+	Check(t, func(t *T) {
+		min := Float64s().Draw(t, "min").(float64)
+		max := Float64s().Draw(t, "max").(float64)
 		if min > max {
 			t.Skip("min > max")
 		}
@@ -106,5 +116,5 @@ func TestGenFloat64Range(t *testing.T) {
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float64bits(f), min, max, math.Float64bits(min), math.Float64bits(max))
 		}
-	}, Float64s(), Float64s())
+	})
 }

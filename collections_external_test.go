@@ -25,15 +25,15 @@ func TestSlicesOf(t *testing.T) {
 	}
 
 	for _, g := range gens {
-		t.Run(g.String(), MakeCheck(func(t *T, v interface{}) {
+		t.Run(g.String(), MakeCheck(func(t *T) {
+			v := g.Draw(t, "v")
 			if rv(v).Kind() != reflect.Slice {
 				t.Fatalf("got not a slice")
 			}
-
 			if rv(v).Len() == 0 {
 				t.Skip("empty")
 			}
-		}, g))
+		}))
 	}
 }
 
@@ -42,7 +42,8 @@ func TestSlicesOfDistinct(t *testing.T) {
 
 	g := SlicesOfDistinct(Ints(), nil)
 
-	Check(t, func(t *T, s []int) {
+	Check(t, func(t *T) {
+		s := g.Draw(t, "s").([]int)
 		m := map[int]struct{}{}
 		for _, i := range s {
 			m[i] = struct{}{}
@@ -50,7 +51,7 @@ func TestSlicesOfDistinct(t *testing.T) {
 		if len(m) != len(s) {
 			t.Fatalf("%v unique out of %v", len(m), len(s))
 		}
-	}, g)
+	})
 }
 
 func TestSlicesOfDistinctBy(t *testing.T) {
@@ -58,7 +59,8 @@ func TestSlicesOfDistinctBy(t *testing.T) {
 
 	g := SlicesOfDistinct(Ints(), func(i int) string { return strconv.Itoa(i % 5) })
 
-	Check(t, func(t *T, s []int) {
+	Check(t, func(t *T) {
+		s := g.Draw(t, "s").([]int)
 		m := map[int]struct{}{}
 		for _, i := range s {
 			m[i%5] = struct{}{}
@@ -66,7 +68,7 @@ func TestSlicesOfDistinctBy(t *testing.T) {
 		if len(m) != len(s) {
 			t.Fatalf("%v unique out of %v", len(m), len(s))
 		}
-	}, g)
+	})
 }
 
 func TestMapsOf(t *testing.T) {
@@ -79,15 +81,15 @@ func TestMapsOf(t *testing.T) {
 	}
 
 	for _, g := range gens {
-		t.Run(g.String(), MakeCheck(func(t *T, v interface{}) {
+		t.Run(g.String(), MakeCheck(func(t *T) {
+			v := g.Draw(t, "v")
 			if rv(v).Kind() != reflect.Map {
 				t.Fatalf("got not a map")
 			}
-
 			if rv(v).Len() == 0 {
 				t.Skip("empty")
 			}
-		}, g))
+		}))
 	}
 }
 
@@ -96,13 +98,14 @@ func TestMapsOfValues(t *testing.T) {
 
 	g := MapsOfValues(Custom(genStruct), func(s testStruct) int { return s.x })
 
-	Check(t, func(t *T, m map[int]testStruct) {
+	Check(t, func(t *T) {
+		m := g.Draw(t, "m").(map[int]testStruct)
 		for k, v := range m {
 			if k != v.x {
 				t.Fatalf("got key %v with value %v", k, v)
 			}
 		}
-	}, g)
+	})
 }
 
 func TestArraysOf(t *testing.T) {
@@ -114,11 +117,12 @@ func TestArraysOf(t *testing.T) {
 	for _, e := range elems {
 		for _, c := range counts {
 			g := ArraysOf(c, e)
-			t.Run(g.String(), MakeCheck(func(t *T, v interface{}) {
+			t.Run(g.String(), MakeCheck(func(t *T) {
+				v := g.Draw(t, "v")
 				if rv(v).Len() != c {
 					t.Fatalf("len is %v instead of %v", rv(v).Len(), c)
 				}
-			}, g))
+			}))
 		}
 	}
 }
@@ -137,7 +141,9 @@ func TestCollectionLenLimits(t *testing.T) {
 	}
 
 	for i, gf := range genFuncs {
-		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, minLen int, maxLen int) {
+		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
+			minLen := IntsRange(0, 256).Draw(t, "minLen").(int)
+			maxLen := IntsMin(0).Draw(t, "maxLen").(int)
 			if minLen > maxLen {
 				t.Skip("minLen > maxLen")
 			}
@@ -149,6 +155,6 @@ func TestCollectionLenLimits(t *testing.T) {
 			if s.Len() > maxLen {
 				t.Fatalf("got collection of length %v with maxLen %v", s.Len(), maxLen)
 			}
-		}, IntsRange(0, 256), IntsMin(0)))
+		}))
 	}
 }
