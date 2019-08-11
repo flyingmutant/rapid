@@ -61,9 +61,19 @@ var (
 		unicode.Co, // Other, private use     (137468)
 	}
 
-	expandedTablesMu = sync.RWMutex{}
-	expandedTables   = map[string][]rune{}
+	expandedTables  = sync.Map{} // *unicode.RangeTable / regexp name -> []rune
+	compiledRegexps = sync.Map{} // regexp -> compiledRegexp
+	regexpNames     = sync.Map{} // *regexp.Regexp -> string
+	charClassGens   = sync.Map{} // regexp name -> *Generator
+
+	anyRuneGen     = Runes()
+	anyRuneGenNoNL = Runes().Filter(func(r rune) bool { return r != '\n' })
 )
+
+type compiledRegexp struct {
+	syn *syntax.Regexp
+	re  *regexp.Regexp
+}
 
 func Runes() *Generator {
 	return runesFrom(true, defaultRunes, defaultTables...)
@@ -91,7 +101,7 @@ func runesFrom(default_ bool, runes []rune, tables ...*unicode.RangeTable) *Gene
 
 	tables_ := make([][]rune, len(tables))
 	for i := range tables {
-		tables_[i] = expandRangeTable(tables[i], rangeTableName(tables[i]))
+		tables_[i] = expandRangeTable(tables[i], tables[i])
 		assertf(len(tables_[i]) > 0, "empty *unicode.RangeTable %v", i)
 	}
 
@@ -249,21 +259,14 @@ func SlicesOfBytesMatching(expr string) *Generator {
 }
 
 func matching(expr string, str bool) *Generator {
-	syn, err := syntax.Parse(expr, syntax.Perl)
-	assertf(err == nil, "failed to parse regexp %q: %v", expr, err)
-
-	re, err := regexp.Compile(expr)
-	assertf(err == nil, "failed to compile regexp %q: %v", expr, err)
+	compiled, err := compileRegexp(expr)
+	assertf(err == nil, "%v", err)
 
 	return newGenerator(&regexpGen{
-		str:         str,
-		expr:        expr,
-		syn:         syn,
-		re:          re,
-		any:         Runes(),
-		anyNoNL:     Runes().Filter(func(r rune) bool { return r != '\n' }),
-		subNames:    map[*syntax.Regexp]string{},
-		charClasses: map[*syntax.Regexp]*Generator{},
+		str:  str,
+		expr: expr,
+		syn:  compiled.syn,
+		re:   compiled.re,
 	})
 }
 
@@ -272,14 +275,10 @@ type runeWriter interface {
 }
 
 type regexpGen struct {
-	str         bool
-	expr        string
-	syn         *syntax.Regexp
-	re          *regexp.Regexp
-	any         *Generator
-	anyNoNL     *Generator
-	subNames    map[*syntax.Regexp]string
-	charClasses map[*syntax.Regexp]*Generator
+	str  bool
+	expr string
+	syn  *syntax.Regexp
+	re   *regexp.Regexp
 }
 
 func (g *regexpGen) String() string {
@@ -343,12 +342,12 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 			w.WriteRune(maybeFoldCase(s, r, re.Flags))
 		}
 	case syntax.OpCharClass, syntax.OpAnyCharNotNL, syntax.OpAnyChar:
-		sub := g.any
+		sub := anyRuneGen
 		switch re.Op {
 		case syntax.OpCharClass:
-			sub = g.loadGen(re)
+			sub = charClassGen(re)
 		case syntax.OpAnyCharNotNL:
-			sub = g.anyNoNL
+			sub = anyRuneGenNoNL
 		}
 		r := sub.value(s).(rune)
 		w.WriteRune(maybeFoldCase(s, r, re.Flags))
@@ -369,7 +368,7 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 			min, max = 0, 1
 		}
 		repeat := newRepeat(min, max, -1)
-		for repeat.more(s, g.loadName(re.Sub[0])) {
+		for repeat.more(s, regexpName(re.Sub[0])) {
 			g.build(w, re.Sub[0], s)
 		}
 	case syntax.OpConcat:
@@ -386,24 +385,6 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 	s.endGroup(i, false)
 }
 
-func (g *regexpGen) loadName(re *syntax.Regexp) string {
-	name := g.subNames[re]
-	if name == "" {
-		name = re.String()
-		g.subNames[re] = name
-	}
-	return name
-}
-
-func (g *regexpGen) loadGen(re *syntax.Regexp) *Generator {
-	sub := g.charClasses[re]
-	if sub == nil {
-		sub = charClassGen(re)
-		g.charClasses[re] = sub
-	}
-	return sub
-}
-
 func maybeFoldCase(s bitStream, r rune, flags syntax.Flags) rune {
 	n := uint64(0)
 	if flags&syntax.FoldCase != 0 {
@@ -417,41 +398,13 @@ func maybeFoldCase(s bitStream, r rune, flags syntax.Flags) rune {
 	return r
 }
 
-func rangeTableName(t *unicode.RangeTable) string {
-	maps := map[string]map[string]*unicode.RangeTable{
-		"cat":        unicode.Categories,
-		"foldcat":    unicode.FoldCategory,
-		"foldscript": unicode.FoldScript,
-		"prop":       unicode.Properties,
-		"script":     unicode.Scripts,
-	}
-
-	for c, m := range maps {
-		for k, v := range m {
-			if v == t {
-				return fmt.Sprintf("%s/%s", c, k)
-			}
-		}
-	}
-
-	return fmt.Sprintf("%p", t)
-}
-
-func expandRangeTable(t *unicode.RangeTable, name string) []rune {
-	expandedTablesMu.RLock()
-	ret, ok := expandedTables[name]
-	expandedTablesMu.RUnlock()
+func expandRangeTable(t *unicode.RangeTable, key interface{}) []rune {
+	cached, ok := expandedTables.Load(key)
 	if ok {
-		return ret
+		return cached.([]rune)
 	}
 
-	expandedTablesMu.Lock()
-	defer expandedTablesMu.Unlock()
-	ret, ok = expandedTables[name]
-	if ok {
-		return ret
-	}
-
+	var ret []rune
 	for _, r := range t.R16 {
 		for i := r.Lo; i <= r.Hi; i += r.Stride {
 			ret = append(ret, rune(i))
@@ -462,13 +415,50 @@ func expandRangeTable(t *unicode.RangeTable, name string) []rune {
 			ret = append(ret, rune(i))
 		}
 	}
-	expandedTables[name] = ret
+	expandedTables.Store(key, ret)
 
 	return ret
 }
 
+func compileRegexp(expr string) (compiledRegexp, error) {
+	cached, ok := compiledRegexps.Load(expr)
+	if ok {
+		return cached.(compiledRegexp), nil
+	}
+
+	syn, err := syntax.Parse(expr, syntax.Perl)
+	if err != nil {
+		return compiledRegexp{}, fmt.Errorf("failed to parse regexp %q: %v", expr, err)
+	}
+
+	re, err := regexp.Compile(expr)
+	if err != nil {
+		return compiledRegexp{}, fmt.Errorf("failed to compile regexp %q: %v", expr, err)
+	}
+
+	ret := compiledRegexp{syn, re}
+	compiledRegexps.Store(expr, ret)
+
+	return ret, nil
+}
+
+func regexpName(re *syntax.Regexp) string {
+	cached, ok := regexpNames.Load(re)
+	if ok {
+		return cached.(string)
+	}
+
+	s := re.String()
+	regexpNames.Store(re, s)
+
+	return s
+}
+
 func charClassGen(re *syntax.Regexp) *Generator {
-	assert(re.Op == syntax.OpCharClass)
+	cached, ok := charClassGens.Load(regexpName(re))
+	if ok {
+		return cached.(*Generator)
+	}
 
 	t := &unicode.RangeTable{}
 	for i := 0; i < len(re.Rune); i += 2 {
@@ -479,8 +469,11 @@ func charClassGen(re *syntax.Regexp) *Generator {
 		})
 	}
 
-	return newGenerator(&runeGen{
+	g := newGenerator(&runeGen{
 		die:    newLoadedDie([]int{1}),
-		tables: [][]rune{expandRangeTable(t, re.String())},
+		tables: [][]rune{expandRangeTable(t, regexpName(re))},
 	})
+	charClassGens.Store(regexpName(re), g)
+
+	return g
 }
