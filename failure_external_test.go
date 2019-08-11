@@ -20,7 +20,7 @@ func fatalf(t *T, format string, args ...interface{}) {
 }
 
 func TestFailure_ImpossibleData(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		_ = Ints().Filter(func(i int) bool { return false }).Draw(t, "i")
@@ -28,7 +28,7 @@ func TestFailure_ImpossibleData(t *testing.T) {
 }
 
 func TestFailure_Trivial(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		i := Ints().Draw(t, "i").(int)
@@ -39,7 +39,7 @@ func TestFailure_Trivial(t *testing.T) {
 }
 
 func TestFailure_SimpleCollection(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		s := SlicesOf(Ints().Filter(func(i int) bool { return i%2 == -1 })).Draw(t, "s").([]int)
@@ -50,7 +50,7 @@ func TestFailure_SimpleCollection(t *testing.T) {
 }
 
 func TestFailure_CollectionElements(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		s := SlicesOfN(Ints(), 2, -1).Draw(t, "s").([]int)
@@ -69,7 +69,7 @@ func TestFailure_CollectionElements(t *testing.T) {
 }
 
 func TestFailure_TrivialString(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		s := Strings().Draw(t, "s").(string)
@@ -80,7 +80,7 @@ func TestFailure_TrivialString(t *testing.T) {
 }
 
 func TestFailure_Make(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		n := IntsMin(0).Draw(t, "n").(int)
@@ -89,7 +89,7 @@ func TestFailure_Make(t *testing.T) {
 }
 
 func TestFailure_Mean(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
 		s := SlicesOf(Float64s()).Draw(t, "s").([]float64)
@@ -117,13 +117,13 @@ func TestFailure_Mean(t *testing.T) {
 }
 
 func TestFailure_ExampleParseDate(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Example_parseDate(t)
 }
 
 func TestFailure_ExampleQueue(t *testing.T) {
-	t.Skip("failure")
+	t.Skip("expected failure")
 
 	Example_queue(t)
 }
