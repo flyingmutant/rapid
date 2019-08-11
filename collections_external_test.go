@@ -143,10 +143,7 @@ func TestCollectionLenLimits(t *testing.T) {
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
 			minLen := IntsRange(0, 256).Draw(t, "minLen").(int)
-			maxLen := IntsMin(0).Draw(t, "maxLen").(int)
-			if minLen > maxLen {
-				t.Skip("minLen > maxLen")
-			}
+			maxLen := IntsMin(minLen).Draw(t, "maxLen").(int)
 
 			s := rv(gf(minLen, maxLen).Draw(t, "s"))
 			if s.Len() < minLen {

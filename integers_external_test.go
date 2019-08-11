@@ -155,7 +155,7 @@ func TestIntsBoundCoverage(t *testing.T) {
 		min := Ints().Draw(t, "min").(int)
 		max := Ints().Draw(t, "max").(int)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		g := IntsRange(min, max)

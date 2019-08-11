@@ -3,7 +3,6 @@
 ## Now
 
 - refactoring
-  - dynamic ranges
   - state machines
     - with skip
 - Go SPb Meetup feedback:

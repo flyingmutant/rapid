@@ -58,7 +58,7 @@ func TestGenUfloat32Range(t *testing.T) {
 		min := Float32sMin(0).Draw(t, "min").(float32)
 		max := Float32sMin(0).Draw(t, "max").(float32)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		f := ufloat32FromParts(genUfloatRange(t.src.s, float64(min), float64(max), float32SignifBits))
@@ -75,7 +75,7 @@ func TestGenUfloat64Range(t *testing.T) {
 		min := Float64sMin(0).Draw(t, "min").(float64)
 		max := Float64sMin(0).Draw(t, "max").(float64)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		f := ufloat64FromParts(genUfloatRange(t.src.s, min, max, float64SignifBits))
@@ -92,7 +92,7 @@ func TestGenFloat32Range(t *testing.T) {
 		min := Float32s().Draw(t, "min").(float32)
 		max := Float32s().Draw(t, "max").(float32)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		f := float32FromParts(genFloatRange(t.src.s, float64(min), float64(max), float32SignifBits))
@@ -109,7 +109,7 @@ func TestGenFloat64Range(t *testing.T) {
 		min := Float64s().Draw(t, "min").(float64)
 		max := Float64s().Draw(t, "max").(float64)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		f := float64FromParts(genFloatRange(t.src.s, min, max, float64SignifBits))

@@ -73,7 +73,7 @@ func TestFloat32sBoundCoverage(t *testing.T) {
 		min := Float32s().Draw(t, "min").(float32)
 		max := Float32s().Draw(t, "max").(float32)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		g := Float32sRange(min, max)
@@ -107,7 +107,7 @@ func TestFloat64sBoundCoverage(t *testing.T) {
 		min := Float64s().Draw(t, "min").(float64)
 		max := Float64s().Draw(t, "max").(float64)
 		if min > max {
-			t.Skip("min > max")
+			min, max = max, min
 		}
 
 		g := Float64sRange(min, max)
