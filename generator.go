@@ -39,6 +39,9 @@ func (g *Generator) type_() reflect.Type {
 }
 
 func (g *Generator) Draw(src Source, label string) Value {
+	if t, ok := src.(*T); ok {
+		t.Helper()
+	}
 	return src.draw(g, label)
 }
 
