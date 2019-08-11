@@ -44,26 +44,20 @@ type counterMachine struct {
 	decs int
 }
 
-func (m *counterMachine) Inc() func(*T) {
-	return func(*T) {
-		m.c.Inc()
-		m.incs++
-	}
+func (m *counterMachine) Inc(t *T) {
+	m.c.Inc()
+	m.incs++
 }
 
-func (m *counterMachine) Dec() func(*T) {
-	return func(*T) {
-		m.c.Dec()
-		m.decs++
-	}
+func (m *counterMachine) Dec(t *T) {
+	m.c.Dec()
+	m.decs++
 }
 
-func (m *counterMachine) Reset() func(*T) {
-	return func(*T) {
-		m.c.Reset()
-		m.incs = 0
-		m.decs = 0
-	}
+func (m *counterMachine) Reset(t *T) {
+	m.c.Reset()
+	m.incs = 0
+	m.decs = 0
 }
 
 func (m *counterMachine) Check(t *T) {
@@ -90,34 +84,28 @@ type haltingMachine struct {
 	c []int
 }
 
-func (m *haltingMachine) A() func(*T) {
+func (m *haltingMachine) A(t *T) {
 	if len(m.a) == 3 {
-		return nil
+		t.SkipNow()
 	}
 
-	return func(t *T) {
-		m.a = append(m.a, Ints().Draw(t, "a").(int))
-	}
+	m.a = append(m.a, Ints().Draw(t, "a").(int))
 }
 
-func (m *haltingMachine) B() func(*T) {
+func (m *haltingMachine) B(t *T) {
 	if len(m.b) == 3 {
-		return nil
+		t.SkipNow()
 	}
 
-	return func(t *T) {
-		m.b = append(m.b, Ints().Draw(t, "b").(int))
-	}
+	m.b = append(m.b, Ints().Draw(t, "b").(int))
 }
 
-func (m *haltingMachine) C() func(*T) {
+func (m *haltingMachine) C(t *T) {
 	if len(m.c) == 3 {
-		return nil
+		t.SkipNow()
 	}
 
-	return func(t *T) {
-		m.c = append(m.c, Ints().Draw(t, "c").(int))
-	}
+	m.c = append(m.c, Ints().Draw(t, "c").(int))
 }
 
 func TestStateMachine_Halting(t *testing.T) {
@@ -175,38 +163,32 @@ type queueMachine struct {
 	size  int
 }
 
-func (m *queueMachine) Init() func(*T) {
-	return func(t *T) {
-		size := IntsRange(1, 1000).Draw(t, "size").(int)
-		m.q = newBuggyQueue(size)
-		m.size = size
-	}
+func (m *queueMachine) Init(t *T) {
+	size := IntsRange(1, 1000).Draw(t, "size").(int)
+	m.q = newBuggyQueue(size)
+	m.size = size
 }
 
-func (m *queueMachine) Get() func(*T) {
+func (m *queueMachine) Get(t *T) {
 	if m.q.Size() == 0 {
-		return nil
+		t.Skip("queue empty")
 	}
 
-	return func(t *T) {
-		n := m.q.Get()
-		if n != m.state[0] {
-			t.Fatalf("got invalid value: %v vs expected %v", n, m.state[0])
-		}
-		m.state = m.state[1:]
+	n := m.q.Get()
+	if n != m.state[0] {
+		t.Fatalf("got invalid value: %v vs expected %v", n, m.state[0])
 	}
+	m.state = m.state[1:]
 }
 
-func (m *queueMachine) Put() func(*T) {
+func (m *queueMachine) Put(t *T) {
 	if m.q.Size() == m.size {
-		return nil
+		t.Skip("queue full")
 	}
 
-	return func(t *T) {
-		n := Ints().Draw(t, "n").(int)
-		m.q.Put(n)
-		m.state = append(m.state, n)
-	}
+	n := Ints().Draw(t, "n").(int)
+	m.q.Put(n)
+	m.state = append(m.state, n)
 }
 
 func (m *queueMachine) Check(t *T) {

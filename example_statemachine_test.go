@@ -50,40 +50,34 @@ type queueMachine struct {
 }
 
 // Init is an action for initializing  a queueMachine instance.
-func (m *queueMachine) Init() func(*rapid.T) {
-	return func(t *rapid.T) {
-		n := rapid.IntsRange(1, 1000).Draw(t, "n").(int)
-		m.q = NewQueue(n)
-		m.n = n
-	}
+func (m *queueMachine) Init(t *rapid.T) {
+	n := rapid.IntsRange(1, 1000).Draw(t, "n").(int)
+	m.q = NewQueue(n)
+	m.n = n
 }
 
 // Get is a conditional action which removes an item from the queue.
-func (m *queueMachine) Get() func(*rapid.T) {
+func (m *queueMachine) Get(t *rapid.T) {
 	if m.q.Size() == 0 {
-		return nil
+		t.Skip("queue empty")
 	}
 
-	return func(t *rapid.T) {
-		i := m.q.Get()
-		if i != m.state[0] {
-			t.Fatalf("got invalid value: %v vs expected %v", i, m.state[0])
-		}
-		m.state = m.state[1:]
+	i := m.q.Get()
+	if i != m.state[0] {
+		t.Fatalf("got invalid value: %v vs expected %v", i, m.state[0])
 	}
+	m.state = m.state[1:]
 }
 
 // Put is a conditional action which adds an items to the queue.
-func (m *queueMachine) Put() func(*rapid.T) {
+func (m *queueMachine) Put(t *rapid.T) {
 	if m.q.Size() == m.n {
-		return nil
+		t.Skip("queue full")
 	}
 
-	return func(t *rapid.T) {
-		i := rapid.Ints().Draw(t, "i").(int)
-		m.q.Put(i)
-		m.state = append(m.state, i)
-	}
+	i := rapid.Ints().Draw(t, "i").(int)
+	m.q.Put(i)
+	m.state = append(m.state, i)
 }
 
 // Check verifies that all required invariants hold.

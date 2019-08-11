@@ -2,9 +2,6 @@
 
 ## Now
 
-- refactoring
-  - state machines
-    - with skip
 - Go SPb Meetup feedback:
   - more examples (buffers?, DI?)
   - consider removing state machines entirely?

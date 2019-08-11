@@ -46,8 +46,8 @@ func StateMachine(i interface{}) func(*T) {
 }
 
 type stateMachine struct {
-	inits      map[string]func() func(*T)
-	actions    map[string]func() func(*T)
+	inits      map[string]func(*T)
+	actions    map[string]func(*T)
 	initKeys   *Generator
 	actionKeys *Generator
 	check      func(*T)
@@ -60,8 +60,8 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	var (
 		v          = reflect.New(typ.Elem())
 		n          = typ.NumMethod()
-		inits      = map[string]func() func(*T){}
-		actions    = map[string]func() func(*T){}
+		inits      = map[string]func(*T){}
+		actions    = map[string]func(*T){}
 		initKeys   []string
 		actionKeys []string
 		check      func(*T)
@@ -69,7 +69,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	)
 
 	for i := 0; i < n; i++ {
-		m, ok := v.Method(i).Interface().(func() func(*T))
+		m, ok := v.Method(i).Interface().(func(*T))
 		if ok {
 			name := typ.Method(i).Name
 
@@ -101,7 +101,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	sm := &stateMachine{
 		inits:      inits,
 		actions:    actions,
-		actionKeys: filter(SampledFrom(actionKeys), func(key string) bool { return actions[key]() != nil }, validActionTries, noValidActionsMsg),
+		actionKeys: filter(SampledFrom(actionKeys), func(key string) bool { return true }, validActionTries, noValidActionsMsg),
 		check:      check,
 		cleanup_:   cleanup,
 	}
@@ -115,7 +115,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 func (sm *stateMachine) init(t *T) {
 	if sm.initKeys != nil {
 		t.Helper()
-		sm.inits[sm.initKeys.Draw(t, "initializer").(string)]()(t)
+		sm.inits[sm.initKeys.Draw(t, "initializer").(string)](t)
 	}
 }
 
@@ -128,7 +128,7 @@ func (sm *stateMachine) cleanup() {
 func (sm *stateMachine) selectAction(t *T) func(*T) {
 	t.Helper()
 
-	return sm.actions[sm.actionKeys.Draw(t, "action").(string)]()
+	return sm.actions[sm.actionKeys.Draw(t, "action").(string)]
 }
 
 func (sm *stateMachine) checkInvariants(t *T) {
