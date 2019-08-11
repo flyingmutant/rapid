@@ -68,7 +68,7 @@ func (g *Generator) Example(seed ...uint64) (Value, int, error) {
 }
 
 func (g *Generator) Filter(fn interface{}) *Generator {
-	return filter(g, fn, small, "")
+	return filter(g, fn)
 }
 
 func (g *Generator) Map(fn interface{}) *Generator {

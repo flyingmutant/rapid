@@ -50,7 +50,7 @@ func (g *customGen) value(s bitStream) Value {
 	return call(g.fn, reflect.ValueOf(src))
 }
 
-func filter(g *Generator, fn interface{}, tries int, stopMsg string) *Generator {
+func filter(g *Generator, fn interface{}) *Generator {
 	f := reflect.ValueOf(fn)
 	t := f.Type()
 
@@ -62,16 +62,12 @@ func filter(g *Generator, fn interface{}, tries int, stopMsg string) *Generator 
 		fn: func(v Value) bool {
 			return call(f, reflect.ValueOf(v)).(bool)
 		},
-		tries:   tries,
-		stopMsg: stopMsg,
 	})
 }
 
 type filteredGen struct {
-	g       *Generator
-	fn      func(Value) bool
-	tries   int
-	stopMsg string
+	g  *Generator
+	fn func(Value) bool
 }
 
 func (g *filteredGen) String() string {
@@ -83,26 +79,22 @@ func (g *filteredGen) type_() reflect.Type {
 }
 
 func (g *filteredGen) value(s bitStream) Value {
-	return satisfy(g.fn, g.g.value, s, g.tries, g.stopMsg)
+	return satisfy(g.fn, g.g.value, s, small)
 }
 
-func satisfy(filter func(Value) bool, gen func(bitStream) Value, s bitStream, tries int, stopMsg string) Value {
+func satisfy(filter func(Value) bool, gen func(bitStream) Value, s bitStream, tries int) Value {
 	for n := 0; n < tries; n++ {
 		i := s.beginGroup(tryLabel, false)
 		v := gen(s)
 		ok := filter(v)
-		s.endGroup(i, stopMsg == "" && !ok)
+		s.endGroup(i, !ok)
 
 		if ok {
 			return v
 		}
 	}
 
-	if stopMsg != "" {
-		panic(stopTest(stopMsg))
-	} else {
-		panic(invalidData(fmt.Sprintf("failed to satisfy filter in %d tries", tries)))
-	}
+	panic(invalidData(fmt.Sprintf("failed to satisfy filter in %d tries", tries)))
 }
 
 func map_(g *Generator, fn interface{}) *Generator {

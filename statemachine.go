@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	actionLabel      = "action"
 	validActionTries = 100 // hack, but probably good enough for now
 
 	initMethodPrefix  = "Init"
@@ -39,7 +40,7 @@ func StateMachine(i interface{}) func(*T) {
 
 		sm.checkInvariants(t)
 		for repeat.more(t.src.s, typ.String()) {
-			sm.selectAction(t)(t)
+			sm.executeAction(t)
 			sm.checkInvariants(t)
 		}
 	}
@@ -69,28 +70,24 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	)
 
 	for i := 0; i < n; i++ {
+		name := typ.Method(i).Name
 		m, ok := v.Method(i).Interface().(func(*T))
 		if ok {
-			name := typ.Method(i).Name
-
 			if strings.HasPrefix(name, initMethodPrefix) {
 				inits[name] = m
 				initKeys = append(initKeys, name)
+			} else if name == checkMethodName {
+				check = m
 			} else {
 				actions[name] = m
 				actionKeys = append(actionKeys, name)
 			}
+		} else {
+			assertf(name == cleanupMethodName, "unexpected state machine method %v", name)
+			m, ok := v.Method(i).Interface().(func())
+			assertf(ok, "method %v should have type func(), not %v", cleanupMethodName, v.Method(i).Type())
+			cleanup = m
 		}
-	}
-
-	if checkM := v.MethodByName(checkMethodName); checkM.IsValid() {
-		check, _ = checkM.Interface().(func(*T))
-		assertf(check != nil, "method %v should have type func(*T), not %v", checkMethodName, checkM.Type())
-	}
-
-	if cleanupM := v.MethodByName(cleanupMethodName); cleanupM.IsValid() {
-		cleanup, _ = cleanupM.Interface().(func())
-		assertf(cleanup != nil, "method %v should have type func(), not %v", cleanupMethodName, cleanupM.Type())
 	}
 
 	assertf(len(actions) > 0, "state machine of type %v has no actions specified", typ)
@@ -101,7 +98,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	sm := &stateMachine{
 		inits:      inits,
 		actions:    actions,
-		actionKeys: filter(SampledFrom(actionKeys), func(key string) bool { return true }, validActionTries, noValidActionsMsg),
+		actionKeys: SampledFrom(actionKeys),
 		check:      check,
 		cleanup_:   cleanup,
 	}
@@ -125,10 +122,21 @@ func (sm *stateMachine) cleanup() {
 	}
 }
 
-func (sm *stateMachine) selectAction(t *T) func(*T) {
+func (sm *stateMachine) executeAction(t *T) {
 	t.Helper()
 
-	return sm.actions[sm.actionKeys.Draw(t, "action").(string)]
+	for n := 0; n < validActionTries; n++ {
+		i := t.src.s.beginGroup(actionLabel, false)
+		action := sm.actions[sm.actionKeys.Draw(t, "action").(string)]
+		skipped := runAction(t, action)
+		t.src.s.endGroup(i, false)
+
+		if !skipped {
+			return
+		}
+	}
+
+	panic(stopTest(noValidActionsMsg))
 }
 
 func (sm *stateMachine) checkInvariants(t *T) {
@@ -136,4 +144,20 @@ func (sm *stateMachine) checkInvariants(t *T) {
 		t.Helper()
 		sm.check(t)
 	}
+}
+
+func runAction(t *T, action func(*T)) (skipped bool) {
+	defer func(draws int) {
+		if r := recover(); r != nil {
+			if _, ok := r.(invalidData); ok && t.draws == draws {
+				skipped = true
+			} else {
+				panic(r)
+			}
+		}
+	}(t.draws)
+
+	action(t)
+
+	return false
 }

@@ -111,14 +111,12 @@ func (m *haltingMachine) C(t *T) {
 func TestStateMachine_Halting(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, StateMachine(&haltingMachine{}),
-		"A",
-		0,
-		"A",
-		0,
-		"A",
-		0,
-	)
+	a := []Value{"A", 0, "A", 0, "A", 0}
+	for i := 0; i < 100; i++ {
+		a = append(a, "A") // TODO proper shrinking of "stuck" state machines
+	}
+
+	checkShrink(t, StateMachine(&haltingMachine{}), a...)
 }
 
 // https://www.cs.tufts.edu/~nr/cs257/archive/john-hughes/quviq-testing.pdf

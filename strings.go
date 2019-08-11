@@ -325,7 +325,7 @@ func (g *regexpGen) value(s bitStream) Value {
 		}
 	}
 
-	return satisfy(filter, gen, s, small, "")
+	return satisfy(filter, gen, s, small)
 }
 
 func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
