@@ -30,7 +30,9 @@ func TestSlicesOf(t *testing.T) {
 				t.Fatalf("got not a slice")
 			}
 
-			Assume(rv(v).Len() > 0)
+			if rv(v).Len() == 0 {
+				t.Skip("empty")
+			}
 		}, g))
 	}
 }
@@ -82,7 +84,9 @@ func TestMapsOf(t *testing.T) {
 				t.Fatalf("got not a map")
 			}
 
-			Assume(rv(v).Len() > 0)
+			if rv(v).Len() == 0 {
+				t.Skip("empty")
+			}
 		}, g))
 	}
 }
@@ -134,7 +138,10 @@ func TestCollectionLenLimits(t *testing.T) {
 
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, minLen int, maxLen int) {
-			Assume(minLen <= maxLen)
+			if minLen > maxLen {
+				t.Skip("minLen > maxLen")
+			}
+
 			s := rv(gf(minLen, maxLen).Draw(t, "s"))
 			if s.Len() < minLen {
 				t.Fatalf("got collection of length %v with minLen %v", s.Len(), minLen)

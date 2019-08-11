@@ -63,18 +63,6 @@ func assertValidRange(min int, max int) {
 	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%d, %d]", min, max))
 }
 
-// Assume marks the current test case as invalid if cond is false.
-// If assumption is too hard to satisfy, rapid will mark the test as failing
-// due to inability to generate enough valid test cases.
-//
-// Prefer Filter to Assume, and prefer generators that always produce
-// valid test cases to Filter.
-func Assume(cond bool) {
-	if !cond {
-		panic(invalidData("failed to satisfy assumption"))
-	}
-}
-
 // Bind is a convenience function for writing state machine transition rules.
 //
 // Given prop with signature func(*T, Arg1,  ..., ArgN) and N generators
@@ -393,6 +381,28 @@ func (t *T) Log(args ...interface{}) {
 	}
 }
 
+func (t *T) Skipf(format string, args ...interface{}) {
+	t.Helper()
+	t.Logf(format, args...)
+	t.skip(fmt.Sprintf(format, args...))
+}
+
+func (t *T) Skip(args ...interface{}) {
+	t.Helper()
+	t.Log(args...)
+	t.skip(fmt.Sprint(args...))
+}
+
+// SkipNow marks the current test case as invalid.
+// If too many test cases are skipped, rapid will mark the test as failing
+// due to inability to generate enough valid test cases.
+//
+// Prefer Filter to SkipNow, and prefer generators that always produce
+// valid test cases to Filter.
+func (t *T) SkipNow() {
+	t.skip("(*T).SkipNow() called")
+}
+
 func (t *T) Errorf(format string, args ...interface{}) {
 	t.Helper()
 	t.Logf(format, args...)
@@ -430,6 +440,10 @@ func (t *T) Failed() bool {
 	defer t.mu.RUnlock()
 
 	return t.failed != ""
+}
+
+func (t *T) skip(msg string) {
+	panic(invalidData(msg))
 }
 
 func (t *T) fail(now bool, msg string) {

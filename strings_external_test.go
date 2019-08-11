@@ -64,7 +64,10 @@ func TestStringRuneCountLimits(t *testing.T) {
 
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T, minRunes int, maxRunes int) {
-			Assume(minRunes <= maxRunes)
+			if minRunes > maxRunes {
+				t.Skip("minRunes > maxRunes")
+			}
+
 			s := gf(minRunes, maxRunes).Draw(t, "s").(string)
 			n := utf8.RuneCountInString(s)
 			if n < minRunes {

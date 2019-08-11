@@ -82,7 +82,9 @@ func TestIntsMinMaxRange(t *testing.T) {
 		t.Run(d.g.String(), MakeCheck(func(t *T) {
 			min := d.g.Draw(t, "min")
 			max := d.g.Draw(t, "max")
-			Assume(rv(min).Int() <= rv(max).Int())
+			if rv(min).Int() > rv(max).Int() {
+				t.Skip("min > max")
+			}
 
 			i := createGen(d.min, min).Draw(t, "i")
 			if rv(i).Int() < rv(min).Int() {
@@ -124,7 +126,9 @@ func TestUintsMinMaxRange(t *testing.T) {
 		t.Run(d.g.String(), MakeCheck(func(t *T) {
 			min := d.g.Draw(t, "min")
 			max := d.g.Draw(t, "max")
-			Assume(rv(min).Uint() <= rv(max).Uint())
+			if rv(min).Uint() > rv(max).Uint() {
+				t.Skip("min > max")
+			}
 
 			i := createGen(d.min, min).Draw(t, "i")
 			if rv(i).Uint() < rv(min).Uint() {
@@ -148,7 +152,9 @@ func TestIntsBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T, min int, max int) {
-		Assume(min <= max)
+		if min > max {
+			t.Skip("min > max")
+		}
 
 		g := IntsRange(min, max)
 		var gotMin, gotMax, gotZero bool

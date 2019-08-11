@@ -70,7 +70,9 @@ func TestFloat32sBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T, min float32, max float32) {
-		Assume(min <= max)
+		if min > max {
+			t.Skip("min > max")
+		}
 
 		g := Float32sRange(min, max)
 		var gotMin, gotMax, gotZero bool
@@ -100,7 +102,9 @@ func TestFloat64sBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T, min float64, max float64) {
-		Assume(min <= max)
+		if min > max {
+			t.Skip("min > max")
+		}
 
 		g := Float64sRange(min, max)
 		var gotMin, gotMax, gotZero bool
