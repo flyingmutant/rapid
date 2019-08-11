@@ -20,13 +20,13 @@ func fatalf(t *T, format string, args ...interface{}) {
 }
 
 func TestFailure_ImpossibleData(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, i int) {}, Ints().Filter(func(i int) bool { return false }))
 }
 
 func TestFailure_Trivial(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, i int) {
 		if i > 1000000000 {
@@ -36,7 +36,7 @@ func TestFailure_Trivial(t *testing.T) {
 }
 
 func TestFailure_SimpleCollection(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, s []int) {
 		if len(s) > 3 {
@@ -46,7 +46,7 @@ func TestFailure_SimpleCollection(t *testing.T) {
 }
 
 func TestFailure_CollectionElements(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, s []int) {
 		n := 0
@@ -63,7 +63,7 @@ func TestFailure_CollectionElements(t *testing.T) {
 }
 
 func TestFailure_TrivialString(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, s string) {
 		if len(s) > 7 {
@@ -73,7 +73,7 @@ func TestFailure_TrivialString(t *testing.T) {
 }
 
 func TestFailure_Make(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, n int) {
 		_ = make([]int, n)
@@ -81,7 +81,7 @@ func TestFailure_Make(t *testing.T) {
 }
 
 func TestFailure_Mean(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Check(t, func(t *T, s []float64) {
 		mean := 0.0
@@ -107,13 +107,13 @@ func TestFailure_Mean(t *testing.T) {
 }
 
 func TestFailure_ExampleParseDate(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Example_parseDate(t)
 }
 
 func TestFailure_ExampleQueue(t *testing.T) {
-	t.Skip()
+	t.Skip("failure")
 
 	Example_queue(t)
 }

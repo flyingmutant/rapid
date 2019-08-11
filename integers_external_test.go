@@ -177,7 +177,7 @@ func TestIntsBoundCoverage(t *testing.T) {
 func TestBytesCoverage(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	for b := 0; b < 256; b++ {
@@ -194,7 +194,7 @@ func TestBytesCoverage(t *testing.T) {
 func TestIntsCoverage(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	filters := []func(int) bool{
@@ -228,7 +228,7 @@ func TestIntsCoverage(t *testing.T) {
 func TestUintsCoverage(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	filters := []func(uint) bool{

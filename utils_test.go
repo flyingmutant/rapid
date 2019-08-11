@@ -63,7 +63,7 @@ func TestGenGeom(t *testing.T) {
 func TestGenGeomMean(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := newRandomBitStream(baseSeed(), false)
@@ -128,7 +128,7 @@ func ensureWithin3Sigma(t *testing.T, ctx interface{}, y int, n int, p float64) 
 func TestGenUintN(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := createRandomBitStream(t)
@@ -151,7 +151,7 @@ func TestGenUintN(t *testing.T) {
 func TestGenUintRange(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := createRandomBitStream(t)
@@ -187,7 +187,7 @@ func TestGenUintRange(t *testing.T) {
 func TestGenIntRange(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := createRandomBitStream(t)
@@ -233,7 +233,7 @@ func TestGenIntRange(t *testing.T) {
 func TestFlipBiasedCoin(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := createRandomBitStream(t)
@@ -255,7 +255,7 @@ func TestFlipBiasedCoin(t *testing.T) {
 func TestLoadedDie(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := createRandomBitStream(t)
@@ -289,7 +289,7 @@ func TestLoadedDie(t *testing.T) {
 func TestRepeat(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
-		t.Skip()
+		t.Skip("flaky")
 	}
 
 	s := createRandomBitStream(t)
