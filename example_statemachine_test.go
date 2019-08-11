@@ -80,7 +80,7 @@ func (m *queueMachine) Put(t *rapid.T) {
 	m.state = append(m.state, i)
 }
 
-// Check verifies that all required invariants hold.
+// Check runs after every action and verifies that all required invariants hold.
 func (m *queueMachine) Check(t *rapid.T) {
 	if m.q.Size() != len(m.state) {
 		t.Fatalf("queue size mismatch: %v vs expected %v", m.q.Size(), len(m.state))
