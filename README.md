@@ -36,6 +36,18 @@ Example [function](./example_function_test.go) and
 They both fail. Making them pass is a good way to get first real experience
 of working with rapid.
 
+## Usage
+
+Just run `go test` as usual, it will pick up also all `rapid` tests.
+
+There are a number of optional flags to influence rapid behavior, run
+`go test -args -h` and look at the flags with the `-rapid.` prefix. You can
+then pass such flags as usual. For example:
+
+```
+go test -rapid.checks=1000
+```
+
 ## Comparison
 
 Rapid aims to bring to Go the power and convenience Hypothesis brings to Python.
