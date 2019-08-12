@@ -3,6 +3,7 @@
 ## Now
 
 - proper *T in custom generators
+- unify string generators
 - Go SPb Meetup feedback:
   - more examples (buffers?, DI?)
   - consider removing state machines entirely?
