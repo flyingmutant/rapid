@@ -20,7 +20,7 @@ func TestDataVis(t *testing.T) {
 		t.Fatalf("failed to create vis html file: %v", err)
 
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	data := []uint64{
 		0,

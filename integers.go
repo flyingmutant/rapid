@@ -100,12 +100,12 @@ func IntsMin(min int) *Generator         { return newIntMinGen(intKind, int64(mi
 func Int8sMin(min int8) *Generator       { return newIntMinGen(int8Kind, int64(min)) }
 func Int16sMin(min int16) *Generator     { return newIntMinGen(int16Kind, int64(min)) }
 func Int32sMin(min int32) *Generator     { return newIntMinGen(int32Kind, int64(min)) }
-func Int64sMin(min int64) *Generator     { return newIntMinGen(int64Kind, int64(min)) }
+func Int64sMin(min int64) *Generator     { return newIntMinGen(int64Kind, min) }
 func UintsMin(min uint) *Generator       { return newUintMinGen(uintKind, uint64(min)) }
 func Uint8sMin(min uint8) *Generator     { return newUintMinGen(uint8Kind, uint64(min)) }
 func Uint16sMin(min uint16) *Generator   { return newUintMinGen(uint16Kind, uint64(min)) }
 func Uint32sMin(min uint32) *Generator   { return newUintMinGen(uint32Kind, uint64(min)) }
-func Uint64sMin(min uint64) *Generator   { return newUintMinGen(uint64Kind, uint64(min)) }
+func Uint64sMin(min uint64) *Generator   { return newUintMinGen(uint64Kind, min) }
 func UintptrsMin(min uintptr) *Generator { return newUintMinGen(uintptrKind, uint64(min)) }
 
 func BytesMax(max byte) *Generator       { return newUintMaxGen(byteKind, uint64(max)) }
@@ -113,12 +113,12 @@ func IntsMax(max int) *Generator         { return newIntMaxGen(intKind, int64(ma
 func Int8sMax(max int8) *Generator       { return newIntMaxGen(int8Kind, int64(max)) }
 func Int16sMax(max int16) *Generator     { return newIntMaxGen(int16Kind, int64(max)) }
 func Int32sMax(max int32) *Generator     { return newIntMaxGen(int32Kind, int64(max)) }
-func Int64sMax(max int64) *Generator     { return newIntMaxGen(int64Kind, int64(max)) }
+func Int64sMax(max int64) *Generator     { return newIntMaxGen(int64Kind, max) }
 func UintsMax(max uint) *Generator       { return newUintMaxGen(uintKind, uint64(max)) }
 func Uint8sMax(max uint8) *Generator     { return newUintMaxGen(uint8Kind, uint64(max)) }
 func Uint16sMax(max uint16) *Generator   { return newUintMaxGen(uint16Kind, uint64(max)) }
 func Uint32sMax(max uint32) *Generator   { return newUintMaxGen(uint32Kind, uint64(max)) }
-func Uint64sMax(max uint64) *Generator   { return newUintMaxGen(uint64Kind, uint64(max)) }
+func Uint64sMax(max uint64) *Generator   { return newUintMaxGen(uint64Kind, max) }
 func UintptrsMax(max uintptr) *Generator { return newUintMaxGen(uintptrKind, uint64(max)) }
 
 func BytesRange(min byte, max byte) *Generator {
@@ -137,7 +137,7 @@ func Int32sRange(min int32, max int32) *Generator {
 	return newIntRangeGen(int32Kind, int64(min), int64(max))
 }
 func Int64sRange(min int64, max int64) *Generator {
-	return newIntRangeGen(int64Kind, int64(min), int64(max))
+	return newIntRangeGen(int64Kind, min, max)
 }
 func UintsRange(min uint, max uint) *Generator {
 	return newUintRangeGen(uintKind, uint64(min), uint64(max))
@@ -152,7 +152,7 @@ func Uint32sRange(min uint32, max uint32) *Generator {
 	return newUintRangeGen(uint32Kind, uint64(min), uint64(max))
 }
 func Uint64sRange(min uint64, max uint64) *Generator {
-	return newUintRangeGen(uint64Kind, uint64(min), uint64(max))
+	return newUintRangeGen(uint64Kind, min, max)
 }
 func UintptrsRange(min uintptr, max uintptr) *Generator {
 	return newUintRangeGen(uintptrKind, uint64(min), uint64(max))

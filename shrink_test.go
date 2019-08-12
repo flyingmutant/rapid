@@ -150,6 +150,18 @@ func TestShrink_Strings(t *testing.T) {
 	}, "?", "")
 }
 
+func TestShrink_StringsOfBytes(t *testing.T) {
+	t.Parallel()
+
+	checkShrink(t, func(t *T) {
+		s1 := StringsOfBytes().Draw(t, "s1").(string)
+		s2 := StringsOfBytes().Draw(t, "s2").(string)
+		if len(s1) > len(s2) {
+			t.Fail()
+		}
+	}, "\x00", "")
+}
+
 func TestMinimize_UnsetBits(t *testing.T) {
 	t.Parallel()
 

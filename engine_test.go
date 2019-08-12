@@ -18,6 +18,10 @@ func TestPanicTraceback(t *testing.T) {
 	g := Booleans().Filter(func(bool) bool { return false })
 
 	_, err := recoverValue(g, s)
+	if err == nil {
+		t.Fatalf("no error from impossible filter")
+	}
+
 	lines := strings.Split(err.traceback, "\n")
 	if !strings.HasSuffix(lines[0], "/rapid.satisfy") {
 		t.Errorf("bad traceback from recoverValue():\n%v", err.traceback)

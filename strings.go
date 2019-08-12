@@ -339,7 +339,7 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 	case syntax.OpLiteral:
 		s.drawBits(0)
 		for _, r := range re.Rune {
-			w.WriteRune(maybeFoldCase(s, r, re.Flags))
+			_, _ = w.WriteRune(maybeFoldCase(s, r, re.Flags))
 		}
 	case syntax.OpCharClass, syntax.OpAnyCharNotNL, syntax.OpAnyChar:
 		sub := anyRuneGen
@@ -350,7 +350,7 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 			sub = anyRuneGenNoNL
 		}
 		r := sub.value(s).(rune)
-		w.WriteRune(maybeFoldCase(s, r, re.Flags))
+		_, _ = w.WriteRune(maybeFoldCase(s, r, re.Flags))
 	case syntax.OpBeginLine, syntax.OpEndLine,
 		syntax.OpBeginText, syntax.OpEndText,
 		syntax.OpWordBoundary, syntax.OpNoWordBoundary:
