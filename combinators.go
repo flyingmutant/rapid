@@ -37,7 +37,7 @@ type customGen struct {
 }
 
 func (g *customGen) String() string {
-	return fmt.Sprintf("Custom(func(...) %v)", g.typ)
+	return fmt.Sprintf("Custom(%v)", g.typ)
 }
 
 func (g *customGen) type_() reflect.Type {
