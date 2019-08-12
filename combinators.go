@@ -15,15 +15,15 @@ import (
 const tryLabel = "try"
 
 var (
-	boolType   = reflect.TypeOf(false)
-	sourceType = reflect.TypeOf((*Source)(nil)).Elem()
+	boolType = reflect.TypeOf(false)
+	tPtrType = reflect.TypeOf((*T)(nil))
 )
 
 func Custom(fn interface{}) *Generator {
 	f := reflect.ValueOf(fn)
 	t := f.Type()
 
-	assertCallable(t, sourceType, "fn")
+	assertCallable(t, tPtrType, "fn")
 
 	return newGenerator(&customGen{
 		typ: t.Out(0),
@@ -45,9 +45,9 @@ func (g *customGen) type_() reflect.Type {
 }
 
 func (g *customGen) value(s bitStream) Value {
-	src := &bitStreamSource{s}
+	t := newT(nil, s, false)
 
-	return call(g.fn, reflect.ValueOf(src))
+	return call(g.fn, reflect.ValueOf(t))
 }
 
 func filter(g *Generator, fn interface{}) *Generator {

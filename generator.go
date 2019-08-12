@@ -38,11 +38,11 @@ func (g *Generator) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *Generator) Draw(src Source, label string) Value {
-	if t, ok := src.(*T); ok {
+func (g *Generator) Draw(t *T, label string) Value {
+	if t.limitedTB != nil {
 		t.Helper()
 	}
-	return src.draw(g, label)
+	return t.draw(g, label)
 }
 
 func (g *Generator) value(s bitStream) Value {

@@ -19,21 +19,21 @@ type testStruct struct {
 	y int
 }
 
-func genBool(src Source) bool {
-	return Booleans().Draw(src, "").(bool)
+func genBool(t *T) bool {
+	return Booleans().Draw(t, "").(bool)
 }
 
-func genSlice(src Source) []uint64 {
+func genSlice(t *T) []uint64 {
 	return []uint64{
-		Uint64s().Draw(src, "").(uint64),
-		Uint64s().Draw(src, "").(uint64),
+		Uint64s().Draw(t, "").(uint64),
+		Uint64s().Draw(t, "").(uint64),
 	}
 }
 
-func genStruct(src Source) testStruct {
+func genStruct(t *T) testStruct {
 	return testStruct{
-		x: Ints().Draw(src, "x").(int),
-		y: Ints().Draw(src, "y").(int),
+		x: Ints().Draw(t, "x").(int),
+		y: Ints().Draw(t, "y").(int),
 	}
 }
 

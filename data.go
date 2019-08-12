@@ -14,10 +14,6 @@ import (
 
 var seedCounter uint32
 
-type Source interface {
-	draw(g *Generator, label string) Value
-}
-
 type bitStream interface {
 	drawBits(n int) uint64
 	beginGroup(label string, standalone bool) int
