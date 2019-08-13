@@ -154,8 +154,8 @@ func TestShrink_StringsOfBytes(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s1 := StringsOfBytes().Draw(t, "s1").(string)
-		s2 := StringsOfBytes().Draw(t, "s2").(string)
+		s1 := StringsOf(Bytes()).Draw(t, "s1").(string)
+		s2 := StringsOf(Bytes()).Draw(t, "s2").(string)
 		if len(s1) > len(s2) {
 			t.Fail()
 		}

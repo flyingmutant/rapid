@@ -18,8 +18,6 @@ import (
 	"unicode/utf8"
 )
 
-const runesGenString = "Runes()"
-
 var (
 	stringType    = reflect.TypeOf("")
 	byteSliceType = reflect.TypeOf([]byte(nil))
@@ -122,7 +120,7 @@ type runeGen struct {
 
 func (g *runeGen) String() string {
 	if g.default_ {
-		return runesGenString
+		return "Runes()"
 	} else {
 		return fmt.Sprintf("Runes(%v runes, %v tables)", len(g.runes), len(g.tables))
 	}
@@ -146,71 +144,49 @@ func (g *runeGen) value(s bitStream) Value {
 }
 
 func Strings() *Generator {
-	return StringsOf(Runes())
+	return StringsOf(anyRuneGen)
 }
 
 func StringsN(minRunes int, maxRunes int, maxLen int) *Generator {
-	return StringsOfN(Runes(), minRunes, maxRunes, maxLen)
+	return StringsOfN(anyRuneGen, minRunes, maxRunes, maxLen)
 }
 
-func StringsOf(rune_ *Generator) *Generator {
-	return StringsOfN(rune_, -1, -1, -1)
+func StringsOf(elem *Generator) *Generator {
+	return StringsOfN(elem, -1, -1, -1)
 }
 
-func StringsOfN(rune_ *Generator, minRunes int, maxRunes int, maxLen int) *Generator {
-	assertValidRange(minRunes, maxRunes)
-	assertf(rune_.type_() == int32Type, "rune generator should generate %v, not %v", int32Type, rune_.type_())
-	assertf(maxLen < 0 || maxLen >= maxRunes, "maximum length (%v) should not be less than maximum number of runes (%v)", maxLen, maxRunes)
+func StringsOfN(elem *Generator, minElems int, maxElems int, maxLen int) *Generator {
+	assertValidRange(minElems, maxElems)
+	assertf(elem.type_() == int32Type || elem.type_() == uint8Type, "element generator should generate runes or bytes, not %v", elem.type_())
+	assertf(maxLen < 0 || maxLen >= maxElems, "maximum length (%v) should not be less than maximum number of elements (%v)", maxLen, maxElems)
 
 	return newGenerator(&stringGen{
-		runeGen:  rune_,
-		minElems: minRunes,
-		maxElems: maxRunes,
+		elem:     elem,
+		minElems: minElems,
+		maxElems: maxElems,
 		maxLen:   maxLen,
 	})
 }
 
-func StringsOfBytes() *Generator {
-	return StringsOfNBytes(-1, -1)
-}
-
-func StringsOfNBytes(minLen int, maxLen int) *Generator {
-	assertValidRange(minLen, maxLen)
-
-	return newGenerator(&stringGen{
-		byteGen:  Bytes(),
-		minElems: minLen,
-		maxElems: maxLen,
-		maxLen:   -1,
-	})
-}
-
 type stringGen struct {
-	byteGen  *Generator
-	runeGen  *Generator
+	elem     *Generator
 	minElems int
 	maxElems int
 	maxLen   int
 }
 
 func (g *stringGen) String() string {
-	if g.runeGen != nil && g.runeGen.String() == runesGenString {
+	if g.elem == anyRuneGen {
 		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
 			return "Strings()"
 		} else {
 			return fmt.Sprintf("StringsN(minRunes=%v, maxRunes=%v, maxLen=%v)", g.minElems, g.maxElems, g.maxLen)
 		}
-	} else if g.runeGen != nil {
-		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("StringsOf(%v)", g.runeGen)
-		} else {
-			return fmt.Sprintf("StringsOfN(%v, minRunes=%v, maxRunes=%v, maxLen=%v)", g.runeGen, g.minElems, g.maxElems, g.maxLen)
-		}
 	} else {
 		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
-			return "StringsOfBytes()"
+			return fmt.Sprintf("StringsOf(%v)", g.elem)
 		} else {
-			return fmt.Sprintf("StringsOfNBytes(minLen=%v, maxLen=%v)", g.minElems, g.maxElems)
+			return fmt.Sprintf("StringsOfN(%v, minElems=%v, maxElems=%v, maxLen=%v)", g.elem, g.minElems, g.maxElems, g.maxLen)
 		}
 	}
 }
@@ -225,14 +201,14 @@ func (g *stringGen) value(s bitStream) Value {
 	var b strings.Builder
 	b.Grow(repeat.avg())
 
-	if g.runeGen != nil {
+	if g.elem.type_() == int32Type {
 		maxLen := g.maxLen
 		if maxLen < 0 {
 			maxLen = maxInt
 		}
 
-		for repeat.more(s, g.runeGen.String()) {
-			r := g.runeGen.value(s).(rune)
+		for repeat.more(s, g.elem.String()) {
+			r := g.elem.value(s).(rune)
 			n := utf8.RuneLen(r)
 
 			if n < 0 || b.Len()+n > maxLen {
@@ -242,8 +218,8 @@ func (g *stringGen) value(s bitStream) Value {
 			}
 		}
 	} else {
-		for repeat.more(s, g.byteGen.String()) {
-			b.WriteByte(g.byteGen.value(s).(byte))
+		for repeat.more(s, g.elem.String()) {
+			b.WriteByte(g.elem.value(s).(byte))
 		}
 	}
 

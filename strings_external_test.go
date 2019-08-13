@@ -86,7 +86,7 @@ func TestStringsNMaxLen(t *testing.T) {
 	genFuncs := []func(int) *Generator{
 		func(i int) *Generator { return StringsN(-1, -1, i) },
 		func(i int) *Generator { return StringsOfN(Runes(), -1, -1, i) },
-		func(i int) *Generator { return StringsOfNBytes(-1, i) },
+		func(i int) *Generator { return StringsOfN(Bytes(), -1, i, -1) },
 	}
 
 	for i, gf := range genFuncs {

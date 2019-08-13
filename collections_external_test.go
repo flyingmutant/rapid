@@ -131,7 +131,7 @@ func TestCollectionLenLimits(t *testing.T) {
 	t.Parallel()
 
 	genFuncs := []func(i, j int) *Generator{
-		func(i, j int) *Generator { return StringsOfNBytes(i, j) },
+		func(i, j int) *Generator { return StringsOfN(Bytes(), i, j, -1) },
 		func(i, j int) *Generator { return SlicesOfN(Bytes(), i, j) },
 		func(i, j int) *Generator { return SlicesOfNDistinct(Bytes(), i, j, nil) },
 		func(i, j int) *Generator { return SlicesOfNDistinct(Ints(), i, j, func(n int) int { return n % j }) },
