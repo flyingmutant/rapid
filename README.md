@@ -58,6 +58,7 @@ Compared to [gopter](https://godoc.org/github.com/leanovate/gopter), rapid:
   [gopter](https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go))
 - does not require any user code to minimize failing test cases
 - generates biased data to explore "small" values and edge cases more thoroughly
+- enables interactive tests by allowing data generation and test code to arbitrarily intermix
 
 Compared to [testing/quick](https://golang.org/pkg/testing/quick/), rapid:
 
