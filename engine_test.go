@@ -23,7 +23,7 @@ func TestPanicTraceback(t *testing.T) {
 	}
 
 	lines := strings.Split(err.traceback, "\n")
-	if !strings.HasSuffix(lines[0], "/rapid.satisfy") {
+	if !strings.HasSuffix(lines[0], "/rapid.find") {
 		t.Errorf("bad traceback from recoverValue():\n%v", err.traceback)
 	}
 }

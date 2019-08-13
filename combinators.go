@@ -79,14 +79,23 @@ func (g *filteredGen) type_() reflect.Type {
 }
 
 func (g *filteredGen) value(s bitStream) Value {
-	return satisfy(g.fn, g.g.value, s, small)
+	return find(g.maybeValue, s, small)
 }
 
-func satisfy(filter func(Value) bool, gen func(bitStream) Value, s bitStream, tries int) Value {
+func (g *filteredGen) maybeValue(s bitStream) Value {
+	v := g.g.value(s)
+	if g.fn(v) {
+		return v
+	} else {
+		return nil
+	}
+}
+
+func find(gen func(bitStream) Value, s bitStream, tries int) Value {
 	for n := 0; n < tries; n++ {
 		i := s.beginGroup(tryLabel, false)
 		v := gen(s)
-		ok := filter(v)
+		ok := v != nil
 		s.endGroup(i, !ok)
 
 		if ok {
@@ -94,7 +103,7 @@ func satisfy(filter func(Value) bool, gen func(bitStream) Value, s bitStream, tr
 		}
 	}
 
-	panic(invalidData(fmt.Sprintf("failed to satisfy filter in %d tries", tries)))
+	panic(invalidData(fmt.Sprintf("failed to find suitable value in %d tries", tries)))
 }
 
 func map_(g *Generator, fn interface{}) *Generator {

@@ -273,35 +273,36 @@ func (g *regexpGen) type_() reflect.Type {
 	}
 }
 
-func (g *regexpGen) value(s bitStream) Value {
-	var (
-		gen    func(bitStream) Value
-		filter func(Value) bool
-	)
+func (g *regexpGen) maybeString(s bitStream) Value {
+	b := &strings.Builder{}
+	g.build(b, g.syn, s)
+	v := b.String()
 
-	if g.str {
-		gen = func(s bitStream) Value {
-			b := &strings.Builder{}
-			g.build(b, g.syn, s)
-			return b.String()
-		}
-
-		filter = func(v Value) bool {
-			return g.re.MatchString(v.(string))
-		}
+	if g.re.MatchString(v) {
+		return v
 	} else {
-		gen = func(s bitStream) Value {
-			b := &bytes.Buffer{}
-			g.build(b, g.syn, s)
-			return b.Bytes()
-		}
-
-		filter = func(v Value) bool {
-			return g.re.Match(v.([]byte))
-		}
+		return nil
 	}
+}
 
-	return satisfy(filter, gen, s, small)
+func (g *regexpGen) maybeSlice(s bitStream) Value {
+	b := &bytes.Buffer{}
+	g.build(b, g.syn, s)
+	v := b.Bytes()
+
+	if g.re.Match(v) {
+		return v
+	} else {
+		return nil
+	}
+}
+
+func (g *regexpGen) value(s bitStream) Value {
+	if g.str {
+		return find(g.maybeString, s, small)
+	} else {
+		return find(g.maybeSlice, s, small)
+	}
 }
 
 func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
