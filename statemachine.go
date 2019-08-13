@@ -65,7 +65,7 @@ func StateMachine(i interface{}) func(*T) {
 		defer sm.cleanup()
 
 		sm.checkInvariants(t)
-		for repeat.more(t.src.s, typ.String()) {
+		for repeat.more(t.s, typ.String()) {
 			sm.executeAction(t)
 			sm.checkInvariants(t)
 		}
@@ -152,10 +152,10 @@ func (sm *stateMachine) executeAction(t *T) {
 	t.Helper()
 
 	for n := 0; n < validActionTries; n++ {
-		i := t.src.s.beginGroup(actionLabel, false)
+		i := t.s.beginGroup(actionLabel, false)
 		action := sm.actions[sm.actionKeys.Draw(t, "action").(string)]
 		skipped := runAction(t, action)
-		t.src.s.endGroup(i, false)
+		t.s.endGroup(i, false)
 
 		if !skipped {
 			return

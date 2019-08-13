@@ -15,7 +15,7 @@ func TestFloatConversionRoundtrip(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		u := uint32(t.src.s.drawBits(32))
+		u := uint32(t.s.drawBits(32))
 		f := math.Float32frombits(u)
 		if math.IsNaN(float64(f)) {
 			t.Skip("NaN") // we can get NaNs with different bit patterns back
@@ -61,7 +61,7 @@ func TestGenUfloat32Range(t *testing.T) {
 			min, max = max, min
 		}
 
-		f := ufloat32FromParts(genUfloatRange(t.src.s, float64(min), float64(max), float32SignifBits))
+		f := ufloat32FromParts(genUfloatRange(t.s, float64(min), float64(max), float32SignifBits))
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float32bits(f), min, max, math.Float32bits(min), math.Float32bits(max))
 		}
@@ -78,7 +78,7 @@ func TestGenUfloat64Range(t *testing.T) {
 			min, max = max, min
 		}
 
-		f := ufloat64FromParts(genUfloatRange(t.src.s, min, max, float64SignifBits))
+		f := ufloat64FromParts(genUfloatRange(t.s, min, max, float64SignifBits))
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float64bits(f), min, max, math.Float64bits(min), math.Float64bits(max))
 		}
@@ -95,7 +95,7 @@ func TestGenFloat32Range(t *testing.T) {
 			min, max = max, min
 		}
 
-		f := float32FromParts(genFloatRange(t.src.s, float64(min), float64(max), float32SignifBits))
+		f := float32FromParts(genFloatRange(t.s, float64(min), float64(max), float32SignifBits))
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float32bits(f), min, max, math.Float32bits(min), math.Float32bits(max))
 		}
@@ -112,7 +112,7 @@ func TestGenFloat64Range(t *testing.T) {
 			min, max = max, min
 		}
 
-		f := float64FromParts(genFloatRange(t.src.s, min, max, float64SignifBits))
+		f := float64FromParts(genFloatRange(t.s, min, max, float64SignifBits))
 		if f < min || f > max {
 			t.Fatalf("%v (0x%x) outside of [%v, %v] ([0x%x, 0x%x])", f, math.Float64bits(f), min, max, math.Float64bits(min), math.Float64bits(max))
 		}

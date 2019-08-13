@@ -20,14 +20,6 @@ type bitStream interface {
 	endGroup(i int, discard bool)
 }
 
-type bitStreamSource struct {
-	s bitStream
-}
-
-func (src *bitStreamSource) draw(g *Generator, label string) Value {
-	return g.value(src.s)
-}
-
 func baseSeed() uint64 {
 	if *startSeed != 0 {
 		return *startSeed

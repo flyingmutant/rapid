@@ -289,7 +289,7 @@ type T struct {
 	limitedTB // unnamed to force re-export of (*T).Helper()
 	log       bool
 	rapidLog  *log.Logger
-	src       *bitStreamSource
+	s         bitStream
 	draws     int
 	refDraws  []Value
 	mu        sync.RWMutex
@@ -300,7 +300,7 @@ func newT(tb limitedTB, s bitStream, log_ bool, refDraws ...Value) *T {
 	t := &T{
 		limitedTB: tb,
 		log:       log_,
-		src:       &bitStreamSource{s},
+		s:         s,
 		refDraws:  refDraws,
 	}
 
@@ -312,7 +312,7 @@ func newT(tb limitedTB, s bitStream, log_ bool, refDraws ...Value) *T {
 }
 
 func (t *T) draw(g *Generator, label string) Value {
-	v := t.src.draw(g, label)
+	v := g.value(t.s)
 
 	if len(t.refDraws) > 0 {
 		ref := t.refDraws[t.draws]
