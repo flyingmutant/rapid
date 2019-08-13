@@ -6,8 +6,6 @@
 - unify string generators
 - Go SPb Meetup feedback:
   - more examples (buffers?, DI?)
-  - consider removing state machines entirely?
-  - add nasty queue bug (commented out)
 - reddit feedback:
   - show the intended output of the examples, so the people know that shrinking works indeed
   - docs!
@@ -25,6 +23,7 @@
 
 ## Big things
 
+- explicit examples support (based on `refDraws` shrink test machinery)
 - failure persistence
 
 ## Generators
@@ -37,7 +36,6 @@
     - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
   - less focus on near-zero (large negative exponents)?
   - bias significant as well?
-- discoverability tests for float/integer bounds
 - times, durations, locations
 - complex numbers
 - big numbers
@@ -97,9 +95,7 @@
 ## Misc
 
 - bitStream -> blockStream?
-- log action drawn together with the args
 - do not play with filter games for the state machine, just find all valid actions
-- our functions panic too early which leads to confusing? `go test` output
 - when generating numbers in range, try to bias based on the min number,
   just like we bias repeat based on the min number?
   - because min number defines the "magnitude" of the whole thing, kind of?
