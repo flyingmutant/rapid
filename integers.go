@@ -77,10 +77,10 @@ type integerKindInfo struct {
 
 type boolGen struct{}
 
-func Booleans() *Generator                 { return newGenerator(&boolGen{}) }
-func (g *boolGen) String() string          { return "Booleans()" }
-func (g *boolGen) type_() reflect.Type     { return reflect.TypeOf(false) }
-func (g *boolGen) value(s bitStream) Value { return s.drawBits(1) == 1 }
+func Booleans() *Generator             { return newGenerator(&boolGen{}) }
+func (g *boolGen) String() string      { return "Booleans()" }
+func (g *boolGen) type_() reflect.Type { return reflect.TypeOf(false) }
+func (g *boolGen) value(t *T) Value    { return t.s.drawBits(1) == 1 }
 
 func Bytes() *Generator    { return newIntegerGen(byteKind) }
 func Ints() *Generator     { return newIntegerGen(intKind) }
@@ -275,14 +275,14 @@ func (g *integerGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *integerGen) value(s bitStream) Value {
+func (g *integerGen) value(t *T) Value {
 	var i int64
 	var u uint64
 
 	if g.signed {
-		i, _, _ = genIntRange(s, g.smin, g.smax, true)
+		i, _, _ = genIntRange(t.s, g.smin, g.smax, true)
 	} else {
-		u, _, _ = genUintRange(s, g.umin, g.umax, true)
+		u, _, _ = genUintRange(t.s, g.umin, g.umax, true)
 	}
 
 	switch g.typ {

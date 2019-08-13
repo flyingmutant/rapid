@@ -130,8 +130,8 @@ func (g *runeGen) type_() reflect.Type {
 	return int32Type
 }
 
-func (g *runeGen) value(s bitStream) Value {
-	n := g.die.roll(s)
+func (g *runeGen) value(t *T) Value {
+	n := g.die.roll(t.s)
 
 	runes := g.runes
 	if len(g.runes) == 0 {
@@ -140,7 +140,7 @@ func (g *runeGen) value(s bitStream) Value {
 		runes = g.tables[n-1]
 	}
 
-	return runes[genIndex(s, len(runes), true)]
+	return runes[genIndex(t.s, len(runes), true)]
 }
 
 func Strings() *Generator {
@@ -195,7 +195,7 @@ func (g *stringGen) type_() reflect.Type {
 	return stringType
 }
 
-func (g *stringGen) value(s bitStream) Value {
+func (g *stringGen) value(t *T) Value {
 	repeat := newRepeat(g.minElems, g.maxElems, -1)
 
 	var b strings.Builder
@@ -207,8 +207,8 @@ func (g *stringGen) value(s bitStream) Value {
 			maxLen = maxInt
 		}
 
-		for repeat.more(s, g.elem.String()) {
-			r := g.elem.value(s).(rune)
+		for repeat.more(t.s, g.elem.String()) {
+			r := g.elem.value(t).(rune)
 			n := utf8.RuneLen(r)
 
 			if n < 0 || b.Len()+n > maxLen {
@@ -218,8 +218,8 @@ func (g *stringGen) value(s bitStream) Value {
 			}
 		}
 	} else {
-		for repeat.more(s, g.elem.String()) {
-			b.WriteByte(g.elem.value(s).(byte))
+		for repeat.more(t.s, g.elem.String()) {
+			b.WriteByte(g.elem.value(t).(byte))
 		}
 	}
 
@@ -273,9 +273,9 @@ func (g *regexpGen) type_() reflect.Type {
 	}
 }
 
-func (g *regexpGen) maybeString(s bitStream) Value {
+func (g *regexpGen) maybeString(t *T) Value {
 	b := &strings.Builder{}
-	g.build(b, g.syn, s)
+	g.build(b, g.syn, t)
 	v := b.String()
 
 	if g.re.MatchString(v) {
@@ -285,9 +285,9 @@ func (g *regexpGen) maybeString(s bitStream) Value {
 	}
 }
 
-func (g *regexpGen) maybeSlice(s bitStream) Value {
+func (g *regexpGen) maybeSlice(t *T) Value {
 	b := &bytes.Buffer{}
-	g.build(b, g.syn, s)
+	g.build(b, g.syn, t)
 	v := b.Bytes()
 
 	if g.re.Match(v) {
@@ -297,26 +297,26 @@ func (g *regexpGen) maybeSlice(s bitStream) Value {
 	}
 }
 
-func (g *regexpGen) value(s bitStream) Value {
+func (g *regexpGen) value(t *T) Value {
 	if g.str {
-		return find(g.maybeString, s, small)
+		return find(g.maybeString, t, small)
 	} else {
-		return find(g.maybeSlice, s, small)
+		return find(g.maybeSlice, t, small)
 	}
 }
 
-func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
-	i := s.beginGroup(re.Op.String(), false)
+func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, t *T) {
+	i := t.s.beginGroup(re.Op.String(), false)
 
 	switch re.Op {
 	case syntax.OpNoMatch:
 		panic(invalidData("no possible regexp match"))
 	case syntax.OpEmptyMatch:
-		s.drawBits(0)
+		t.s.drawBits(0)
 	case syntax.OpLiteral:
-		s.drawBits(0)
+		t.s.drawBits(0)
 		for _, r := range re.Rune {
-			_, _ = w.WriteRune(maybeFoldCase(s, r, re.Flags))
+			_, _ = w.WriteRune(maybeFoldCase(t.s, r, re.Flags))
 		}
 	case syntax.OpCharClass, syntax.OpAnyCharNotNL, syntax.OpAnyChar:
 		sub := anyRuneGen
@@ -326,14 +326,14 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 		case syntax.OpAnyCharNotNL:
 			sub = anyRuneGenNoNL
 		}
-		r := sub.value(s).(rune)
-		_, _ = w.WriteRune(maybeFoldCase(s, r, re.Flags))
+		r := sub.value(t).(rune)
+		_, _ = w.WriteRune(maybeFoldCase(t.s, r, re.Flags))
 	case syntax.OpBeginLine, syntax.OpEndLine,
 		syntax.OpBeginText, syntax.OpEndText,
 		syntax.OpWordBoundary, syntax.OpNoWordBoundary:
-		s.drawBits(0) // do nothing and hope that Assume() is enough
+		t.s.drawBits(0) // do nothing and hope that Assume() is enough
 	case syntax.OpCapture:
-		g.build(w, re.Sub[0], s)
+		g.build(w, re.Sub[0], t)
 	case syntax.OpStar, syntax.OpPlus, syntax.OpQuest, syntax.OpRepeat:
 		min, max := re.Min, re.Max
 		switch re.Op {
@@ -345,21 +345,21 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, s bitStream) {
 			min, max = 0, 1
 		}
 		repeat := newRepeat(min, max, -1)
-		for repeat.more(s, regexpName(re.Sub[0])) {
-			g.build(w, re.Sub[0], s)
+		for repeat.more(t.s, regexpName(re.Sub[0])) {
+			g.build(w, re.Sub[0], t)
 		}
 	case syntax.OpConcat:
 		for _, sub := range re.Sub {
-			g.build(w, sub, s)
+			g.build(w, sub, t)
 		}
 	case syntax.OpAlternate:
-		ix := genIndex(s, len(re.Sub), true)
-		g.build(w, re.Sub[ix], s)
+		ix := genIndex(t.s, len(re.Sub), true)
+		g.build(w, re.Sub[ix], t)
 	default:
 		assertf(false, "invalid regexp op %v", re.Op)
 	}
 
-	s.endGroup(i, false)
+	t.s.endGroup(i, false)
 }
 
 func maybeFoldCase(s bitStream, r rune, flags syntax.Flags) rune {

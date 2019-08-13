@@ -31,7 +31,7 @@ const (
 	labelSortGroups          = "sort_groups"
 )
 
-func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
+func shrink(tb tb, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *testError) {
 	rec.prune()
 
 	s := &shrinker{
@@ -64,7 +64,7 @@ func shrink(tb limitedTB, rec recordedBits, err *testError, prop func(*T)) ([]ui
 }
 
 type shrinker struct {
-	tb      limitedTB
+	tb      tb
 	rec     recordedBits
 	err     *testError
 	prop    func(*T)

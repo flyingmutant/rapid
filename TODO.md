@@ -2,8 +2,6 @@
 
 ## Now
 
-- proper *T in custom generators
-  - think about making labels optional if they dont work in custom generators
 - use Custom in StateMachine to get soft invalid data boundaries around actions
 - Go SPb Meetup feedback:
   - more examples (buffers?, DI?)

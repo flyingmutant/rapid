@@ -17,7 +17,7 @@ func TestPanicTraceback(t *testing.T) {
 	s := createRandomBitStream(t)
 	g := Booleans().Filter(func(bool) bool { return false })
 
-	_, err := recoverValue(g, s)
+	_, err := recoverValue(g, newT(nil, s, false))
 	if err == nil {
 		t.Fatalf("no error from impossible filter")
 	}

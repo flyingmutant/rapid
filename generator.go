@@ -13,7 +13,7 @@ type Value interface{}
 type generatorImpl interface {
 	String() string
 	type_() reflect.Type
-	value(bitStream) Value
+	value(t *T) Value
 }
 
 type Generator struct {
@@ -39,21 +39,21 @@ func (g *Generator) type_() reflect.Type {
 }
 
 func (g *Generator) Draw(t *T, label string) Value {
-	if t.limitedTB != nil {
-		t.Helper()
+	if t.tb != nil {
+		t.tb.Helper()
 	}
 	return t.draw(g, label)
 }
 
-func (g *Generator) value(s bitStream) Value {
-	i := s.beginGroup(g.str, true)
+func (g *Generator) value(t *T) Value {
+	i := t.s.beginGroup(g.str, true)
 
-	v := g.impl.value(s)
-	t := reflect.TypeOf(v)
+	v := g.impl.value(t)
+	u := reflect.TypeOf(v)
 	assertf(v != nil, "%v has generated a nil value", g)
-	assertf(t.AssignableTo(g.typ), "%v has generated a value of type %v which is not assignable to %v", g, t, g.typ)
+	assertf(u.AssignableTo(g.typ), "%v has generated a value of type %v which is not assignable to %v", g, u, g.typ)
 
-	s.endGroup(i, false)
+	t.s.endGroup(i, false)
 
 	return v
 }
@@ -64,7 +64,7 @@ func (g *Generator) Example(seed ...uint64) (Value, int, error) {
 		s = seed[0]
 	}
 
-	return example(g, newRandomBitStream(s, false))
+	return example(g, newT(nil, newRandomBitStream(s, false), false))
 }
 
 func (g *Generator) Filter(fn interface{}) *Generator {
@@ -75,9 +75,9 @@ func (g *Generator) Map(fn interface{}) *Generator {
 	return map_(g, fn)
 }
 
-func example(g *Generator, s bitStream) (Value, int, error) {
+func example(g *Generator, t *T) (Value, int, error) {
 	for i := 1; ; i++ {
-		r, err := recoverValue(g, s)
+		r, err := recoverValue(g, t)
 		if err == nil {
 			return r, i, nil
 		} else if i == exampleMaxTries {
@@ -89,8 +89,8 @@ func example(g *Generator, s bitStream) (Value, int, error) {
 	}
 }
 
-func recoverValue(g *Generator, s bitStream) (v Value, err *testError) {
+func recoverValue(g *Generator, t *T) (v Value, err *testError) {
 	defer func() { err = panicToError(recover(), 3) }()
 
-	return g.value(s), nil
+	return g.value(t), nil
 }

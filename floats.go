@@ -110,11 +110,11 @@ func (g *floatGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *floatGen) value(s bitStream) Value {
+func (g *floatGen) value(t *T) Value {
 	if g.typ == float32Type {
-		return float32FromParts(genFloatRange(s, g.min, g.max, float32SignifBits))
+		return float32FromParts(genFloatRange(t.s, g.min, g.max, float32SignifBits))
 	} else {
-		return float64FromParts(genFloatRange(s, g.min, g.max, float64SignifBits))
+		return float64FromParts(genFloatRange(t.s, g.min, g.max, float64SignifBits))
 	}
 }
 

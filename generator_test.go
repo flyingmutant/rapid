@@ -13,26 +13,26 @@ import (
 
 type trivialGenImpl struct{}
 
-func (trivialGenImpl) String() string          { return "" }
-func (trivialGenImpl) type_() reflect.Type     { return uint64Type }
-func (trivialGenImpl) value(s bitStream) Value { return s.drawBits(64) }
+func (trivialGenImpl) String() string      { return "" }
+func (trivialGenImpl) type_() reflect.Type { return uint64Type }
+func (trivialGenImpl) value(t *T) Value    { return t.s.drawBits(64) }
 
 func BenchmarkTrivialGenImplValue(b *testing.B) {
-	s := newRandomBitStream(baseSeed(), false)
+	t := newT(nil, newRandomBitStream(baseSeed(), false), false)
 	g := trivialGenImpl{}
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		g.value(s)
+		g.value(t)
 	}
 }
 
 func BenchmarkGenerator_Value(b *testing.B) {
-	s := newRandomBitStream(baseSeed(), false)
+	t := newT(nil, newRandomBitStream(baseSeed(), false), false)
 	g := newGenerator(trivialGenImpl{})
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		g.value(s)
+		g.value(t)
 	}
 }

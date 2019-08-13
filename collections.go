@@ -85,7 +85,7 @@ func (g *sliceGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *sliceGen) value(s bitStream) Value {
+func (g *sliceGen) value(t *T) Value {
 	repeat := newRepeat(g.minLen, g.maxLen, -1)
 
 	var seen reflect.Value
@@ -94,8 +94,8 @@ func (g *sliceGen) value(s bitStream) Value {
 	}
 
 	sl := reflect.MakeSlice(g.typ, 0, repeat.avg())
-	for repeat.more(s, g.elem.String()) {
-		e := reflect.ValueOf(g.elem.value(s))
+	for repeat.more(t.s, g.elem.String()) {
+		e := reflect.ValueOf(g.elem.value(t))
 		if g.keyTyp == nil {
 			sl = reflect.Append(sl, e)
 		} else {
@@ -193,7 +193,7 @@ func (g *mapGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *mapGen) value(s bitStream) Value {
+func (g *mapGen) value(t *T) Value {
 	label := g.val.String()
 	if g.key != nil {
 		label = g.key.String() + "," + label
@@ -202,13 +202,13 @@ func (g *mapGen) value(s bitStream) Value {
 	repeat := newRepeat(g.minLen, g.maxLen, -1)
 
 	m := reflect.MakeMapWithSize(g.typ, repeat.avg())
-	for repeat.more(s, label) {
+	for repeat.more(t.s, label) {
 		var k, v reflect.Value
 		if g.keyTyp == nil {
-			k = reflect.ValueOf(g.key.value(s))
-			v = reflect.ValueOf(g.val.value(s))
+			k = reflect.ValueOf(g.key.value(t))
+			v = reflect.ValueOf(g.val.value(t))
 		} else {
-			v = reflect.ValueOf(g.val.value(s))
+			v = reflect.ValueOf(g.val.value(t))
 			k = v
 			if g.keyFn.IsValid() {
 				k = g.keyFn.Call([]reflect.Value{v})[0]
@@ -249,14 +249,14 @@ func (g *arrayGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *arrayGen) value(s bitStream) Value {
+func (g *arrayGen) value(t *T) Value {
 	a := reflect.Indirect(reflect.New(g.typ))
 
 	if g.count == 0 {
-		s.drawBits(0)
+		t.s.drawBits(0)
 	} else {
 		for i := 0; i < g.count; i++ {
-			e := reflect.ValueOf(g.elem.value(s))
+			e := reflect.ValueOf(g.elem.value(t))
 			a.Index(i).Set(e)
 		}
 	}

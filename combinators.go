@@ -44,12 +44,12 @@ func (g *customGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *customGen) value(s bitStream) Value {
-	return find(g.maybeValue, s, small)
+func (g *customGen) value(t *T) Value {
+	return find(g.maybeValue, t, small)
 }
 
-func (g *customGen) maybeValue(s bitStream) Value {
-	t := newT(nil, s, false)
+func (g *customGen) maybeValue(t *T) Value {
+	t = newT(t, t.s, *debug)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -90,12 +90,12 @@ func (g *filteredGen) type_() reflect.Type {
 	return g.g.type_()
 }
 
-func (g *filteredGen) value(s bitStream) Value {
-	return find(g.maybeValue, s, small)
+func (g *filteredGen) value(t *T) Value {
+	return find(g.maybeValue, t, small)
 }
 
-func (g *filteredGen) maybeValue(s bitStream) Value {
-	v := g.g.value(s)
+func (g *filteredGen) maybeValue(t *T) Value {
+	v := g.g.value(t)
 	if g.fn(v) {
 		return v
 	} else {
@@ -103,12 +103,12 @@ func (g *filteredGen) maybeValue(s bitStream) Value {
 	}
 }
 
-func find(gen func(bitStream) Value, s bitStream, tries int) Value {
+func find(gen func(*T) Value, t *T, tries int) Value {
 	for n := 0; n < tries; n++ {
-		i := s.beginGroup(tryLabel, false)
-		v := gen(s)
+		i := t.s.beginGroup(tryLabel, false)
+		v := gen(t)
 		ok := v != nil
-		s.endGroup(i, !ok)
+		t.s.endGroup(i, !ok)
 
 		if ok {
 			return v
@@ -145,8 +145,8 @@ func (g *mappedGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *mappedGen) value(s bitStream) Value {
-	v := reflect.ValueOf(g.g.value(s))
+func (g *mappedGen) value(t *T) Value {
+	v := reflect.ValueOf(g.g.value(t))
 	return call(g.fn, v)
 }
 
@@ -192,8 +192,8 @@ func (g *sampledGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *sampledGen) value(s bitStream) Value {
-	i := genIndex(s, len(g.values), true)
+func (g *sampledGen) value(t *T) Value {
+	i := genIndex(t.s, len(g.values), true)
 
 	return g.values[i]
 }
@@ -228,10 +228,10 @@ func (g *oneOfGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *oneOfGen) value(s bitStream) Value {
-	i := genIndex(s, len(g.gens), true)
+func (g *oneOfGen) value(t *T) Value {
+	i := genIndex(t.s, len(g.gens), true)
 
-	return g.gens[i].value(s)
+	return g.gens[i].value(t)
 }
 
 func Ptrs(elem *Generator, allowNil bool) *Generator {
@@ -256,15 +256,15 @@ func (g *ptrGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *ptrGen) value(s bitStream) Value {
+func (g *ptrGen) value(t *T) Value {
 	pNonNil := float64(1)
 	if g.allowNil {
 		pNonNil = 0.5
 	}
 
-	if flipBiasedCoin(s, pNonNil) {
+	if flipBiasedCoin(t.s, pNonNil) {
 		p := reflect.New(g.elem.type_())
-		p.Elem().Set(reflect.ValueOf(g.elem.value(s)))
+		p.Elem().Set(reflect.ValueOf(g.elem.value(t)))
 		return p.Interface()
 	} else {
 		return reflect.Zero(g.typ).Interface()
