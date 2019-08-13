@@ -45,7 +45,19 @@ func (g *customGen) type_() reflect.Type {
 }
 
 func (g *customGen) value(s bitStream) Value {
+	return find(g.maybeValue, s, small)
+}
+
+func (g *customGen) maybeValue(s bitStream) Value {
 	t := newT(nil, s, false)
+
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(invalidData); !ok {
+				panic(r)
+			}
+		}
+	}()
 
 	return call(g.fn, reflect.ValueOf(t))
 }
