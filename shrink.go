@@ -383,7 +383,7 @@ func without(data []uint64, groups ...groupInfo) []uint64 {
 
 func dataStr(data []uint64) string {
 	b := &strings.Builder{}
-	err := binary.Write(b, binary.BigEndian, data)
+	err := binary.Write(b, binary.LittleEndian, data)
 	assert(err == nil)
 	return b.String()
 }
