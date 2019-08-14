@@ -30,9 +30,9 @@ var (
 		'/', '\\', '|',
 		'(', '[', '{', '<',
 		'\'', '"', '`',
-		'\x00', '\x0B', '\x1B', '\x7F',
-		'\uFEFF', '\uFFFD', '\u202E',
-		'Ⱥ',
+		'\x00', '\x0B', '\x1B', '\x7F', // NUL, VT, ESC, DEL
+		'\uFEFF', '\uFFFD', '\u202E', // BOM, replacement character, RTL override
+		'Ⱥ', // In UTF-8, Ⱥ increases in length from 2 to 3 bytes when lowercased
 	}
 
 	// unicode.Categories without surrogates (which are not allowed in UTF-8), ordered by taste
