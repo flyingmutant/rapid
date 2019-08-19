@@ -305,7 +305,12 @@ func newT(tb tb, s bitStream, log_ bool, refDraws ...Value) *T {
 	}
 
 	if *rapidLog {
-		t.rapidLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", t.Name()), 0)
+		testName := "rapid test"
+		if tb != nil {
+			testName = tb.Name()
+		}
+
+		t.rapidLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", testName), 0)
 	}
 
 	return t
@@ -335,14 +340,6 @@ func (t *T) draw(g *Generator, label string) Value {
 	t.draws++
 
 	return v
-}
-
-func (t *T) Name() string {
-	if t.tb != nil {
-		return t.tb.Name()
-	}
-
-	return "rapid test"
 }
 
 func (t *T) Logf(format string, args ...interface{}) {
