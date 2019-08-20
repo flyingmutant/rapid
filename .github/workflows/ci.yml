@@ -1,9 +1,9 @@
-name: Go
+name: CI
 on: ['push']
 jobs:
 
-  test:
-    name: Test
+  ci:
+    name: CI
     strategy:
       matrix:
         go: ['1.11', '1.12']
@@ -25,3 +25,6 @@ jobs:
 
       - name: Test
         run: go test -race -v
+
+      - name: Bench
+        run: go test -run=Benchmark -bench=.
