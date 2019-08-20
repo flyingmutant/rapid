@@ -1,4 +1,4 @@
-# Rapid [![Build Status][ci-img]][ci] [![GoDoc][godoc-img]][godoc]
+# Rapid [![GoDoc][godoc-img]][godoc]
 
 Rapid is a Go library for property-based testing.
 
@@ -81,7 +81,5 @@ please [open an issue](https://github.com/flyingmutant/rapid/issues).
 
 Rapid is licensed under the [Mozilla Public License version 2.0](./LICENSE). 
 
-[ci-img]: https://travis-ci.org/flyingmutant/rapid.svg?branch=master
-[ci]: https://travis-ci.org/flyingmutant/rapid
 [godoc-img]: https://godoc.org/github.com/flyingmutant/rapid?status.svg
 [godoc]: https://godoc.org/github.com/flyingmutant/rapid
