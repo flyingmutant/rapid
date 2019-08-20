@@ -15,10 +15,13 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go }}
-        id: go
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
+
+      - name: Run gofmt
+        run: test -z "$(go fmt .)"
+          shell: bash
 
       - name: Test
         run: go test -race -v
