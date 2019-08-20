@@ -21,6 +21,7 @@ jobs:
 
       - name: Run gofmt
         run: test -z "$(go fmt .)"
+        shell: bash
 
       - name: Test
         run: go test -race -v
