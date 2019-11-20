@@ -37,7 +37,7 @@ const (
 )
 
 var (
-	intType   = reflect.TypeOf(int(0))
+	intType   = reflect.TypeOf(0)
 	int8Type  = reflect.TypeOf(int8(0))
 	int16Type = reflect.TypeOf(int16(0))
 	int32Type = reflect.TypeOf(int32(0))
@@ -295,7 +295,7 @@ func (g *integerGen) value(t *T) Value {
 	case int32Type:
 		return int32(i)
 	case int64Type:
-		return int64(i)
+		return i
 	case uintType:
 		return uint(u)
 	case uint8Type:
@@ -305,7 +305,7 @@ func (g *integerGen) value(t *T) Value {
 	case uint32Type:
 		return uint32(u)
 	case uint64Type:
-		return uint64(u)
+		return u
 	default:
 		assertf(g.typ == uintptrType, "unhandled integer type %v", g.typ)
 		return uintptr(u)
