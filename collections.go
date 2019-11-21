@@ -85,7 +85,7 @@ func (g *sliceGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *sliceGen) value(t *T) Value {
+func (g *sliceGen) value(t *T) value {
 	repeat := newRepeat(g.minLen, g.maxLen, -1)
 
 	var seen reflect.Value
@@ -193,7 +193,7 @@ func (g *mapGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *mapGen) value(t *T) Value {
+func (g *mapGen) value(t *T) value {
 	label := g.val.String()
 	if g.key != nil {
 		label = g.key.String() + "," + label
@@ -249,7 +249,7 @@ func (g *arrayGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *arrayGen) value(t *T) Value {
+func (g *arrayGen) value(t *T) value {
 	a := reflect.Indirect(reflect.New(g.typ))
 
 	if g.count == 0 {

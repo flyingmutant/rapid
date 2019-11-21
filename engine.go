@@ -291,12 +291,12 @@ type T struct {
 	rapidLog *log.Logger
 	s        bitStream
 	draws    int
-	refDraws []Value
+	refDraws []value
 	mu       sync.RWMutex
 	failed   stopTest
 }
 
-func newT(tb tb, s bitStream, log_ bool, refDraws ...Value) *T {
+func newT(tb tb, s bitStream, log_ bool, refDraws ...value) *T {
 	t := &T{
 		tb:       tb,
 		log:      log_,
@@ -316,7 +316,7 @@ func newT(tb tb, s bitStream, log_ bool, refDraws ...Value) *T {
 	return t
 }
 
-func (t *T) draw(g *Generator, label string) Value {
+func (t *T) draw(g *Generator, label string) value {
 	v := g.value(t)
 
 	if len(t.refDraws) > 0 {
@@ -454,7 +454,7 @@ func assertCallable(fn reflect.Type, t reflect.Type, name string) {
 	assertf(t.AssignableTo(fn.In(0)), "parameter #0 (%v) of %v should be assignable from %v", fn.In(0), name, t)
 }
 
-func call(fn reflect.Value, arg reflect.Value) Value {
+func call(fn reflect.Value, arg reflect.Value) value {
 	r := fn.Call([]reflect.Value{arg})
 
 	if len(r) == 0 {
@@ -466,9 +466,9 @@ func call(fn reflect.Value, arg reflect.Value) Value {
 }
 
 type prettyValue struct {
-	Value
+	value
 }
 
 func (v prettyValue) String() string {
-	return fmt.Sprintf("%#v", v.Value)
+	return fmt.Sprintf("%#v", v.value)
 }

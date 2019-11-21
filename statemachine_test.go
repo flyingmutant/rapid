@@ -111,7 +111,7 @@ func (m *haltingMachine) C(t *T) {
 func TestStateMachine_Halting(t *testing.T) {
 	t.Parallel()
 
-	a := []Value{"A", 0, "A", 0, "A", 0}
+	a := []value{"A", 0, "A", 0, "A", 0}
 	for i := 0; i < 100; i++ {
 		a = append(a, "A") // TODO proper shrinking of "stuck" state machines
 	}

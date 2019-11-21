@@ -130,7 +130,7 @@ func (g *runeGen) type_() reflect.Type {
 	return int32Type
 }
 
-func (g *runeGen) value(t *T) Value {
+func (g *runeGen) value(t *T) value {
 	n := g.die.roll(t.s)
 
 	runes := g.runes
@@ -195,7 +195,7 @@ func (g *stringGen) type_() reflect.Type {
 	return stringType
 }
 
-func (g *stringGen) value(t *T) Value {
+func (g *stringGen) value(t *T) value {
 	repeat := newRepeat(g.minElems, g.maxElems, -1)
 
 	var b strings.Builder
@@ -273,7 +273,7 @@ func (g *regexpGen) type_() reflect.Type {
 	}
 }
 
-func (g *regexpGen) maybeString(t *T) Value {
+func (g *regexpGen) maybeString(t *T) value {
 	b := &strings.Builder{}
 	g.build(b, g.syn, t)
 	v := b.String()
@@ -285,7 +285,7 @@ func (g *regexpGen) maybeString(t *T) Value {
 	}
 }
 
-func (g *regexpGen) maybeSlice(t *T) Value {
+func (g *regexpGen) maybeSlice(t *T) value {
 	b := &bytes.Buffer{}
 	g.build(b, g.syn, t)
 	v := b.Bytes()
@@ -297,7 +297,7 @@ func (g *regexpGen) maybeSlice(t *T) Value {
 	}
 }
 
-func (g *regexpGen) value(t *T) Value {
+func (g *regexpGen) value(t *T) value {
 	if g.str {
 		return find(g.maybeString, t, small)
 	} else {

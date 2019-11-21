@@ -44,11 +44,11 @@ func (g *customGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *customGen) value(t *T) Value {
+func (g *customGen) value(t *T) value {
 	return find(g.maybeValue, t, small)
 }
 
-func (g *customGen) maybeValue(t *T) Value {
+func (g *customGen) maybeValue(t *T) value {
 	t = newT(t.tb, t.s, *debug)
 
 	defer func() {
@@ -71,7 +71,7 @@ func filter(g *Generator, fn interface{}) *Generator {
 
 	return newGenerator(&filteredGen{
 		g: g,
-		fn: func(v Value) bool {
+		fn: func(v value) bool {
 			return call(f, reflect.ValueOf(v)).(bool)
 		},
 	})
@@ -79,7 +79,7 @@ func filter(g *Generator, fn interface{}) *Generator {
 
 type filteredGen struct {
 	g  *Generator
-	fn func(Value) bool
+	fn func(value) bool
 }
 
 func (g *filteredGen) String() string {
@@ -90,11 +90,11 @@ func (g *filteredGen) type_() reflect.Type {
 	return g.g.type_()
 }
 
-func (g *filteredGen) value(t *T) Value {
+func (g *filteredGen) value(t *T) value {
 	return find(g.maybeValue, t, small)
 }
 
-func (g *filteredGen) maybeValue(t *T) Value {
+func (g *filteredGen) maybeValue(t *T) value {
 	v := g.g.value(t)
 	if g.fn(v) {
 		return v
@@ -103,7 +103,7 @@ func (g *filteredGen) maybeValue(t *T) Value {
 	}
 }
 
-func find(gen func(*T) Value, t *T, tries int) Value {
+func find(gen func(*T) value, t *T, tries int) value {
 	for n := 0; n < tries; n++ {
 		i := t.s.beginGroup(tryLabel, false)
 		v := gen(t)
@@ -145,15 +145,15 @@ func (g *mappedGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *mappedGen) value(t *T) Value {
+func (g *mappedGen) value(t *T) value {
 	v := reflect.ValueOf(g.g.value(t))
 	return call(g.fn, v)
 }
 
-func Just(value Value) *Generator {
+func Just(val interface{}) *Generator {
 	return newGenerator(&sampledGen{
-		typ:    reflect.TypeOf(value),
-		values: []Value{value},
+		typ:    reflect.TypeOf(val),
+		values: []value{val},
 	})
 }
 
@@ -164,7 +164,7 @@ func SampledFrom(slice interface{}) *Generator {
 	assertf(t.Kind() == reflect.Slice, "argument should be a slice, not %v", t.Kind())
 	assertf(v.Len() > 0, "slice should not be empty")
 
-	values := make([]Value, v.Len())
+	values := make([]value, v.Len())
 	for i := 0; i < v.Len(); i++ {
 		values[i] = v.Index(i).Interface()
 	}
@@ -177,7 +177,7 @@ func SampledFrom(slice interface{}) *Generator {
 
 type sampledGen struct {
 	typ    reflect.Type
-	values []Value
+	values []value
 }
 
 func (g *sampledGen) String() string {
@@ -192,7 +192,7 @@ func (g *sampledGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *sampledGen) value(t *T) Value {
+func (g *sampledGen) value(t *T) value {
 	i := genIndex(t.s, len(g.values), true)
 
 	return g.values[i]
@@ -228,7 +228,7 @@ func (g *oneOfGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *oneOfGen) value(t *T) Value {
+func (g *oneOfGen) value(t *T) value {
 	i := genIndex(t.s, len(g.gens), true)
 
 	return g.gens[i].value(t)
@@ -256,7 +256,7 @@ func (g *ptrGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *ptrGen) value(t *T) Value {
+func (g *ptrGen) value(t *T) value {
 	pNonNil := float64(1)
 	if g.allowNil {
 		pNonNil = 0.5

@@ -15,7 +15,7 @@ type trivialGenImpl struct{}
 
 func (trivialGenImpl) String() string      { return "" }
 func (trivialGenImpl) type_() reflect.Type { return uint64Type }
-func (trivialGenImpl) value(t *T) Value    { return t.s.drawBits(64) }
+func (trivialGenImpl) value(t *T) value    { return t.s.drawBits(64) }
 
 func BenchmarkTrivialGenImplValue(b *testing.B) {
 	t := newT(nil, newRandomBitStream(baseSeed(), false), false)

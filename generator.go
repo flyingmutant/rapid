@@ -8,12 +8,12 @@ package rapid
 
 import "reflect"
 
-type Value interface{}
+type value interface{}
 
 type generatorImpl interface {
 	String() string
 	type_() reflect.Type
-	value(t *T) Value
+	value(t *T) value
 }
 
 type Generator struct {
@@ -38,14 +38,14 @@ func (g *Generator) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *Generator) Draw(t *T, label string) Value {
+func (g *Generator) Draw(t *T, label string) interface{} {
 	if t.tb != nil {
 		t.tb.Helper()
 	}
 	return t.draw(g, label)
 }
 
-func (g *Generator) value(t *T) Value {
+func (g *Generator) value(t *T) value {
 	i := t.s.beginGroup(g.str, true)
 
 	v := g.impl.value(t)
@@ -58,7 +58,7 @@ func (g *Generator) value(t *T) Value {
 	return v
 }
 
-func (g *Generator) Example(seed ...uint64) (Value, int, error) {
+func (g *Generator) Example(seed ...uint64) (interface{}, int, error) {
 	s := baseSeed()
 	if len(seed) > 0 {
 		s = seed[0]
@@ -75,7 +75,7 @@ func (g *Generator) Map(fn interface{}) *Generator {
 	return map_(g, fn)
 }
 
-func example(g *Generator, t *T) (Value, int, error) {
+func example(g *Generator, t *T) (value, int, error) {
 	for i := 1; ; i++ {
 		r, err := recoverValue(g, t)
 		if err == nil {
@@ -89,7 +89,7 @@ func example(g *Generator, t *T) (Value, int, error) {
 	}
 }
 
-func recoverValue(g *Generator, t *T) (v Value, err *testError) {
+func recoverValue(g *Generator, t *T) (v value, err *testError) {
 	defer func() { err = panicToError(recover(), 3) }()
 
 	return g.value(t), nil

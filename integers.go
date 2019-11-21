@@ -80,7 +80,7 @@ type boolGen struct{}
 func Boolean() *Generator              { return newGenerator(&boolGen{}) }
 func (g *boolGen) String() string      { return "Boolean()" }
 func (g *boolGen) type_() reflect.Type { return reflect.TypeOf(false) }
-func (g *boolGen) value(t *T) Value    { return t.s.drawBits(1) == 1 }
+func (g *boolGen) value(t *T) value    { return t.s.drawBits(1) == 1 }
 
 func Byte() *Generator    { return newIntegerGen(byteKind) }
 func Int() *Generator     { return newIntegerGen(intKind) }
@@ -275,7 +275,7 @@ func (g *integerGen) type_() reflect.Type {
 	return g.typ
 }
 
-func (g *integerGen) value(t *T) Value {
+func (g *integerGen) value(t *T) value {
 	var i int64
 	var u uint64
 
