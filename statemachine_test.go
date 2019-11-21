@@ -89,7 +89,7 @@ func (m *haltingMachine) A(t *T) {
 		t.SkipNow()
 	}
 
-	m.a = append(m.a, Ints().Draw(t, "a").(int))
+	m.a = append(m.a, Int().Draw(t, "a").(int))
 }
 
 func (m *haltingMachine) B(t *T) {
@@ -97,7 +97,7 @@ func (m *haltingMachine) B(t *T) {
 		t.SkipNow()
 	}
 
-	m.b = append(m.b, Ints().Draw(t, "b").(int))
+	m.b = append(m.b, Int().Draw(t, "b").(int))
 }
 
 func (m *haltingMachine) C(t *T) {
@@ -105,7 +105,7 @@ func (m *haltingMachine) C(t *T) {
 		t.SkipNow()
 	}
 
-	m.c = append(m.c, Ints().Draw(t, "c").(int))
+	m.c = append(m.c, Int().Draw(t, "c").(int))
 }
 
 func TestStateMachine_Halting(t *testing.T) {
@@ -162,7 +162,7 @@ type queueMachine struct {
 }
 
 func (m *queueMachine) Init(t *T) {
-	size := IntsRange(1, 1000).Draw(t, "size").(int)
+	size := IntRange(1, 1000).Draw(t, "size").(int)
 	m.q = newBuggyQueue(size)
 	m.size = size
 }
@@ -184,7 +184,7 @@ func (m *queueMachine) Put(t *T) {
 		t.Skip("queue full")
 	}
 
-	n := Ints().Draw(t, "n").(int)
+	n := Int().Draw(t, "n").(int)
 	m.q.Put(n)
 	m.state = append(m.state, n)
 }

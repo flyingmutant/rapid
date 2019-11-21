@@ -64,8 +64,8 @@ var (
 	regexpNames     = sync.Map{} // *regexp.Regexp -> string
 	charClassGens   = sync.Map{} // regexp name -> *Generator
 
-	anyRuneGen     = Runes()
-	anyRuneGenNoNL = Runes().Filter(func(r rune) bool { return r != '\n' })
+	anyRuneGen     = Rune()
+	anyRuneGenNoNL = Rune().Filter(func(r rune) bool { return r != '\n' })
 )
 
 type compiledRegexp struct {
@@ -73,11 +73,11 @@ type compiledRegexp struct {
 	re  *regexp.Regexp
 }
 
-func Runes() *Generator {
+func Rune() *Generator {
 	return runesFrom(true, defaultRunes, defaultTables...)
 }
 
-func RunesFrom(runes []rune, tables ...*unicode.RangeTable) *Generator {
+func RuneFrom(runes []rune, tables ...*unicode.RangeTable) *Generator {
 	return runesFrom(false, runes, tables...)
 }
 
@@ -120,9 +120,9 @@ type runeGen struct {
 
 func (g *runeGen) String() string {
 	if g.default_ {
-		return "Runes()"
+		return "Rune()"
 	} else {
-		return fmt.Sprintf("Runes(%v runes, %v tables)", len(g.runes), len(g.tables))
+		return fmt.Sprintf("Rune(%v runes, %v tables)", len(g.runes), len(g.tables))
 	}
 }
 
@@ -143,19 +143,19 @@ func (g *runeGen) value(t *T) Value {
 	return runes[genIndex(t.s, len(runes), true)]
 }
 
-func Strings() *Generator {
-	return StringsOf(anyRuneGen)
+func String() *Generator {
+	return StringOf(anyRuneGen)
 }
 
-func StringsN(minRunes int, maxRunes int, maxLen int) *Generator {
-	return StringsOfN(anyRuneGen, minRunes, maxRunes, maxLen)
+func StringN(minRunes int, maxRunes int, maxLen int) *Generator {
+	return StringOfN(anyRuneGen, minRunes, maxRunes, maxLen)
 }
 
-func StringsOf(elem *Generator) *Generator {
-	return StringsOfN(elem, -1, -1, -1)
+func StringOf(elem *Generator) *Generator {
+	return StringOfN(elem, -1, -1, -1)
 }
 
-func StringsOfN(elem *Generator, minElems int, maxElems int, maxLen int) *Generator {
+func StringOfN(elem *Generator, minElems int, maxElems int, maxLen int) *Generator {
 	assertValidRange(minElems, maxElems)
 	assertf(elem.type_() == int32Type || elem.type_() == uint8Type, "element generator should generate runes or bytes, not %v", elem.type_())
 	assertf(maxLen < 0 || maxLen >= maxElems, "maximum length (%v) should not be less than maximum number of elements (%v)", maxLen, maxElems)
@@ -178,15 +178,15 @@ type stringGen struct {
 func (g *stringGen) String() string {
 	if g.elem == anyRuneGen {
 		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
-			return "Strings()"
+			return "String()"
 		} else {
-			return fmt.Sprintf("StringsN(minRunes=%v, maxRunes=%v, maxLen=%v)", g.minElems, g.maxElems, g.maxLen)
+			return fmt.Sprintf("StringN(minRunes=%v, maxRunes=%v, maxLen=%v)", g.minElems, g.maxElems, g.maxLen)
 		}
 	} else {
 		if g.minElems < 0 && g.maxElems < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("StringsOf(%v)", g.elem)
+			return fmt.Sprintf("StringOf(%v)", g.elem)
 		} else {
-			return fmt.Sprintf("StringsOfN(%v, minElems=%v, maxElems=%v, maxLen=%v)", g.elem, g.minElems, g.maxElems, g.maxLen)
+			return fmt.Sprintf("StringOfN(%v, minElems=%v, maxElems=%v, maxLen=%v)", g.elem, g.minElems, g.maxElems, g.maxLen)
 		}
 	}
 }
@@ -226,11 +226,11 @@ func (g *stringGen) value(t *T) Value {
 	return b.String()
 }
 
-func StringsMatching(expr string) *Generator {
+func StringMatching(expr string) *Generator {
 	return matching(expr, true)
 }
 
-func SlicesOfBytesMatching(expr string) *Generator {
+func SliceOfBytesMatching(expr string) *Generator {
 	return matching(expr, false)
 }
 
@@ -259,9 +259,9 @@ type regexpGen struct {
 
 func (g *regexpGen) String() string {
 	if g.str {
-		return fmt.Sprintf("StringsMatching(%q)", g.expr)
+		return fmt.Sprintf("StringMatching(%q)", g.expr)
 	} else {
-		return fmt.Sprintf("SlicesOfBytesMatching(%q)", g.expr)
+		return fmt.Sprintf("SliceOfBytesMatching(%q)", g.expr)
 	}
 }
 

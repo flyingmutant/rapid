@@ -11,11 +11,11 @@ import (
 	"reflect"
 )
 
-func SlicesOf(elem *Generator) *Generator {
-	return SlicesOfN(elem, -1, -1)
+func SliceOf(elem *Generator) *Generator {
+	return SliceOfN(elem, -1, -1)
 }
 
-func SlicesOfN(elem *Generator, minLen int, maxLen int) *Generator {
+func SliceOfN(elem *Generator, minLen int, maxLen int) *Generator {
 	assertValidRange(minLen, maxLen)
 
 	return newGenerator(&sliceGen{
@@ -26,11 +26,11 @@ func SlicesOfN(elem *Generator, minLen int, maxLen int) *Generator {
 	})
 }
 
-func SlicesOfDistinct(elem *Generator, keyFn interface{}) *Generator {
-	return SlicesOfNDistinct(elem, -1, -1, keyFn)
+func SliceOfDistinct(elem *Generator, keyFn interface{}) *Generator {
+	return SliceOfNDistinct(elem, -1, -1, keyFn)
 }
 
-func SlicesOfNDistinct(elem *Generator, minLen int, maxLen int, keyFn interface{}) *Generator {
+func SliceOfNDistinct(elem *Generator, minLen int, maxLen int, keyFn interface{}) *Generator {
 	assertValidRange(minLen, maxLen)
 
 	keyTyp := elem.type_()
@@ -63,9 +63,9 @@ type sliceGen struct {
 func (g *sliceGen) String() string {
 	if g.keyTyp == nil {
 		if g.minLen < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("SlicesOf(%v)", g.elem)
+			return fmt.Sprintf("SliceOf(%v)", g.elem)
 		} else {
-			return fmt.Sprintf("SlicesOfN(%v, minLen=%v, maxLen=%v)", g.elem, g.minLen, g.maxLen)
+			return fmt.Sprintf("SliceOfN(%v, minLen=%v, maxLen=%v)", g.elem, g.minLen, g.maxLen)
 		}
 	} else {
 		key := ""
@@ -74,9 +74,9 @@ func (g *sliceGen) String() string {
 		}
 
 		if g.minLen < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("SlicesOfDistinct(%v%v)", g.elem, key)
+			return fmt.Sprintf("SliceOfDistinct(%v%v)", g.elem, key)
 		} else {
-			return fmt.Sprintf("SlicesOfNDistinct(%v, minLen=%v, maxLen=%v%v)", g.elem, g.minLen, g.maxLen, key)
+			return fmt.Sprintf("SliceOfNDistinct(%v, minLen=%v, maxLen=%v%v)", g.elem, g.minLen, g.maxLen, key)
 		}
 	}
 }
@@ -116,11 +116,11 @@ func (g *sliceGen) value(t *T) Value {
 	return sl.Interface()
 }
 
-func MapsOf(key *Generator, val *Generator) *Generator {
-	return MapsOfN(key, val, -1, -1)
+func MapOf(key *Generator, val *Generator) *Generator {
+	return MapOfN(key, val, -1, -1)
 }
 
-func MapsOfN(key *Generator, val *Generator, minLen int, maxLen int) *Generator {
+func MapOfN(key *Generator, val *Generator, minLen int, maxLen int) *Generator {
 	assertValidRange(minLen, maxLen)
 	assertf(key.type_().Comparable(), "key type should be comparable (got %v)", key.type_())
 
@@ -133,11 +133,11 @@ func MapsOfN(key *Generator, val *Generator, minLen int, maxLen int) *Generator 
 	})
 }
 
-func MapsOfValues(val *Generator, keyFn interface{}) *Generator {
-	return MapsOfNValues(val, -1, -1, keyFn)
+func MapOfValues(val *Generator, keyFn interface{}) *Generator {
+	return MapOfNValues(val, -1, -1, keyFn)
 }
 
-func MapsOfNValues(val *Generator, minLen int, maxLen int, keyFn interface{}) *Generator {
+func MapOfNValues(val *Generator, minLen int, maxLen int, keyFn interface{}) *Generator {
 	assertValidRange(minLen, maxLen)
 
 	keyTyp := val.type_()
@@ -171,9 +171,9 @@ type mapGen struct {
 func (g *mapGen) String() string {
 	if g.keyTyp == nil {
 		if g.minLen < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("MapsOf(%v, %v)", g.key, g.val)
+			return fmt.Sprintf("MapOf(%v, %v)", g.key, g.val)
 		} else {
-			return fmt.Sprintf("MapsOfN(%v, %v, minLen=%v, maxLen=%v)", g.key, g.val, g.minLen, g.maxLen)
+			return fmt.Sprintf("MapOfN(%v, %v, minLen=%v, maxLen=%v)", g.key, g.val, g.minLen, g.maxLen)
 		}
 	} else {
 		key := ""
@@ -182,9 +182,9 @@ func (g *mapGen) String() string {
 		}
 
 		if g.minLen < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("MapsOfValues(%v%v)", g.val, key)
+			return fmt.Sprintf("MapOfValues(%v%v)", g.val, key)
 		} else {
-			return fmt.Sprintf("MapsOfNValues(%v, minLen=%v, maxLen=%v%v)", g.val, g.minLen, g.maxLen, key)
+			return fmt.Sprintf("MapOfNValues(%v, minLen=%v, maxLen=%v%v)", g.val, g.minLen, g.maxLen, key)
 		}
 	}
 }
@@ -225,7 +225,7 @@ func (g *mapGen) value(t *T) Value {
 	return m.Interface()
 }
 
-func ArraysOf(count int, elem *Generator) *Generator {
+func ArrayOf(count int, elem *Generator) *Generator {
 	assertf(count >= 0 && count < 1024, "array element count should be in [0, 1024] (got %v)", count)
 
 	return newGenerator(&arrayGen{
@@ -242,7 +242,7 @@ type arrayGen struct {
 }
 
 func (g *arrayGen) String() string {
-	return fmt.Sprintf("ArraysOf(%v, %v)", g.count, g.elem)
+	return fmt.Sprintf("ArrayOf(%v, %v)", g.count, g.elem)
 }
 
 func (g *arrayGen) type_() reflect.Type {

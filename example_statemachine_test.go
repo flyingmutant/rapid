@@ -51,7 +51,7 @@ type queueMachine struct {
 
 // Init is an action for initializing  a queueMachine instance.
 func (m *queueMachine) Init(t *rapid.T) {
-	n := rapid.IntsRange(1, 1000).Draw(t, "n").(int)
+	n := rapid.IntRange(1, 1000).Draw(t, "n").(int)
 	m.q = NewQueue(n)
 	m.n = n
 }
@@ -75,7 +75,7 @@ func (m *queueMachine) Put(t *rapid.T) {
 		t.Skip("queue full")
 	}
 
-	i := rapid.Ints().Draw(t, "i").(int)
+	i := rapid.Int().Draw(t, "i").(int)
 	m.q.Put(i)
 	m.state = append(m.state, i)
 }

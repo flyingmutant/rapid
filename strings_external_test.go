@@ -16,7 +16,7 @@ import (
 )
 
 func TestStringsExamples(t *testing.T) {
-	g := StringsN(10, -1, -1)
+	g := StringN(10, -1, -1)
 
 	for i := 0; i < 100; i++ {
 		s, _, _ := g.Example()
@@ -25,7 +25,7 @@ func TestStringsExamples(t *testing.T) {
 }
 
 func TestRegexpExamples(t *testing.T) {
-	g := StringsMatching("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	g := StringMatching("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 	for i := 0; i < 100; i++ {
 		s, _, _ := g.Example()
@@ -37,12 +37,12 @@ func TestStringsOfRunesAreUTF8(t *testing.T) {
 	t.Parallel()
 
 	gens := []*Generator{
-		Strings(),
-		StringsN(2, 10, -1),
-		StringsOf(Runes()),
-		StringsOfN(Runes(), 2, 10, -1),
-		StringsOf(RunesFrom(nil, unicode.Cyrillic)),
-		StringsOf(RunesFrom([]rune{'a', 'b', 'c'})),
+		String(),
+		StringN(2, 10, -1),
+		StringOf(Rune()),
+		StringOfN(Rune(), 2, 10, -1),
+		StringOf(RuneFrom(nil, unicode.Cyrillic)),
+		StringOf(RuneFrom([]rune{'a', 'b', 'c'})),
 	}
 
 	for _, g := range gens {
@@ -59,14 +59,14 @@ func TestStringRuneCountLimits(t *testing.T) {
 	t.Parallel()
 
 	genFuncs := []func(i, j int) *Generator{
-		func(i, j int) *Generator { return StringsN(i, j, -1) },
-		func(i, j int) *Generator { return StringsOfN(Runes(), i, j, -1) },
+		func(i, j int) *Generator { return StringN(i, j, -1) },
+		func(i, j int) *Generator { return StringOfN(Rune(), i, j, -1) },
 	}
 
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
-			minRunes := IntsRange(0, 256).Draw(t, "minRunes").(int)
-			maxRunes := IntsMin(minRunes).Draw(t, "maxRunes").(int)
+			minRunes := IntRange(0, 256).Draw(t, "minRunes").(int)
+			maxRunes := IntMin(minRunes).Draw(t, "maxRunes").(int)
 
 			s := gf(minRunes, maxRunes).Draw(t, "s").(string)
 			n := utf8.RuneCountInString(s)
@@ -84,14 +84,14 @@ func TestStringsNMaxLen(t *testing.T) {
 	t.Parallel()
 
 	genFuncs := []func(int) *Generator{
-		func(i int) *Generator { return StringsN(-1, -1, i) },
-		func(i int) *Generator { return StringsOfN(Runes(), -1, -1, i) },
-		func(i int) *Generator { return StringsOfN(Bytes(), -1, i, -1) },
+		func(i int) *Generator { return StringN(-1, -1, i) },
+		func(i int) *Generator { return StringOfN(Rune(), -1, -1, i) },
+		func(i int) *Generator { return StringOfN(Byte(), -1, i, -1) },
 	}
 
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
-			maxLen := IntsMin(0).Draw(t, "maxLen").(int)
+			maxLen := IntMin(0).Draw(t, "maxLen").(int)
 			s := gf(maxLen).Draw(t, "s").(string)
 			if len(s) > maxLen {
 				t.Fatalf("got string of length %v with maxLen %v", len(s), maxLen)

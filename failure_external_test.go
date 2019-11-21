@@ -23,7 +23,7 @@ func TestFailure_ImpossibleData(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		_ = Ints().Filter(func(i int) bool { return false }).Draw(t, "i")
+		_ = Int().Filter(func(i int) bool { return false }).Draw(t, "i")
 	})
 }
 
@@ -31,7 +31,7 @@ func TestFailure_Trivial(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		i := Ints().Draw(t, "i").(int)
+		i := Int().Draw(t, "i").(int)
 		if i > 1000000000 {
 			fatalf(t, "got a huge integer: %v", i)
 		}
@@ -42,7 +42,7 @@ func TestFailure_SimpleCollection(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := SlicesOf(Ints().Filter(func(i int) bool { return i%2 == -1 })).Draw(t, "s").([]int)
+		s := SliceOf(Int().Filter(func(i int) bool { return i%2 == -1 })).Draw(t, "s").([]int)
 		if len(s) > 3 {
 			fatalf(t, "got a long sequence: %v", s)
 		}
@@ -53,7 +53,7 @@ func TestFailure_CollectionElements(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := SlicesOfN(Ints(), 2, -1).Draw(t, "s").([]int)
+		s := SliceOfN(Int(), 2, -1).Draw(t, "s").([]int)
 
 		n := 0
 		for _, i := range s {
@@ -72,7 +72,7 @@ func TestFailure_TrivialString(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := Strings().Draw(t, "s").(string)
+		s := String().Draw(t, "s").(string)
 		if len(s) > 7 {
 			fatalf(t, "got bad string %v", s)
 		}
@@ -83,7 +83,7 @@ func TestFailure_Make(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		n := IntsMin(0).Draw(t, "n").(int)
+		n := IntMin(0).Draw(t, "n").(int)
 		_ = make([]int, n)
 	})
 }
@@ -92,7 +92,7 @@ func TestFailure_Mean(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := SlicesOf(Float64s()).Draw(t, "s").([]float64)
+		s := SliceOf(Float64()).Draw(t, "s").([]float64)
 
 		mean := 0.0
 		for _, f := range s {

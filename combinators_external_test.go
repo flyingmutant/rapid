@@ -20,20 +20,20 @@ type testStruct struct {
 }
 
 func genBool(t *T) bool {
-	return Booleans().Draw(t, "").(bool)
+	return Boolean().Draw(t, "").(bool)
 }
 
 func genSlice(t *T) []uint64 {
 	return []uint64{
-		Uint64s().Draw(t, "").(uint64),
-		Uint64s().Draw(t, "").(uint64),
+		Uint64().Draw(t, "").(uint64),
+		Uint64().Draw(t, "").(uint64),
 	}
 }
 
 func genStruct(t *T) testStruct {
 	return testStruct{
-		x: Ints().Draw(t, "x").(int),
-		y: Ints().Draw(t, "y").(int),
+		x: Int().Draw(t, "x").(int),
+		y: Int().Draw(t, "y").(int),
 	}
 }
 
@@ -54,7 +54,7 @@ func TestCustom(t *testing.T) {
 func TestFilter(t *testing.T) {
 	t.Parallel()
 
-	g := Ints().Filter(func(i int) bool { return i >= 0 })
+	g := Int().Filter(func(i int) bool { return i >= 0 })
 
 	Check(t, func(t *T) {
 		v := g.Draw(t, "v").(int)
@@ -67,7 +67,7 @@ func TestFilter(t *testing.T) {
 func TestMap(t *testing.T) {
 	t.Parallel()
 
-	g := Ints().Map(strconv.Itoa)
+	g := Int().Map(strconv.Itoa)
 
 	Check(t, func(t *T) {
 		s := g.Draw(t, "s").(string)
@@ -99,8 +99,8 @@ func TestSampledFrom(t *testing.T) {
 func TestOneOf(t *testing.T) {
 	t.Parallel()
 
-	pos := Ints().Filter(func(v int) bool { return v >= 10 })
-	neg := Ints().Filter(func(v int) bool { return v <= -10 })
+	pos := Int().Filter(func(v int) bool { return v >= 10 })
+	neg := Int().Filter(func(v int) bool { return v <= -10 })
 	g := OneOf(pos, neg)
 
 	Check(t, func(t *T) {
@@ -116,7 +116,7 @@ func TestPtrs(t *testing.T) {
 
 	for _, allowNil := range []bool{false, true} {
 		t.Run(fmt.Sprintf("allowNil=%v", allowNil), MakeCheck(func(t *T) {
-			i := Ptrs(Ints(), allowNil).Draw(t, "i").(*int)
+			i := Ptr(Int(), allowNil).Draw(t, "i").(*int)
 			if i == nil && !allowNil {
 				t.Fatalf("got nil pointer")
 			}

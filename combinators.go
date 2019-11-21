@@ -234,7 +234,7 @@ func (g *oneOfGen) value(t *T) Value {
 	return g.gens[i].value(t)
 }
 
-func Ptrs(elem *Generator, allowNil bool) *Generator {
+func Ptr(elem *Generator, allowNil bool) *Generator {
 	return newGenerator(&ptrGen{
 		typ:      reflect.PtrTo(elem.type_()),
 		elem:     elem,
@@ -249,7 +249,7 @@ type ptrGen struct {
 }
 
 func (g *ptrGen) String() string {
-	return fmt.Sprintf("Ptrs(%v, allowNil=%v)", g.elem, g.allowNil)
+	return fmt.Sprintf("Ptr(%v, allowNil=%v)", g.elem, g.allowNil)
 }
 
 func (g *ptrGen) type_() reflect.Type {

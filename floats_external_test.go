@@ -16,32 +16,32 @@ import (
 
 func TestFloatsExamples(t *testing.T) {
 	gens := []*Generator{
-		Float32s(),
-		Float32sMin(-0.1),
-		Float32sMin(1),
-		Float32sMax(0.1),
-		Float32sMax(2.5),
-		Float32sRange(0.3, 0.30001),
-		Float32sRange(0.3, 0.301),
-		Float32sRange(0.3, 0.7),
-		Float32sRange(math.E, math.Pi),
-		Float32sRange(0, 1),
-		Float32sRange(1, 2.5),
-		Float32sRange(0, 100),
-		Float32sRange(0, 10000),
-		Float64s(),
-		Float64sMin(-0.1),
-		Float64sMin(1),
-		Float64sMax(0.1),
-		Float64sMax(2.5),
-		Float64sRange(0.3, 0.30000001),
-		Float64sRange(0.3, 0.301),
-		Float64sRange(0.3, 0.7),
-		Float64sRange(math.E, math.Pi),
-		Float64sRange(0, 1),
-		Float64sRange(1, 2.5),
-		Float64sRange(0, 100),
-		Float64sRange(0, 10000),
+		Float32(),
+		Float32Min(-0.1),
+		Float32Min(1),
+		Float32Max(0.1),
+		Float32Max(2.5),
+		Float32Range(0.3, 0.30001),
+		Float32Range(0.3, 0.301),
+		Float32Range(0.3, 0.7),
+		Float32Range(math.E, math.Pi),
+		Float32Range(0, 1),
+		Float32Range(1, 2.5),
+		Float32Range(0, 100),
+		Float32Range(0, 10000),
+		Float64(),
+		Float64Min(-0.1),
+		Float64Min(1),
+		Float64Max(0.1),
+		Float64Max(2.5),
+		Float64Range(0.3, 0.30000001),
+		Float64Range(0.3, 0.301),
+		Float64Range(0.3, 0.7),
+		Float64Range(math.E, math.Pi),
+		Float64Range(0, 1),
+		Float64Range(1, 2.5),
+		Float64Range(0, 100),
+		Float64Range(0, 10000),
 	}
 
 	for _, g := range gens {
@@ -70,13 +70,13 @@ func TestFloat32sBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		min := Float32s().Draw(t, "min").(float32)
-		max := Float32s().Draw(t, "max").(float32)
+		min := Float32().Draw(t, "min").(float32)
+		max := Float32().Draw(t, "max").(float32)
 		if min > max {
 			min, max = max, min
 		}
 
-		g := Float32sRange(min, max)
+		g := Float32Range(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 400; i++ {
 			f_, _, _ := g.Example(uint64(i))
@@ -104,13 +104,13 @@ func TestFloat64sBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		min := Float64s().Draw(t, "min").(float64)
-		max := Float64s().Draw(t, "max").(float64)
+		min := Float64().Draw(t, "min").(float64)
+		max := Float64().Draw(t, "max").(float64)
 		if min > max {
 			min, max = max, min
 		}
 
-		g := Float64sRange(min, max)
+		g := Float64Range(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 400; i++ {
 			f_, _, _ := g.Example(uint64(i))

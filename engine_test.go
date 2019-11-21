@@ -15,7 +15,7 @@ func TestPanicTraceback(t *testing.T) {
 	t.Parallel()
 
 	s := createRandomBitStream(t)
-	g := Booleans().Filter(func(bool) bool { return false })
+	g := Boolean().Filter(func(bool) bool { return false })
 
 	_, err := recoverValue(g, newT(nil, s, false))
 	if err == nil {
@@ -29,7 +29,7 @@ func TestPanicTraceback(t *testing.T) {
 }
 
 func BenchmarkCheckOverhead(b *testing.B) {
-	g := Uints()
+	g := Uint()
 	f := func(t *T) {
 		g.Draw(t, "")
 	}

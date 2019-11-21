@@ -29,19 +29,19 @@ var (
 	float64Type = reflect.TypeOf(float64(0))
 )
 
-func Float32s() *Generator {
-	return Float32sRange(-math.MaxFloat32, math.MaxFloat32)
+func Float32() *Generator {
+	return Float32Range(-math.MaxFloat32, math.MaxFloat32)
 }
 
-func Float32sMin(min float32) *Generator {
-	return Float32sRange(min, math.MaxFloat32)
+func Float32Min(min float32) *Generator {
+	return Float32Range(min, math.MaxFloat32)
 }
 
-func Float32sMax(max float32) *Generator {
-	return Float32sRange(-math.MaxFloat32, max)
+func Float32Max(max float32) *Generator {
+	return Float32Range(-math.MaxFloat32, max)
 }
 
-func Float32sRange(min float32, max float32) *Generator {
+func Float32Range(min float32, max float32) *Generator {
 	assertf(min == min, "min should not be a NaN")
 	assertf(max == max, "max should not be a NaN")
 	assertf(min <= max, "invalid range [%v, %v]", min, max)
@@ -55,19 +55,19 @@ func Float32sRange(min float32, max float32) *Generator {
 	})
 }
 
-func Float64s() *Generator {
-	return Float64sRange(-math.MaxFloat64, math.MaxFloat64)
+func Float64() *Generator {
+	return Float64Range(-math.MaxFloat64, math.MaxFloat64)
 }
 
-func Float64sMin(min float64) *Generator {
-	return Float64sRange(min, math.MaxFloat64)
+func Float64Min(min float64) *Generator {
+	return Float64Range(min, math.MaxFloat64)
 }
 
-func Float64sMax(max float64) *Generator {
-	return Float64sRange(-math.MaxFloat64, max)
+func Float64Max(max float64) *Generator {
+	return Float64Range(-math.MaxFloat64, max)
 }
 
-func Float64sRange(min float64, max float64) *Generator {
+func Float64Range(min float64, max float64) *Generator {
 	assertf(min == min, "min should not be a NaN")
 	assertf(max == max, "max should not be a NaN")
 	assertf(min <= max, "invalid range [%v, %v]", min, max)
@@ -90,9 +90,9 @@ type floatGen struct {
 }
 
 func (g *floatGen) String() string {
-	kind := "Float64s"
+	kind := "Float64"
 	if g.typ == float32Type {
-		kind = "Float32s"
+		kind = "Float32"
 	}
 
 	if g.min != g.minVal && g.max != g.maxVal {

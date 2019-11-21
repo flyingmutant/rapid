@@ -24,17 +24,17 @@ var (
 
 func TestIntsExamples(t *testing.T) {
 	gens := []*Generator{
-		Ints(),
-		IntsMin(-3),
-		IntsMax(3),
-		IntsRange(-3, 7),
-		IntsRange(-1000, 1000000),
-		IntsRange(0, 9),
-		IntsRange(0, 15),
-		IntsRange(10, 100),
-		IntsRange(100, 10000),
-		IntsRange(100, 1000000),
-		IntsRange(100, 1<<60-1),
+		Int(),
+		IntMin(-3),
+		IntMax(3),
+		IntRange(-3, 7),
+		IntRange(-1000, 1000000),
+		IntRange(0, 9),
+		IntRange(0, 15),
+		IntRange(10, 100),
+		IntRange(100, 10000),
+		IntRange(100, 1000000),
+		IntRange(100, 1<<60-1),
 	}
 
 	for _, g := range gens {
@@ -71,11 +71,11 @@ func TestIntsMinMaxRange(t *testing.T) {
 		max    interface{}
 		range_ interface{}
 	}{
-		{Ints(), IntsMin, IntsMax, IntsRange},
-		{Int8s(), Int8sMin, Int8sMax, Int8sRange},
-		{Int16s(), Int16sMin, Int16sMax, Int16sRange},
-		{Int32s(), Int32sMin, Int32sMax, Int32sRange},
-		{Int64s(), Int64sMin, Int64sMax, Int64sRange},
+		{Int(), IntMin, IntMax, IntRange},
+		{Int8(), Int8Min, Int8Max, Int8Range},
+		{Int16(), Int16Min, Int16Max, Int16Range},
+		{Int32(), Int32Min, Int32Max, Int32Range},
+		{Int64(), Int64Min, Int64Max, Int64Range},
 	}
 
 	for _, d := range data {
@@ -113,13 +113,13 @@ func TestUintsMinMaxRange(t *testing.T) {
 		max    interface{}
 		range_ interface{}
 	}{
-		{Bytes(), BytesMin, BytesMax, BytesRange},
-		{Uints(), UintsMin, UintsMax, UintsRange},
-		{Uint8s(), Uint8sMin, Uint8sMax, Uint8sRange},
-		{Uint16s(), Uint16sMin, Uint16sMax, Uint16sRange},
-		{Uint32s(), Uint32sMin, Uint32sMax, Uint32sRange},
-		{Uint64s(), Uint64sMin, Uint64sMax, Uint64sRange},
-		{Uintptrs(), UintptrsMin, UintptrsMax, UintptrsRange},
+		{Byte(), ByteMin, ByteMax, ByteRange},
+		{Uint(), UintMin, UintMax, UintRange},
+		{Uint8(), Uint8Min, Uint8Max, Uint8Range},
+		{Uint16(), Uint16Min, Uint16Max, Uint16Range},
+		{Uint32(), Uint32Min, Uint32Max, Uint32Range},
+		{Uint64(), Uint64Min, Uint64Max, Uint64Range},
+		{Uintptr(), UintptrMin, UintptrMax, UintptrRange},
 	}
 
 	for _, d := range data {
@@ -152,13 +152,13 @@ func TestIntsBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		min := Ints().Draw(t, "min").(int)
-		max := Ints().Draw(t, "max").(int)
+		min := Int().Draw(t, "min").(int)
+		max := Int().Draw(t, "max").(int)
 		if min > max {
 			min, max = max, min
 		}
 
-		g := IntsRange(min, max)
+		g := IntRange(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 250; i++ {
 			n_, _, _ := g.Example(uint64(i))
@@ -190,7 +190,7 @@ func TestBytesCoverage(t *testing.T) {
 
 	for b := 0; b < 256; b++ {
 		t.Run(strconv.Itoa(b), func(t *testing.T) {
-			g := Bytes().Filter(func(v byte) bool { return v == byte(b) })
+			g := Byte().Filter(func(v byte) bool { return v == byte(b) })
 			_, n, err := g.Example()
 			if err != nil {
 				t.Errorf("failed to find an example in %v tries: %v", n, err)
@@ -224,7 +224,7 @@ func TestIntsCoverage(t *testing.T) {
 
 	for i, fn := range filters {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			g := Ints().Filter(fn)
+			g := Int().Filter(fn)
 			_, n, err := g.Example()
 			if err != nil {
 				t.Errorf("failed to find an example in %v tries: %v", n, err)
@@ -254,7 +254,7 @@ func TestUintsCoverage(t *testing.T) {
 
 	for i, fn := range filters {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			g := Uints().Filter(fn)
+			g := Uint().Filter(fn)
 			_, n, err := g.Example()
 			if err != nil {
 				t.Errorf("failed to find an example in %v tries: %v", n, err)

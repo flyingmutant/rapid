@@ -45,9 +45,9 @@ func ParseDate(s string) (int, int, int, error) {
 // Rename to TestParseDate to make an actual (failing) test.
 func Example_parseDate(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		y := rapid.IntsRange(0, 9999).Draw(t, "y").(int)
-		m := rapid.IntsRange(1, 12).Draw(t, "m").(int)
-		d := rapid.IntsRange(1, 31).Draw(t, "d").(int)
+		y := rapid.IntRange(0, 9999).Draw(t, "y").(int)
+		m := rapid.IntRange(1, 12).Draw(t, "m").(int)
+		d := rapid.IntRange(1, 31).Draw(t, "d").(int)
 
 		s := fmt.Sprintf("%04d-%02d-%02d", y, m, d)
 
