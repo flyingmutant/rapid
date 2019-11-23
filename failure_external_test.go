@@ -119,11 +119,11 @@ func TestFailure_Mean(t *testing.T) {
 func TestFailure_ExampleParseDate(t *testing.T) {
 	t.Skip("expected failure")
 
-	Example_parseDate(t)
+	ExampleCheck_parseDate(t)
 }
 
 func TestFailure_ExampleQueue(t *testing.T) {
 	t.Skip("expected failure")
 
-	Example_queue(t)
+	ExampleStateMachine_queue(t)
 }

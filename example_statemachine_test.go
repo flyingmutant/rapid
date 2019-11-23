@@ -88,6 +88,6 @@ func (m *queueMachine) Check(t *rapid.T) {
 }
 
 // Rename to TestQueue to make an actual (failing) test.
-func Example_queue(t *testing.T) {
+func ExampleStateMachine_queue(t *testing.T) {
 	rapid.Check(t, rapid.StateMachine(&queueMachine{}))
 }
