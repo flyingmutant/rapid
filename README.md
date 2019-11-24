@@ -31,8 +31,22 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 
 ## Examples
 
-Example [function](./example_function_test.go) and
-[state machine](./example_statemachine_test.go) tests are provided.
+Here is what a trivial test using rapid looks like:
+
+```go
+func TestDoubleReverseIsNoop(t *testing.T) {
+        rapid.Check(t, func(t *rapid.T) {
+                u := rapid.Uint().Draw(t, "u").(uint)
+                v := bits.Reverse(bits.Reverse(u))
+                if v != u {
+                        t.Fatalf("got back 0b%b after reversing 0b%b two times", v, u)
+                }
+        })
+}
+```
+
+More complete [function](./example_function_test.go) and
+[state machine](./example_statemachine_test.go) example tests are provided.
 They both fail. Making them pass is a good way to get first real experience
 of working with rapid.
 
