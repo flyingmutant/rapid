@@ -34,7 +34,7 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 Here is what a trivial test using rapid looks like:
 
 ```go
-func TestParseIPv4(t *testing.T) {
+func TestParseValidIPv4(t *testing.T) {
 	const ipv4re = `(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
 		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
 		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
@@ -50,7 +50,10 @@ func TestParseIPv4(t *testing.T) {
 }
 ```
 
-More complete [function](./example_function_test.go) and
+You can [play around](https://play.golang.org/p/MsiAIRCkEZw) with the IPv4
+regexp to see what happens when it is generating invalid addresses
+(or try to pass the test with your own `ParseIP` implementation). More complete
+[function](./example_function_test.go) and
 [state machine](./example_statemachine_test.go) example tests are provided.
 They both fail. Making them pass is a good way to get first real experience
 of working with rapid.
