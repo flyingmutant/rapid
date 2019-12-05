@@ -34,14 +34,19 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 Here is what a trivial test using rapid looks like:
 
 ```go
-func TestDoubleReverseIsNoop(t *testing.T) {
-        rapid.Check(t, func(t *rapid.T) {
-                u := rapid.Uint().Draw(t, "u").(uint)
-                v := bits.Reverse(bits.Reverse(u))
-                if v != u {
-                        t.Fatalf("got back 0b%b after reversing 0b%b two times", v, u)
-                }
-        })
+func TestParseIPv4(t *testing.T) {
+	const ipv4re = `(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
+		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
+		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
+		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])`
+
+	rapid.Check(t, func(t *rapid.T) {
+		addr := rapid.StringMatching(ipv4re).Draw(t, "addr").(string)
+		ip := net.ParseIP(addr)
+		if ip == nil || ip.String() != addr {
+			t.Fatalf("parsed %q into %v", addr, ip)
+		}
+	})
 }
 ```
 
