@@ -3,22 +3,16 @@
 ## Now
 
 - use Custom in StateMachine to get soft invalid data boundaries around actions
-- Go SPb Meetup feedback:
-  - more examples (buffers?, DI?)
-- reddit feedback:
-  - show the intended output of the examples, so the people know that shrinking works indeed
-  - docs!
-  - HTTP API testing example
-- go-fuzz feedback:
-  - generator API too verbose
-  - any API that is not dead-simple and obvious will alienate people
-  - try a struct-less state machine API
+
+## Docs
+
+- document every exported symbol
 - doc.go paragraph about defining properties
-- better docs
-  - document every exported symbol
-  - more examples
-  - a tutorial?
-- mention similarity to SmallCheck
+- more examples
+  - HTTP API testing
+  - buffers?
+  - DI?
+- tutorial?
 
 ## Big things
 
@@ -27,13 +21,6 @@
 
 ## Generators
 
-- floats
-  - generate floats like X.0000YYY like we do with X.YYY0000 now
-  - test frequency of lOverflow & rOverflow events
-  - unbounded generators that can generate inf/nan
-    - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
-  - less focus on near-zero (large negative exponents)?
-  - bias significant as well?
 - times, durations, locations
 - complex numbers
 - big numbers
