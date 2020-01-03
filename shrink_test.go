@@ -138,7 +138,7 @@ func TestShrink_IntSliceNoDuplicates(t *testing.T) {
 	}, []int{1, 2, 3, 4, 5})
 }
 
-func TestShrink_Strings(t *testing.T) {
+func TestShrink_String(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
@@ -150,7 +150,7 @@ func TestShrink_Strings(t *testing.T) {
 	}, "?", "")
 }
 
-func TestShrink_StringsOfBytes(t *testing.T) {
+func TestShrink_StringOfBytes(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {

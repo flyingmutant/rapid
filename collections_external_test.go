@@ -14,7 +14,7 @@ import (
 	. "github.com/flyingmutant/rapid"
 )
 
-func TestSlicesOf(t *testing.T) {
+func TestSliceOf(t *testing.T) {
 	t.Parallel()
 
 	gens := []*Generator{
@@ -37,7 +37,7 @@ func TestSlicesOf(t *testing.T) {
 	}
 }
 
-func TestSlicesOfDistinct(t *testing.T) {
+func TestSliceOfDistinct(t *testing.T) {
 	t.Parallel()
 
 	g := SliceOfDistinct(Int(), nil)
@@ -54,7 +54,7 @@ func TestSlicesOfDistinct(t *testing.T) {
 	})
 }
 
-func TestSlicesOfDistinctBy(t *testing.T) {
+func TestSliceOfDistinctBy(t *testing.T) {
 	t.Parallel()
 
 	g := SliceOfDistinct(Int(), func(i int) string { return strconv.Itoa(i % 5) })
@@ -71,7 +71,7 @@ func TestSlicesOfDistinctBy(t *testing.T) {
 	})
 }
 
-func TestMapsOf(t *testing.T) {
+func TestMapOf(t *testing.T) {
 	t.Parallel()
 
 	gens := []*Generator{
@@ -93,7 +93,7 @@ func TestMapsOf(t *testing.T) {
 	}
 }
 
-func TestMapsOfValues(t *testing.T) {
+func TestMapOfValues(t *testing.T) {
 	t.Parallel()
 
 	g := MapOfValues(Custom(genStruct), func(s testStruct) int { return s.x })
@@ -108,7 +108,7 @@ func TestMapsOfValues(t *testing.T) {
 	})
 }
 
-func TestArraysOf(t *testing.T) {
+func TestArrayOf(t *testing.T) {
 	t.Parallel()
 
 	elems := []*Generator{Boolean(), Int(), Uint()}

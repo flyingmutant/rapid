@@ -111,7 +111,7 @@ func TestOneOf(t *testing.T) {
 	})
 }
 
-func TestPtrs(t *testing.T) {
+func TestPtr(t *testing.T) {
 	t.Parallel()
 
 	for _, allowNil := range []bool{false, true} {

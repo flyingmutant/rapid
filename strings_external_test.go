@@ -15,7 +15,7 @@ import (
 	. "github.com/flyingmutant/rapid"
 )
 
-func TestStringsExamples(t *testing.T) {
+func TestStringExamples(t *testing.T) {
 	g := StringN(10, -1, -1)
 
 	for i := 0; i < 100; i++ {
@@ -33,7 +33,7 @@ func TestRegexpExamples(t *testing.T) {
 	}
 }
 
-func TestStringsOfRunesAreUTF8(t *testing.T) {
+func TestStringOfRunesIsUTF8(t *testing.T) {
 	t.Parallel()
 
 	gens := []*Generator{
@@ -80,7 +80,7 @@ func TestStringRuneCountLimits(t *testing.T) {
 	}
 }
 
-func TestStringsNMaxLen(t *testing.T) {
+func TestStringNMaxLen(t *testing.T) {
 	t.Parallel()
 
 	genFuncs := []func(int) *Generator{

@@ -22,7 +22,7 @@ var (
 	rv    = reflect.ValueOf
 )
 
-func TestIntsExamples(t *testing.T) {
+func TestIntExamples(t *testing.T) {
 	gens := []*Generator{
 		Int(),
 		IntMin(-3),
@@ -62,7 +62,7 @@ func createGen(ctor interface{}, args ...interface{}) *Generator {
 	return rv(ctor).Call(refArgs)[0].Interface().(*Generator)
 }
 
-func TestIntsMinMaxRange(t *testing.T) {
+func TestIntMinMaxRange(t *testing.T) {
 	t.Parallel()
 
 	data := []struct {
@@ -104,7 +104,7 @@ func TestIntsMinMaxRange(t *testing.T) {
 	}
 }
 
-func TestUintsMinMaxRange(t *testing.T) {
+func TestUintMinMaxRange(t *testing.T) {
 	t.Parallel()
 
 	data := []struct {
@@ -148,7 +148,7 @@ func TestUintsMinMaxRange(t *testing.T) {
 	}
 }
 
-func TestIntsBoundCoverage(t *testing.T) {
+func TestIntBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
@@ -177,7 +177,7 @@ func TestIntsBoundCoverage(t *testing.T) {
 	})
 }
 
-func TestBytesCoverage(t *testing.T) {
+func TestByteCoverage(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
 		t.Skip("flaky")
@@ -194,7 +194,7 @@ func TestBytesCoverage(t *testing.T) {
 	}
 }
 
-func TestIntsCoverage(t *testing.T) {
+func TestIntCoverage(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
 		t.Skip("flaky")
@@ -228,7 +228,7 @@ func TestIntsCoverage(t *testing.T) {
 	}
 }
 
-func TestUintsCoverage(t *testing.T) {
+func TestUintCoverage(t *testing.T) {
 	t.Parallel()
 	if !*flaky {
 		t.Skip("flaky")

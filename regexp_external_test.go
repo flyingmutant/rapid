@@ -1055,7 +1055,7 @@ var crateRegexps = []string{
 	`Intel\(r\) SPMD Program Compiler \(ispc\), (\d+\.\d+\.\d+)`, // ispc-0.3.5: r"Intel\(r\) SPMD Program Compiler \(ispc\), (\d+\.\d+\.\d+)"
 }
 
-func TestStringsMatching(t *testing.T) {
+func TestStringMatching(t *testing.T) {
 	t.Parallel()
 
 	for _, expr := range crateRegexps {
@@ -1075,7 +1075,7 @@ func TestStringsMatching(t *testing.T) {
 	}
 }
 
-func TestSlicesOfBytesMatching(t *testing.T) {
+func TestSliceOfBytesMatching(t *testing.T) {
 	t.Parallel()
 
 	for _, expr := range crateRegexps {

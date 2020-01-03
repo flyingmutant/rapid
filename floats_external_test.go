@@ -14,7 +14,7 @@ import (
 	. "github.com/flyingmutant/rapid"
 )
 
-func TestFloatsExamples(t *testing.T) {
+func TestFloatExamples(t *testing.T) {
 	gens := []*Generator{
 		Float32(),
 		Float32Min(-0.1),
@@ -66,7 +66,7 @@ func TestFloatsExamples(t *testing.T) {
 	}
 }
 
-func TestFloat32sBoundCoverage(t *testing.T) {
+func TestFloat32BoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
@@ -95,7 +95,7 @@ func TestFloat32sBoundCoverage(t *testing.T) {
 	})
 }
 
-func TestFloat64sBoundCoverage(t *testing.T) {
+func TestFloat64BoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
