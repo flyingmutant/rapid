@@ -81,7 +81,8 @@ Compared to [gopter](https://godoc.org/github.com/leanovate/gopter), rapid:
 - has a much simpler API (queue test in [rapid](./example_statemachine_test.go) vs
   [gopter](https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go))
 - does not require any user code to minimize failing test cases
-- generates biased data to explore "small" values and edge cases more thoroughly
+- generates biased data to explore "small" values and edge cases more thoroughly (inspired by
+  [SmallCheck](https://hackage.haskell.org/package/smallcheck))
 - enables interactive tests by allowing data generation and test code to arbitrarily intermix
 
 Compared to [testing/quick](https://golang.org/pkg/testing/quick/), rapid:
