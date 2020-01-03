@@ -74,7 +74,7 @@ func Check(t *testing.T, prop func(*T)) {
 // MakeCheck is a convenience function for defining subtests suitable for
 // (*testing.T).Run. It allows you to write this:
 //
-//   t.Run("subtest name", rapid.MakeCheck(func(t *rapid) {
+//   t.Run("subtest name", rapid.MakeCheck(func(t *rapid.T) {
 //       // test code
 //   }))
 //
