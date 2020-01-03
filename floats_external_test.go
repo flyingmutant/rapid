@@ -82,15 +82,10 @@ func TestFloat32sBoundCoverage(t *testing.T) {
 			f_, _, _ := g.Example(uint64(i))
 			f := f_.(float32)
 
-			if f == min {
-				gotMin = true
-			}
-			if f == max {
-				gotMax = true
-			}
-			if f == 0 {
-				gotZero = true
-			}
+			gotMin = gotMin || f == min
+			gotMax = gotMax || f == max
+			gotZero = gotZero || f == 0
+
 			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
 				return
 			}
@@ -116,15 +111,10 @@ func TestFloat64sBoundCoverage(t *testing.T) {
 			f_, _, _ := g.Example(uint64(i))
 			f := f_.(float64)
 
-			if f == min {
-				gotMin = true
-			}
-			if f == max {
-				gotMax = true
-			}
-			if f == 0 {
-				gotZero = true
-			}
+			gotMin = gotMin || f == min
+			gotMax = gotMax || f == max
+			gotZero = gotZero || f == 0
+
 			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
 				return
 			}

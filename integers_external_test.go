@@ -164,15 +164,10 @@ func TestIntsBoundCoverage(t *testing.T) {
 			n_, _, _ := g.Example(uint64(i))
 			n := n_.(int)
 
-			if n == min {
-				gotMin = true
-			}
-			if n == max {
-				gotMax = true
-			}
-			if n == 0 {
-				gotZero = true
-			}
+			gotMin = gotMin || n == min
+			gotMax = gotMax || n == max
+			gotZero = gotZero || n == 0
+
 			if gotMin && gotMax && (min > 0 || max < 0 || gotZero) {
 				return
 			}
