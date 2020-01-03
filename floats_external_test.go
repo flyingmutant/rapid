@@ -14,6 +14,28 @@ import (
 	. "github.com/flyingmutant/rapid"
 )
 
+func TestFloatNoInf(t *testing.T) {
+	t.Parallel()
+
+	gens := []*Generator{
+		Float32(),
+		Float32Min(0),
+		Float32Max(0),
+		Float64(),
+		Float64Min(0),
+		Float64Max(0),
+	}
+
+	for _, g := range gens {
+		t.Run(g.String(), MakeCheck(func(t *T) {
+			f := g.Draw(t, "f")
+			if math.IsInf(rv(f).Float(), 0) {
+				t.Fatalf("got infinity: %v", f)
+			}
+		}))
+	}
+}
+
 func TestFloatExamples(t *testing.T) {
 	gens := []*Generator{
 		Float32(),

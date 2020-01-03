@@ -29,7 +29,6 @@
 
 - floats
   - generate floats like X.0000YYY like we do with X.YYY0000 now
-  - test that we do not generate Inf (we do now!)
   - test frequency of lOverflow & rOverflow events
   - unbounded generators that can generate inf/nan
     - shrink most (all?) subnormals to zero, and most (all?) NaNs to Inf/max
