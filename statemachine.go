@@ -66,8 +66,12 @@ func StateMachine(i interface{}) func(*T) {
 
 		sm.checkInvariants(t)
 		for repeat.more(t.s, typ.String()) {
-			sm.executeAction(t)
-			sm.checkInvariants(t)
+			ok := sm.executeAction(t)
+			if ok {
+				sm.checkInvariants(t)
+			} else {
+				repeat.reject()
+			}
 		}
 	}
 }
@@ -148,17 +152,19 @@ func (sm *stateMachine) cleanup() {
 	}
 }
 
-func (sm *stateMachine) executeAction(t *T) {
+func (sm *stateMachine) executeAction(t *T) bool {
 	t.Helper()
 
 	for n := 0; n < validActionTries; n++ {
 		i := t.s.beginGroup(actionLabel, false)
 		action := sm.actions[sm.actionKeys.Draw(t, "action").(string)]
-		skipped := runAction(t, action)
+		invalid, skipped := runAction(t, action)
 		t.s.endGroup(i, false)
 
-		if !skipped {
-			return
+		if skipped {
+			continue
+		} else {
+			return !invalid
 		}
 	}
 
@@ -172,11 +178,12 @@ func (sm *stateMachine) checkInvariants(t *T) {
 	}
 }
 
-func runAction(t *T, action func(*T)) (skipped bool) {
+func runAction(t *T, action func(*T)) (invalid bool, skipped bool) {
 	defer func(draws int) {
 		if r := recover(); r != nil {
-			if _, ok := r.(invalidData); ok && t.draws == draws {
-				skipped = true
+			if _, ok := r.(invalidData); ok {
+				invalid = true
+				skipped = t.draws == draws
 			} else {
 				panic(r)
 			}
@@ -185,5 +192,5 @@ func runAction(t *T, action func(*T)) (skipped bool) {
 
 	action(t)
 
-	return false
+	return false, false
 }

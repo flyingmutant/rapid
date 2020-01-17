@@ -1,9 +1,5 @@
 # TODO
 
-## Now
-
-- use Custom in StateMachine to get soft invalid data boundaries around actions
-
 ## Docs
 
 - document every exported symbol
