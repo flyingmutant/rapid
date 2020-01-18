@@ -34,6 +34,15 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 Here is what a trivial test using rapid looks like:
 
 ```go
+package rapid_test
+
+import (
+	"net"
+	"testing"
+
+	"pgregory.net/rapid"
+)
+
 func TestParseValidIPv4(t *testing.T) {
 	const ipv4re = `(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
 		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
