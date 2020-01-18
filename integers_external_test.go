@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/flyingmutant/rapid"
+	. "pgregory.net/rapid"
 )
 
 var (

@@ -1,3 +1,3 @@
-module github.com/flyingmutant/rapid
+module pgregory.net/rapid
 
 go 1.12

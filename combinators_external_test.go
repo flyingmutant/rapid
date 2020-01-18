@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/flyingmutant/rapid"
+	. "pgregory.net/rapid"
 )
 
 type testStruct struct {

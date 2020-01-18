@@ -27,7 +27,7 @@ const (
 	exampleMaxTries   = 1000
 
 	tracebackLen  = 32
-	tracebackStop = "github.com/flyingmutant/rapid.checkOnce"
+	tracebackStop = "pgregory.net/rapid.checkOnce"
 )
 
 var (

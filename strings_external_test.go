@@ -12,7 +12,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	. "github.com/flyingmutant/rapid"
+	. "pgregory.net/rapid"
 )
 
 func TestStringExamples(t *testing.T) {

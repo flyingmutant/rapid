@@ -50,13 +50,13 @@ func TestParseValidIPv4(t *testing.T) {
 }
 ```
 
-You can [play around](https://play.golang.org/p/MsiAIRCkEZw) with the IPv4
+You can [play around](https://play.golang.org/p/ZdNjIGzT_EX) with the IPv4
 regexp to see what happens when it is generating invalid addresses
 (or try to pass the test with your own `ParseIP` implementation). More complete
 function ([source code](./example_function_test.go),
-[playground](https://play.golang.org/p/YrPAekuiiP4)) and state machine
+[playground](https://play.golang.org/p/lJmJvKRE_7H)) and state machine
 ([source code](./example_statemachine_test.go),
-[playground](https://play.golang.org/p/uuYuKqk-d_5)) example tests are provided.
+[playground](https://play.golang.org/p/VZ6A3bqq-FR)) example tests are provided.
 They both fail. Making them pass is a good way to get first real experience
 of working with rapid.
 
@@ -106,5 +106,5 @@ please [open an issue](https://github.com/flyingmutant/rapid/issues).
 
 Rapid is licensed under the [Mozilla Public License version 2.0](./LICENSE). 
 
-[godoc-img]: https://godoc.org/github.com/flyingmutant/rapid?status.svg
-[godoc]: https://godoc.org/github.com/flyingmutant/rapid
+[godoc-img]: https://godoc.org/pgregory.net/rapid?status.svg
+[godoc]: https://godoc.org/pgregory.net/rapid
