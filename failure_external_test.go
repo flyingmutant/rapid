@@ -125,5 +125,5 @@ func TestFailure_ExampleParseDate(t *testing.T) {
 func TestFailure_ExampleQueue(t *testing.T) {
 	t.Skip("expected failure")
 
-	ExampleStateMachine_queue(t)
+	ExampleRun_queue(t)
 }
