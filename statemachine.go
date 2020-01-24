@@ -24,6 +24,15 @@ const (
 )
 
 type StateMachine interface {
+	// Check is ran after every action and should contain invariant checks.
+	//
+	// Other public methods are treated as follows:
+	// - Init(t *rapid.T), InitAnySuffixHere(t *rapid.T), if present,
+	//   are used as "initializer" actions; exactly one is ran at the beginning
+	//   of each test case;
+	// - Cleanup(), if present, is called at the end of each test case;
+	// - All other public methods should have a form ActionName(t *rapid.T)
+	//   and are used as possible actions. At least one action has to be specified.
 	Check(*T)
 }
 
@@ -33,29 +42,18 @@ type StateMachine interface {
 // State machine test is a pattern for testing stateful systems that looks
 // like this:
 //
-//   s := new(STATE_MACHINE_DEFINITION_TYPE)
-//   RUN_RANDOM_INITIALIZER_ACTION(s)
-//   defer CLEANUP(s)
-//   CHECK_INVARIANTS(s)
+//   m := new(StateMachineType)
+//   m.RandomInitAction(t)  // optional
+//   defer m.Cleanup()      // optional
+//   m.Check(t)
 //   for {
-//       RUN_RANDOM_ACTION(s)
-//       CHECK_INVARIANTS(s)
+//       m.RandomAction(t)
+//       m.Check(t)
 //   }
 //
-// Run synthesizes such test from the type of its argument,
-// which must be a pointer to an arbitrary state machine definition type,
-// whose public methods are treated as follows:
-//
-// - Init(t *rapid.T), InitAnySuffixHere(t *rapid.T), if present,
-// are used as "initializer" actions; exactly one is ran at the beginning
-// of each test case;
-//
-// - Cleanup(), if present, is called at the end of each test case;
-//
-// - Check(t *rapid.T), if present, is ran after every action;
-//
-// - All other public methods should have a form ActionName(t *rapid.T)
-// and are used as possible actions. At least one action has to be specified.
+// Run synthesizes such test from the type of m, which must be a pointer.
+// Note that for each test case, new state machine instance is created
+// via reflection; any data inside m is ignored.
 func Run(m StateMachine) func(*T) {
 	typ := reflect.TypeOf(m)
 
