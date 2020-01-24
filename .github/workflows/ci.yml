@@ -1,7 +1,6 @@
 name: CI
 on: ['push']
 jobs:
-
   ci:
     name: CI
     strategy:
@@ -10,7 +9,6 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macOS-latest']
     runs-on: ${{ matrix.os }}
     steps:
-
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
@@ -24,7 +22,7 @@ jobs:
         shell: bash
 
       - name: Test
-        run: go test -race -v
+        run: go test -race
 
       - name: Bench
         run: go test -run=Benchmark -bench=.
