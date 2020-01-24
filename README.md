@@ -59,7 +59,7 @@ func TestParseValidIPv4(t *testing.T) {
 }
 ```
 
-You can [play around](https://play.golang.org/p/ZdNjIGzT_EX) with the IPv4
+You can [play around](https://play.golang.org/p/Lp_C99wMBve) with the IPv4
 regexp to see what happens when it is generating invalid addresses
 (or try to pass the test with your own `ParseIP` implementation). More complete
 function ([source code](./example_function_test.go),
