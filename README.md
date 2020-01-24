@@ -1,4 +1,4 @@
-# Rapid [![GoDoc][godoc-img]][godoc]
+# Rapid [![GoDoc][godoc-img]][godoc] ![CI][ci-img]
 
 Rapid is a Go library for property-based testing.
 
@@ -117,3 +117,4 @@ Rapid is licensed under the [Mozilla Public License version 2.0](./LICENSE).
 
 [godoc-img]: https://godoc.org/pgregory.net/rapid?status.svg
 [godoc]: https://godoc.org/pgregory.net/rapid
+[ci-img]: https://github.com/flyingmutant/rapid/workflows/CI/badge.svg
