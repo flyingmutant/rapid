@@ -23,7 +23,11 @@ const (
 	noValidActionsMsg = "can't find a valid action"
 )
 
-// StateMachine is a convenience function for defining "state machine" tests,
+type StateMachine interface {
+	Check(*T)
+}
+
+// Run is a convenience function for defining "state machine" tests,
 // to be run by Check or MakeCheck.
 //
 // State machine test is a pattern for testing stateful systems that looks
@@ -38,7 +42,7 @@ const (
 //       CHECK_INVARIANTS(s)
 //   }
 //
-// StateMachine synthesizes such test from the type of its argument,
+// Run synthesizes such test from the type of its argument,
 // which must be a pointer to an arbitrary state machine definition type,
 // whose public methods are treated as follows:
 //
@@ -52,8 +56,8 @@ const (
 //
 // - All other public methods should have a form ActionName(t *rapid.T)
 // and are used as possible actions. At least one action has to be specified.
-func StateMachine(i interface{}) func(*T) {
-	typ := reflect.TypeOf(i)
+func Run(m StateMachine) func(*T) {
+	typ := reflect.TypeOf(m)
 
 	return func(t *T) {
 		t.Helper()
@@ -64,11 +68,11 @@ func StateMachine(i interface{}) func(*T) {
 		sm.init(t)
 		defer sm.cleanup()
 
-		sm.checkInvariants(t)
+		sm.check(t)
 		for repeat.more(t.s, typ.String()) {
 			ok := sm.executeAction(t)
 			if ok {
-				sm.checkInvariants(t)
+				sm.check(t)
 			} else {
 				repeat.reject()
 			}
@@ -95,7 +99,6 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 		actions    = map[string]func(*T){}
 		initKeys   []string
 		actionKeys []string
-		check      func(*T)
 		cleanup    func()
 	)
 
@@ -106,9 +109,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 			if strings.HasPrefix(name, initMethodPrefix) {
 				inits[name] = m
 				initKeys = append(initKeys, name)
-			} else if name == checkMethodName {
-				check = m
-			} else {
+			} else if name != checkMethodName {
 				actions[name] = m
 				actionKeys = append(actionKeys, name)
 			}
@@ -129,7 +130,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 		inits:      inits,
 		actions:    actions,
 		actionKeys: SampledFrom(actionKeys),
-		check:      check,
+		check:      v.Interface().(StateMachine).Check,
 		cleanup_:   cleanup,
 	}
 	if len(initKeys) > 0 {
@@ -169,13 +170,6 @@ func (sm *stateMachine) executeAction(t *T) bool {
 	}
 
 	panic(stopTest(noValidActionsMsg))
-}
-
-func (sm *stateMachine) checkInvariants(t *T) {
-	if sm.check != nil {
-		t.Helper()
-		sm.check(t)
-	}
 }
 
 func runAction(t *T, action func(*T)) (invalid bool, skipped bool) {

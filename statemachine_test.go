@@ -69,7 +69,7 @@ func (m *counterMachine) Check(t *T) {
 func TestStateMachine_Counter(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, StateMachine(&counterMachine{}),
+	checkShrink(t, Run(&counterMachine{}),
 		"Inc",
 		"Inc",
 		"Inc",
@@ -82,6 +82,12 @@ type haltingMachine struct {
 	a []int
 	b []int
 	c []int
+}
+
+func (m *haltingMachine) Check(t *T) {
+	if len(m.a) > 3 || len(m.b) > 3 || len(m.c) > 3 {
+		t.Fatalf("too many elements: %v, %v, %v", len(m.a), len(m.b), len(m.c))
+	}
 }
 
 func (m *haltingMachine) A(t *T) {
@@ -116,7 +122,7 @@ func TestStateMachine_Halting(t *testing.T) {
 		a = append(a, "A") // TODO proper shrinking of "stuck" state machines
 	}
 
-	checkShrink(t, StateMachine(&haltingMachine{}), a...)
+	checkShrink(t, Run(&haltingMachine{}), a...)
 }
 
 // https://www.cs.tufts.edu/~nr/cs257/archive/john-hughes/quviq-testing.pdf
@@ -198,7 +204,7 @@ func (m *queueMachine) Check(t *T) {
 func TestStateMachine_Queue(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, StateMachine(&queueMachine{}),
+	checkShrink(t, Run(&queueMachine{}),
 		"Init",
 		1,
 		"Put",
@@ -211,6 +217,6 @@ func TestStateMachine_Queue(t *testing.T) {
 
 func BenchmarkCheckQueue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _, _, _, _, _ = doCheck(b, StateMachine(&queueMachine{}))
+		_, _, _, _, _, _ = doCheck(b, Run(&queueMachine{}))
 	}
 }
