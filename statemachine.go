@@ -113,8 +113,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 				actions[name] = m
 				actionKeys = append(actionKeys, name)
 			}
-		} else {
-			assertf(name == cleanupMethodName, "unexpected state machine method %v", name)
+		} else if name == cleanupMethodName {
 			m, ok := v.Method(i).Interface().(func())
 			assertf(ok, "method %v should have type func(), not %v", cleanupMethodName, v.Method(i).Type())
 			cleanup = m
