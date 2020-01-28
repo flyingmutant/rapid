@@ -127,3 +127,47 @@ func TestFailure_ExampleQueue(t *testing.T) {
 
 	ExampleRun_queue(t)
 }
+
+// LastIndex returns the index of the last instance of x in list, or
+// -1 if x is not present. The loop condition has a fault that
+// causes some tests to fail. Change it to i >= 0 to see them pass.
+func LastIndex(list []int, x int) int {
+	for i := len(list) - 1; i > 0; i-- {
+		if list[i] == x {
+			return i
+		}
+	}
+	return -1
+}
+
+// This can be a good example of property-based test; however, it is unclear
+// what is the "best" way to generate input. Either it is concise (like in
+// the test below), but requires high quality data generation (and even then
+// is flaky), or it can be verbose, explicitly covering important input classes --
+// however, how do we know them when writing a test?
+func TestFailure_LastIndex(t *testing.T) {
+	t.Skip("expected failure (flaky)")
+
+	Check(t, func(t *T) {
+		s := SliceOf(Int()).Draw(t, "s").([]int)
+		x := Int().Draw(t, "x").(int)
+		ix := LastIndex(s, x)
+
+		// index is either -1 or in bounds
+		if ix != -1 && (ix < 0 || ix >= len(s)) {
+			t.Fatalf("%v is not a valid last index", ix)
+		}
+
+		// index is either -1 or a valid index of x
+		if ix != -1 && s[ix] != x {
+			t.Fatalf("%v is not a valid index of %v", ix, x)
+		}
+
+		// no valid index of x is bigger than ix
+		for i := ix + 1; i < len(s); i++ {
+			if s[i] == x {
+				t.Fatalf("%v is not the last index of %v (%v is bigger)", ix, x, i)
+			}
+		}
+	})
+}
