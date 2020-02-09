@@ -12,7 +12,30 @@ of automatically generated test cases. If a failure is found, rapid
 fails the current test and presents an automatically minimized
 version of the failing test case.
 
-Please note that rapid is alpha software; the documentation
-is very incomplete, unclear and probably full of grammatical errors.
+Here is what a trivial test using rapid looks like:
+
+	package rapid_test
+
+	import (
+		"net"
+		"testing"
+
+		"pgregory.net/rapid"
+	)
+
+	func TestParseValidIPv4(t *testing.T) {
+		const ipv4re = `(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
+			`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
+			`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])` +
+			`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])`
+
+		rapid.Check(t, func(t *rapid.T) {
+			addr := rapid.StringMatching(ipv4re).Draw(t, "addr").(string)
+			ip := net.ParseIP(addr)
+			if ip == nil || ip.String() != addr {
+				t.Fatalf("parsed %q into %v", addr, ip)
+			}
+		})
+	}
 */
 package rapid
