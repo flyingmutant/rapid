@@ -37,15 +37,6 @@ func genStruct(t *T) testStruct {
 	}
 }
 
-func ExampleCustom() {
-	gen := Custom(func(t *T) int {
-		return Just(42).Draw(t, "answer").(int)
-	})
-
-	fmt.Println(gen.Example())
-	// Output: 42
-}
-
 func TestCustom(t *testing.T) {
 	t.Parallel()
 
