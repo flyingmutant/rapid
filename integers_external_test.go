@@ -41,8 +41,7 @@ func TestIntExamples(t *testing.T) {
 		t.Run(g.String(), func(t *testing.T) {
 			var vals []int
 			for i := 0; i < 100; i++ {
-				n, _, _ := g.Example()
-				vals = append(vals, int(rv(n).Int()))
+				vals = append(vals, g.Example().(int))
 			}
 			sort.Ints(vals)
 
@@ -161,8 +160,7 @@ func TestIntBoundCoverage(t *testing.T) {
 		g := IntRange(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 250; i++ {
-			n_, _, _ := g.Example(uint64(i))
-			n := n_.(int)
+			n := g.Example(uint64(i)).(int)
 
 			gotMin = gotMin || n == min
 			gotMax = gotMax || n == max
@@ -185,11 +183,7 @@ func TestByteCoverage(t *testing.T) {
 
 	for b := 0; b < 256; b++ {
 		t.Run(strconv.Itoa(b), func(t *testing.T) {
-			g := Byte().Filter(func(v byte) bool { return v == byte(b) })
-			_, n, err := g.Example()
-			if err != nil {
-				t.Errorf("failed to find an example in %v tries: %v", n, err)
-			}
+			_ = Byte().Filter(func(v byte) bool { return v == byte(b) }).Example()
 		})
 	}
 }
@@ -219,11 +213,7 @@ func TestIntCoverage(t *testing.T) {
 
 	for i, fn := range filters {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			g := Int().Filter(fn)
-			_, n, err := g.Example()
-			if err != nil {
-				t.Errorf("failed to find an example in %v tries: %v", n, err)
-			}
+			_ = Int().Filter(fn).Example()
 		})
 	}
 }
@@ -249,11 +239,7 @@ func TestUintCoverage(t *testing.T) {
 
 	for i, fn := range filters {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			g := Uint().Filter(fn)
-			_, n, err := g.Example()
-			if err != nil {
-				t.Errorf("failed to find an example in %v tries: %v", n, err)
-			}
+			_ = Uint().Filter(fn).Example()
 		})
 	}
 }

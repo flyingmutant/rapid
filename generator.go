@@ -58,13 +58,16 @@ func (g *Generator) value(t *T) value {
 	return v
 }
 
-func (g *Generator) Example(seed ...uint64) (interface{}, int, error) {
+func (g *Generator) Example(seed ...uint64) interface{} {
 	s := baseSeed()
 	if len(seed) > 0 {
 		s = seed[0]
 	}
 
-	return example(g, newT(nil, newRandomBitStream(s, false), false))
+	v, n, err := example(g, newT(nil, newRandomBitStream(s, false), false))
+	assertf(err == nil, "%v failed to generate an example in %v tries: %v", g, n, err)
+
+	return v
 }
 
 func (g *Generator) Filter(fn interface{}) *Generator {

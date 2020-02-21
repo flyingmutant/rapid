@@ -71,7 +71,7 @@ func TestFloatExamples(t *testing.T) {
 			var vals []float64
 			var vals32 bool
 			for i := 0; i < 100; i++ {
-				f, _, _ := g.Example()
+				f := g.Example()
 				_, vals32 = f.(float32)
 				vals = append(vals, rv(f).Float())
 			}
@@ -101,8 +101,7 @@ func TestFloat32BoundCoverage(t *testing.T) {
 		g := Float32Range(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 400; i++ {
-			f_, _, _ := g.Example(uint64(i))
-			f := f_.(float32)
+			f := g.Example(uint64(i)).(float32)
 
 			gotMin = gotMin || f == min
 			gotMax = gotMax || f == max
@@ -130,8 +129,7 @@ func TestFloat64BoundCoverage(t *testing.T) {
 		g := Float64Range(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 400; i++ {
-			f_, _, _ := g.Example(uint64(i))
-			f := f_.(float64)
+			f := g.Example(uint64(i)).(float64)
 
 			gotMin = gotMin || f == min
 			gotMax = gotMax || f == max
