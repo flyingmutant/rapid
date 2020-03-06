@@ -14,6 +14,8 @@ import (
 	"pgregory.net/rapid"
 )
 
+type goExampleBugWorkaround int // work around whole file example detection bug introduced in Go 1.14
+
 // ParseDate parses dates in the YYYY-MM-DD format.
 func ParseDate(s string) (int, int, int, error) {
 	if len(s) != 10 {
