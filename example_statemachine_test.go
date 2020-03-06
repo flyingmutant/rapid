@@ -87,7 +87,8 @@ func (m *queueMachine) Check(t *rapid.T) {
 	}
 }
 
-// Rename to TestQueue to make an actual (failing) test.
-func ExampleRun_queue(t *testing.T) {
+// Rename to TestQueue(t *testing.T) to make an actual (failing) test.
+func ExampleRun_queue() {
+	var t *testing.T
 	rapid.Check(t, rapid.Run(&queueMachine{}))
 }

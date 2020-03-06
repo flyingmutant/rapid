@@ -116,18 +116,6 @@ func TestFailure_Mean(t *testing.T) {
 	})
 }
 
-func TestFailure_ExampleParseDate(t *testing.T) {
-	t.Skip("expected failure")
-
-	ExampleCheck_parseDate(t)
-}
-
-func TestFailure_ExampleQueue(t *testing.T) {
-	t.Skip("expected failure")
-
-	ExampleRun_queue(t)
-}
-
 // LastIndex returns the index of the last instance of x in list, or
 // -1 if x is not present. The loop condition has a fault that
 // causes some tests to fail. Change it to i >= 0 to see them pass.
