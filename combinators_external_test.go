@@ -23,6 +23,14 @@ func genBool(t *T) bool {
 	return Boolean().Draw(t, "").(bool)
 }
 
+func genInterface(t *T) interface{} {
+	if Boolean().Draw(t, "coinflip").(bool) {
+		return Int8().Draw(t, "")
+	} else {
+		return Float64().Draw(t, "")
+	}
+}
+
 func genSlice(t *T) []uint64 {
 	return []uint64{
 		Uint64().Draw(t, "").(uint64),
@@ -42,6 +50,7 @@ func TestCustom(t *testing.T) {
 
 	gens := []*Generator{
 		Custom(genBool),
+		Custom(genInterface),
 		Custom(genSlice),
 		Custom(genStruct),
 	}
