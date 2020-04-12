@@ -15,8 +15,9 @@ import (
 const tryLabel = "try"
 
 var (
-	boolType = reflect.TypeOf(false)
-	tPtrType = reflect.TypeOf((*T)(nil))
+	boolType           = reflect.TypeOf(false)
+	tPtrType           = reflect.TypeOf((*T)(nil))
+	emptyInterfaceType = reflect.TypeOf([]interface{}{}).Elem()
 )
 
 func Custom(fn interface{}) *Generator {
@@ -200,12 +201,17 @@ func (g *sampledGen) value(t *T) value {
 
 func OneOf(gens ...*Generator) *Generator {
 	assertf(len(gens) > 0, "at least one generator should be specified")
-	for i, g := range gens {
-		assertf(g.type_() == gens[0].type_(), "generator %v (%v) should generate %v, not %v", i, g, gens[0].type_(), g.type_())
+
+	typ := gens[0].type_()
+	for _, g := range gens {
+		if g.type_() != gens[0].type_() {
+			typ = emptyInterfaceType
+			break
+		}
 	}
 
 	return newGenerator(&oneOfGen{
-		typ:  gens[0].type_(),
+		typ:  typ,
 		gens: gens,
 	})
 }

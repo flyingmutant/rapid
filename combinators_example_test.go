@@ -65,15 +65,15 @@ func ExampleSampledFrom() {
 }
 
 func ExampleOneOf() {
-	gen := rapid.OneOf(rapid.IntRange(1, 10), rapid.IntRange(100, 1000))
+	gen := rapid.OneOf(rapid.Int32Range(1, 10), rapid.Float32Range(100, 1000))
 
 	for i := uint64(0); i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// 159
+	// 997.0737
 	// 10
-	// 109
+	// 475.3125
 	// 2
 	// 9
 }

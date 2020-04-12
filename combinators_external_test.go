@@ -105,7 +105,7 @@ func TestSampledFrom(t *testing.T) {
 	}
 }
 
-func TestOneOf(t *testing.T) {
+func TestOneOf_SameType(t *testing.T) {
 	t.Parallel()
 
 	pos := Int().Filter(func(v int) bool { return v >= 10 })
@@ -117,6 +117,17 @@ func TestOneOf(t *testing.T) {
 		if n > -10 && n < 10 {
 			t.Fatalf("got impossible %v", n)
 		}
+	})
+}
+
+func TestOneOf_DifferentTypes(t *testing.T) {
+	t.Parallel()
+
+	g := OneOf(Int(), Int8(), Int16(), Int32(), Int64())
+
+	Check(t, func(t *T) {
+		n := g.Draw(t, "n")
+		rv(n).Int()
 	})
 }
 
