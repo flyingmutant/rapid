@@ -64,7 +64,9 @@ func Run(m StateMachine) func(*T) {
 
 		sm := newStateMachine(typ)
 		sm.init(t)
-		defer sm.cleanup()
+		if sm.cleanup != nil {
+			defer sm.cleanup()
+		}
 
 		sm.check(t)
 		t.failOnError()
@@ -86,7 +88,7 @@ type stateMachine struct {
 	initKeys   *Generator
 	actionKeys *Generator
 	check      func(*T)
-	cleanup_   func()
+	cleanup    func()
 }
 
 func newStateMachine(typ reflect.Type) *stateMachine {
@@ -130,7 +132,7 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 		actions:    actions,
 		actionKeys: SampledFrom(actionKeys),
 		check:      v.Interface().(StateMachine).Check,
-		cleanup_:   cleanup,
+		cleanup:    cleanup,
 	}
 	if len(initKeys) > 0 {
 		sm.initKeys = SampledFrom(initKeys)
@@ -144,12 +146,6 @@ func (sm *stateMachine) init(t *T) {
 		t.Helper()
 		sm.inits[sm.initKeys.Draw(t, "initializer").(string)](t)
 		t.failOnError()
-	}
-}
-
-func (sm *stateMachine) cleanup() {
-	if sm.cleanup_ != nil {
-		sm.cleanup_()
 	}
 }
 
