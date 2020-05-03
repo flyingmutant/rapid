@@ -44,23 +44,25 @@ func ParseDate(s string) (int, int, int, error) {
 	return y, m, d, nil
 }
 
+func testParseDate(t *rapid.T) {
+	y := rapid.IntRange(0, 9999).Draw(t, "y").(int)
+	m := rapid.IntRange(1, 12).Draw(t, "m").(int)
+	d := rapid.IntRange(1, 31).Draw(t, "d").(int)
+
+	s := fmt.Sprintf("%04d-%02d-%02d", y, m, d)
+
+	y_, m_, d_, err := ParseDate(s)
+	if err != nil {
+		t.Fatalf("failed to parse date %q: %v", s, err)
+	}
+
+	if y_ != y || m_ != m || d_ != d {
+		t.Fatalf("got back wrong date: (%d, %d, %d)", y_, m_, d_)
+	}
+}
+
 // Rename to TestParseDate(t *testing.T) to make an actual (failing) test.
 func ExampleCheck_parseDate() {
 	var t *testing.T
-	rapid.Check(t, func(t *rapid.T) {
-		y := rapid.IntRange(0, 9999).Draw(t, "y").(int)
-		m := rapid.IntRange(1, 12).Draw(t, "m").(int)
-		d := rapid.IntRange(1, 31).Draw(t, "d").(int)
-
-		s := fmt.Sprintf("%04d-%02d-%02d", y, m, d)
-
-		y_, m_, d_, err := ParseDate(s)
-		if err != nil {
-			t.Fatalf("failed to parse date %q: %v", s, err)
-		}
-
-		if y_ != y || m_ != m || d_ != d {
-			t.Fatalf("got back wrong date: (%d, %d, %d)", y_, m_, d_)
-		}
-	})
+	rapid.Check(t, testParseDate)
 }
