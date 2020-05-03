@@ -205,7 +205,6 @@ func TestStateMachine_Queue(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, Run(&queueMachine{}),
-		"Init",
 		1,
 		"Put",
 		0,

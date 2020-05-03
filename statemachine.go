@@ -9,14 +9,13 @@ package rapid
 import (
 	"reflect"
 	"sort"
-	"strings"
 )
 
 const (
 	actionLabel      = "action"
 	validActionTries = 100 // hack, but probably good enough for now
 
-	initMethodPrefix  = "Init"
+	initMethodName    = "Init"
 	checkMethodName   = "Check"
 	cleanupMethodName = "Cleanup"
 
@@ -27,12 +26,12 @@ type StateMachine interface {
 	// Check is ran after every action and should contain invariant checks.
 	//
 	// Other public methods are treated as follows:
-	// - Init(t *rapid.T), InitAnySuffixHere(t *rapid.T), if present,
-	//   are used as "initializer" actions; exactly one is ran at the beginning
-	//   of each test case;
+	// - Init(t *rapid.T), if present, is ran at the beginning of each test case
+	//   to initialize the state machine instance;
 	// - Cleanup(), if present, is called at the end of each test case;
 	// - All other public methods should have a form ActionName(t *rapid.T)
 	//   and are used as possible actions. At least one action has to be specified.
+	//
 	Check(*T)
 }
 
@@ -43,8 +42,8 @@ type StateMachine interface {
 // like this:
 //
 //   m := new(StateMachineType)
-//   m.RandomInitAction(t)  // optional
-//   defer m.Cleanup()      // optional
+//   m.Init(t)          // optional
+//   defer m.Cleanup()  // optional
 //   m.Check(t)
 //   for {
 //       m.RandomAction(t)
@@ -63,7 +62,10 @@ func Run(m StateMachine) func(*T) {
 		repeat := newRepeat(0, *steps, maxInt)
 
 		sm := newStateMachine(typ)
-		sm.init(t)
+		if sm.init != nil {
+			sm.init(t)
+			t.failOnError()
+		}
 		if sm.cleanup != nil {
 			defer sm.cleanup()
 		}
@@ -83,12 +85,11 @@ func Run(m StateMachine) func(*T) {
 }
 
 type stateMachine struct {
-	inits      map[string]func(*T)
-	actions    map[string]func(*T)
-	initKeys   *Generator
-	actionKeys *Generator
-	check      func(*T)
+	init       func(*T)
 	cleanup    func()
+	check      func(*T)
+	actionKeys *Generator
+	actions    map[string]func(*T)
 }
 
 func newStateMachine(typ reflect.Type) *stateMachine {
@@ -97,23 +98,21 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	var (
 		v          = reflect.New(typ.Elem())
 		n          = typ.NumMethod()
-		inits      = map[string]func(*T){}
-		actions    = map[string]func(*T){}
-		initKeys   []string
-		actionKeys []string
+		init       func(*T)
 		cleanup    func()
+		actionKeys []string
+		actions    = map[string]func(*T){}
 	)
 
 	for i := 0; i < n; i++ {
 		name := typ.Method(i).Name
 		m, ok := v.Method(i).Interface().(func(*T))
 		if ok {
-			if strings.HasPrefix(name, initMethodPrefix) {
-				inits[name] = m
-				initKeys = append(initKeys, name)
+			if name == initMethodName {
+				init = m
 			} else if name != checkMethodName {
-				actions[name] = m
 				actionKeys = append(actionKeys, name)
+				actions[name] = m
 			}
 		} else if name == cleanupMethodName {
 			m, ok := v.Method(i).Interface().(func())
@@ -123,29 +122,14 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 	}
 
 	assertf(len(actions) > 0, "state machine of type %v has no actions specified", typ)
-
-	sort.Strings(initKeys)
 	sort.Strings(actionKeys)
 
-	sm := &stateMachine{
-		inits:      inits,
-		actions:    actions,
-		actionKeys: SampledFrom(actionKeys),
-		check:      v.Interface().(StateMachine).Check,
+	return &stateMachine{
+		init:       init,
 		cleanup:    cleanup,
-	}
-	if len(initKeys) > 0 {
-		sm.initKeys = SampledFrom(initKeys)
-	}
-
-	return sm
-}
-
-func (sm *stateMachine) init(t *T) {
-	if sm.initKeys != nil {
-		t.Helper()
-		sm.inits[sm.initKeys.Draw(t, "initializer").(string)](t)
-		t.failOnError()
+		check:      v.Interface().(StateMachine).Check,
+		actionKeys: SampledFrom(actionKeys),
+		actions:    actions,
 	}
 }
 
