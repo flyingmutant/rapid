@@ -179,14 +179,10 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 
 func checkOnce(t *T, prop func(*T)) (err *testError) {
 	t.Helper()
-
 	defer func() { err = panicToError(recover(), 3) }()
 
 	prop(t)
-
-	if t.Failed() {
-		panic(t.failed)
-	}
+	t.failOnError()
 
 	return nil
 }
@@ -443,6 +439,15 @@ func (t *T) fail(now bool, msg string) {
 
 	t.failed = stopTest(msg)
 	if now {
+		panic(t.failed)
+	}
+}
+
+func (t *T) failOnError() {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	if t.failed != "" {
 		panic(t.failed)
 	}
 }

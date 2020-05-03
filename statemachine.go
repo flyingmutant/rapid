@@ -67,10 +67,12 @@ func Run(m StateMachine) func(*T) {
 		defer sm.cleanup()
 
 		sm.check(t)
+		t.failOnError()
 		for repeat.more(t.s, typ.String()) {
 			ok := sm.executeAction(t)
 			if ok {
 				sm.check(t)
+				t.failOnError()
 			} else {
 				repeat.reject()
 			}
@@ -141,6 +143,7 @@ func (sm *stateMachine) init(t *T) {
 	if sm.initKeys != nil {
 		t.Helper()
 		sm.inits[sm.initKeys.Draw(t, "initializer").(string)](t)
+		t.failOnError()
 	}
 }
 
@@ -182,6 +185,7 @@ func runAction(t *T, action func(*T)) (invalid bool, skipped bool) {
 	}(t.draws)
 
 	action(t)
+	t.failOnError()
 
 	return false, false
 }
