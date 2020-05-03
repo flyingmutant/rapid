@@ -44,17 +44,17 @@ type counterMachine struct {
 	decs int
 }
 
-func (m *counterMachine) Inc(t *T) {
+func (m *counterMachine) Inc(_ *T) {
 	m.c.Inc()
 	m.incs++
 }
 
-func (m *counterMachine) Dec(t *T) {
+func (m *counterMachine) Dec(_ *T) {
 	m.c.Dec()
 	m.decs++
 }
 
-func (m *counterMachine) Reset(t *T) {
+func (m *counterMachine) Reset(_ *T) {
 	m.c.Reset()
 	m.incs = 0
 	m.decs = 0
