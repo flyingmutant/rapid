@@ -152,10 +152,7 @@ func (g *mappedGen) value(t *T) value {
 }
 
 func Just(val interface{}) *Generator {
-	return newGenerator(&sampledGen{
-		typ:    reflect.TypeOf(val),
-		values: []value{val},
-	})
+	return SampledFrom([]interface{}{val})
 }
 
 func SampledFrom(slice interface{}) *Generator {
@@ -165,27 +162,24 @@ func SampledFrom(slice interface{}) *Generator {
 	assertf(t.Kind() == reflect.Slice, "argument should be a slice, not %v", t.Kind())
 	assertf(v.Len() > 0, "slice should not be empty")
 
-	values := make([]value, v.Len())
-	for i := 0; i < v.Len(); i++ {
-		values[i] = v.Index(i).Interface()
-	}
-
 	return newGenerator(&sampledGen{
-		typ:    t.Elem(),
-		values: values,
+		typ:   t.Elem(),
+		slice: v,
+		n:     v.Len(),
 	})
 }
 
 type sampledGen struct {
-	typ    reflect.Type
-	values []value
+	typ   reflect.Type
+	slice reflect.Value
+	n     int
 }
 
 func (g *sampledGen) String() string {
-	if len(g.values) == 1 {
-		return fmt.Sprintf("Just(%v)", g.values[0])
+	if g.n == 1 {
+		return fmt.Sprintf("Just(%v)", g.slice.Index(0).Interface())
 	} else {
-		return fmt.Sprintf("SampledFrom(%v %v)", len(g.values), g.typ)
+		return fmt.Sprintf("SampledFrom(%v %v)", g.n, g.typ)
 	}
 }
 
@@ -194,9 +188,9 @@ func (g *sampledGen) type_() reflect.Type {
 }
 
 func (g *sampledGen) value(t *T) value {
-	i := genIndex(t.s, len(g.values), true)
+	i := genIndex(t.s, g.n, true)
 
-	return g.values[i]
+	return g.slice.Index(i).Interface()
 }
 
 func OneOf(gens ...*Generator) *Generator {
