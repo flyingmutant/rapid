@@ -70,10 +70,7 @@ func TestStateMachine_Counter(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, Run(&counterMachine{}),
-		"Inc",
-		"Inc",
-		"Inc",
-		"Inc",
+		"Inc", "Inc", "Inc", "Inc",
 		"Dec",
 	)
 }
@@ -206,11 +203,65 @@ func TestStateMachine_Queue(t *testing.T) {
 
 	checkShrink(t, Run(&queueMachine{}),
 		1,
-		"Put",
-		0,
+		"Put", 0,
 		"Get",
-		"Put",
-		0,
+		"Put", 0,
+	)
+}
+
+type garbageMachine struct {
+	a []int
+	b []int
+}
+
+func (m *garbageMachine) AddA(t *T) {
+	if len(m.b) < 3 {
+		t.Skip("too early")
+	}
+
+	n := Int().Draw(t, "a").(int)
+	m.a = append(m.a, n)
+}
+
+func (m *garbageMachine) AddB(t *T) {
+	n := Int().Draw(t, "b").(int)
+	m.b = append(m.b, n)
+}
+
+func (m *garbageMachine) Whatever1(t *T) {
+	b := Boolean().Draw(t, "whatever 1/1").(bool)
+	if b {
+		t.Skip("arbitrary decision")
+	}
+
+	Float64().Draw(t, "whatever 1/2")
+}
+
+func (m *garbageMachine) Whatever2(t *T) {
+	SliceOfDistinct(Int(), nil).Draw(t, "whatever 2")
+}
+
+func (m *garbageMachine) Whatever3(t *T) {
+	OneOf(SliceOf(Byte()), MapOf(Int(), String())).Draw(t, "whatever 3")
+}
+
+func (m *garbageMachine) Check(t *T) {
+	if len(m.a) > len(m.b) {
+		t.Fatalf("`a` has outgrown `b`: %v vs %v", len(m.a), len(m.b))
+	}
+}
+
+func TestStateMachine_DiscardGarbage(t *testing.T) {
+	t.Parallel()
+
+	checkShrink(t, Run(&garbageMachine{}),
+		"AddB", 0,
+		"AddB", 0,
+		"AddB", 0,
+		"AddA", 0,
+		"AddA", 0,
+		"AddA", 0,
+		"AddA", 0,
 	)
 }
 
