@@ -159,7 +159,7 @@ func (rec *recordedBits) removeGroup(i int) {
 	rec.groups = append(rec.groups[:i], rec.groups[j:]...)
 
 	n := g.end - g.begin
-	for j := 0; j < len(rec.groups); j++ {
+	for j := range rec.groups {
 		if rec.groups[j].begin >= g.end {
 			rec.groups[j].begin -= n
 		}
