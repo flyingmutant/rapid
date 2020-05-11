@@ -318,7 +318,7 @@ func (t *T) draw(g *Generator, label string) value {
 	if len(t.refDraws) > 0 {
 		ref := t.refDraws[t.draws]
 		if !reflect.DeepEqual(v, ref) {
-			t.tb.Fatalf("draw %v differs: %v vs expected %v", t.draws, prettyValue{v}, prettyValue{ref})
+			t.tb.Fatalf("draw %v differs: %#v vs expected %#v", t.draws, v, ref)
 		}
 	}
 
@@ -330,7 +330,7 @@ func (t *T) draw(g *Generator, label string) value {
 		if t.tb != nil {
 			t.tb.Helper()
 		}
-		t.Logf("[rapid] draw %v: %v", label, prettyValue{v})
+		t.Logf("[rapid] draw %v: %#v", label, v)
 	}
 
 	t.draws++
@@ -468,12 +468,4 @@ func call(fn reflect.Value, arg reflect.Value) value {
 		assert(len(r) == 1)
 		return r[0].Interface()
 	}
-}
-
-type prettyValue struct {
-	value
-}
-
-func (v prettyValue) String() string {
-	return fmt.Sprintf("%#v", v.value)
 }
