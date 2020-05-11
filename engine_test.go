@@ -11,12 +11,12 @@ import (
 	"testing"
 )
 
-func brokenGen(t *T) int { panic("this generator is not working") }
+func brokenGen(*T) int { panic("this generator is not working") }
 
 type brokenMachine struct{}
 
-func (m *brokenMachine) DoNothing(*T) { panic("this state machine is not working") }
-func (m *brokenMachine) Check(t *T)   {}
+func (m *brokenMachine) DoNothing(_ *T) { panic("this state machine is not working") }
+func (m *brokenMachine) Check(*T)       {}
 
 func TestPanicTraceback(t *testing.T) {
 	t.Parallel()
