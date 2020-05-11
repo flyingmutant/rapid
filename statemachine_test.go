@@ -229,7 +229,7 @@ func (m *garbageMachine) AddB(t *T) {
 }
 
 func (m *garbageMachine) Whatever1(t *T) {
-	b := Boolean().Draw(t, "whatever 1/1").(bool)
+	b := Bool().Draw(t, "whatever 1/1").(bool)
 	if b {
 		t.Skip("arbitrary decision")
 	}

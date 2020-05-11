@@ -77,8 +77,8 @@ type integerKindInfo struct {
 
 type boolGen struct{}
 
-func Boolean() *Generator              { return newGenerator(&boolGen{}) }
-func (g *boolGen) String() string      { return "Boolean()" }
+func Bool() *Generator                 { return newGenerator(&boolGen{}) }
+func (g *boolGen) String() string      { return "Bool()" }
 func (g *boolGen) type_() reflect.Type { return reflect.TypeOf(false) }
 func (g *boolGen) value(t *T) value    { return t.s.drawBits(1) == 1 }
 

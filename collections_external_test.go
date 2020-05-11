@@ -18,7 +18,7 @@ func TestSliceOf(t *testing.T) {
 	t.Parallel()
 
 	gens := []*Generator{
-		SliceOf(Boolean()),
+		SliceOf(Bool()),
 		SliceOf(Byte()),
 		SliceOf(Int()),
 		SliceOf(Uint()),
@@ -75,9 +75,9 @@ func TestMapOf(t *testing.T) {
 	t.Parallel()
 
 	gens := []*Generator{
-		MapOf(Boolean(), Int()),
+		MapOf(Bool(), Int()),
 		MapOf(Int(), Uint()),
-		MapOf(Uint(), SliceOf(Boolean())),
+		MapOf(Uint(), SliceOf(Bool())),
 	}
 
 	for _, g := range gens {
@@ -111,7 +111,7 @@ func TestMapOfValues(t *testing.T) {
 func TestArrayOf(t *testing.T) {
 	t.Parallel()
 
-	elems := []*Generator{Boolean(), Int(), Uint()}
+	elems := []*Generator{Bool(), Int(), Uint()}
 	counts := []int{0, 1, 3, 17}
 
 	for _, e := range elems {

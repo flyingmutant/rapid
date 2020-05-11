@@ -13,7 +13,7 @@ func TestCollectionsWithImpossibleMinSize(t *testing.T) {
 
 	s := createRandomBitStream(t)
 	gens := []*Generator{
-		MapOfN(Boolean(), Int(), 10, -1),
+		MapOfN(Bool(), Int(), 10, -1),
 		SliceOfNDistinct(Int(), 10, -1, func(i int) int { return i % 5 }),
 	}
 

@@ -15,7 +15,7 @@ func TestPanicTraceback(t *testing.T) {
 	t.Parallel()
 
 	s := createRandomBitStream(t)
-	g := Boolean().Filter(func(bool) bool { return false })
+	g := Bool().Filter(func(bool) bool { return false })
 
 	_, err := recoverValue(g, newT(nil, s, false))
 	if err == nil {

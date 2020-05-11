@@ -20,11 +20,11 @@ type testStruct struct {
 }
 
 func genBool(t *T) bool {
-	return Boolean().Draw(t, "").(bool)
+	return Bool().Draw(t, "").(bool)
 }
 
 func genInterface(t *T) interface{} {
-	if Boolean().Draw(t, "coinflip").(bool) {
+	if Bool().Draw(t, "coinflip").(bool) {
 		return Int8().Draw(t, "")
 	} else {
 		return Float64().Draw(t, "")
