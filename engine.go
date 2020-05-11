@@ -28,6 +28,7 @@ const (
 
 	tracebackLen  = 32
 	tracebackStop = "pgregory.net/rapid.checkOnce"
+	runtimePrefix = "runtime."
 )
 
 var (
@@ -44,6 +45,11 @@ var (
 
 	emptyStructType  = reflect.TypeOf(struct{}{})
 	emptyStructValue = reflect.ValueOf(struct{}{})
+
+	tracebackBlacklist = map[string]bool{
+		"pgregory.net/rapid.(*customGen).maybeValue.func1": true,
+		"pgregory.net/rapid.runAction.func1":               true,
+	}
 )
 
 func assert(ok bool) {
@@ -205,18 +211,17 @@ func panicToError(p interface{}, skip int) *testError {
 	frames := runtime.CallersFrames(callers)
 
 	b := &strings.Builder{}
-	f, more, skipRuntime := runtime.Frame{}, true, true
+	f, more, skipSpecial := runtime.Frame{}, true, true
 	for more && f.Function != tracebackStop {
 		f, more = frames.Next()
 
-		isRuntime := strings.HasPrefix(f.Function, "runtime.")
-		if !isRuntime {
-			skipRuntime = false
+		if skipSpecial && (tracebackBlacklist[f.Function] || strings.HasPrefix(f.Function, runtimePrefix)) {
+			continue
 		}
-		if !isRuntime || !skipRuntime {
-			_, err := fmt.Fprintf(b, "    %s:%d in %s\n", f.File, f.Line, f.Function)
-			assert(err == nil)
-		}
+		skipSpecial = false
+
+		_, err := fmt.Fprintf(b, "    %s:%d in %s\n", f.File, f.Line, f.Function)
+		assert(err == nil)
 	}
 
 	return &testError{
