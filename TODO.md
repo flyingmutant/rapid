@@ -30,6 +30,8 @@
 
 ## Shrinking
 
+- make it OK to pivot to a different error when shrinking
+  - right now, we require for traceback to remain the same to continue shrinking, which is probably limiting
 - floats: maybe shrink towards lower *biased* exponent?
 - just like we have lower+delete pass to deal with situations like generation/sampling, we need to have a pass for choice
   - idea: lower (the "choice" block) + fill some region with random data
