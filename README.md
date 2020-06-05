@@ -113,7 +113,7 @@ please [open an issue](https://github.com/flyingmutant/rapid/issues).
 
 ## License
 
-Rapid is licensed under the [Mozilla Public License version 2.0](./LICENSE). 
+Rapid is licensed under the [Mozilla Public License Version 2.0](./LICENSE). 
 
 [godoc-img]: https://godoc.org/pgregory.net/rapid?status.svg
 [godoc]: https://godoc.org/pgregory.net/rapid
