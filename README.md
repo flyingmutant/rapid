@@ -22,7 +22,8 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
   - Works great with libraries like
     [testify/require](https://godoc.org/github.com/stretchr/testify/require) and
     [testify/assert](https://godoc.org/github.com/stretchr/testify/assert)
-- Automatic minimization of failing test cases
+- Fully automatic minimization of failing test cases
+- Support for state machine ("stateful" or "model-based") testing
 - No dependencies outside of the Go standard library
 
 ### Planned features
@@ -97,7 +98,7 @@ Compared to [gopter](https://godoc.org/github.com/leanovate/gopter), rapid:
 Compared to [testing/quick](https://golang.org/pkg/testing/quick/), rapid:
 
 - provides much more control over test case generation
-- supports state machine ("stateful" or "model-based") testing
+- supports state machine based testing
 - automatically minimizes any failing test case
 - has to settle for `rapid.Check` being the main exported function
   instead of much more stylish `quick.Check`
