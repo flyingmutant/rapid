@@ -1,4 +1,4 @@
-# Rapid [![GoDoc][godoc-img]][godoc] [![CI][ci-img]][ci]
+# rapid [![GoDoc][godoc-img]][godoc] [![CI][ci-img]][ci]
 
 Rapid is a Go library for property-based testing.
 
