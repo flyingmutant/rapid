@@ -181,7 +181,9 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 }
 
 func checkOnce(t *T, prop func(*T)) (err *testError) {
-	t.Helper()
+	if t.log && t.tb != nil {
+		t.tb.Helper()
+	}
 	defer func() { err = panicToError(recover(), 3) }()
 
 	prop(t)
@@ -329,7 +331,7 @@ func (t *T) draw(g *Generator, label string) value {
 			label = fmt.Sprintf("#%v", t.draws)
 		}
 
-		if t.tb != nil {
+		if t.log && t.tb != nil {
 			t.tb.Helper()
 		}
 		t.Logf("[rapid] draw %v: %#v", label, v)
@@ -359,7 +361,7 @@ func (t *T) Log(args ...interface{}) {
 }
 
 func (t *T) Skipf(format string, args ...interface{}) {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -367,7 +369,7 @@ func (t *T) Skipf(format string, args ...interface{}) {
 }
 
 func (t *T) Skip(args ...interface{}) {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Log(args...)
@@ -385,7 +387,7 @@ func (t *T) SkipNow() {
 }
 
 func (t *T) Errorf(format string, args ...interface{}) {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -393,7 +395,7 @@ func (t *T) Errorf(format string, args ...interface{}) {
 }
 
 func (t *T) Error(args ...interface{}) {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Log(args...)
@@ -401,7 +403,7 @@ func (t *T) Error(args ...interface{}) {
 }
 
 func (t *T) Fatalf(format string, args ...interface{}) {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -409,7 +411,7 @@ func (t *T) Fatalf(format string, args ...interface{}) {
 }
 
 func (t *T) Fatal(args ...interface{}) {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Log(args...)

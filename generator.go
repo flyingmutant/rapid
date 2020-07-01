@@ -42,7 +42,7 @@ func (g *Generator) type_() reflect.Type {
 }
 
 func (g *Generator) Draw(t *T, label string) interface{} {
-	if t.tb != nil {
+	if t.log && t.tb != nil {
 		t.tb.Helper()
 	}
 	return t.draw(g, label)
