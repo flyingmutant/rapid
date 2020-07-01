@@ -58,10 +58,10 @@ func (g *Generator) value(t *T) value {
 	return v
 }
 
-func (g *Generator) Example(seed ...uint64) interface{} {
+func (g *Generator) Example(seed ...int) interface{} {
 	s := baseSeed()
 	if len(seed) > 0 {
-		s = seed[0]
+		s = uint64(seed[0])
 	}
 
 	v, n, err := example(g, newT(nil, newRandomBitStream(s, false), false))

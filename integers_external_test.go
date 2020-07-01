@@ -160,7 +160,7 @@ func TestIntBoundCoverage(t *testing.T) {
 		g := IntRange(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 250; i++ {
-			n := g.Example(uint64(i)).(int)
+			n := g.Example(i).(int)
 
 			gotMin = gotMin || n == min
 			gotMax = gotMax || n == max

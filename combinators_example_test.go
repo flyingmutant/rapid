@@ -25,7 +25,7 @@ func ExampleCustom() {
 		}
 	})
 
-	for i := uint64(0); i < 5; i++ {
+	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
@@ -39,7 +39,7 @@ func ExampleCustom() {
 func ExampleJust() {
 	gen := rapid.Just(42)
 
-	for i := uint64(0); i < 5; i++ {
+	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
@@ -53,7 +53,7 @@ func ExampleJust() {
 func ExampleSampledFrom() {
 	gen := rapid.SampledFrom([]int{1, 2, 3})
 
-	for i := uint64(0); i < 5; i++ {
+	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
@@ -67,7 +67,7 @@ func ExampleSampledFrom() {
 func ExampleOneOf() {
 	gen := rapid.OneOf(rapid.Int32Range(1, 10), rapid.Float32Range(100, 1000))
 
-	for i := uint64(0); i < 5; i++ {
+	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
@@ -81,7 +81,7 @@ func ExampleOneOf() {
 func ExamplePtr() {
 	gen := rapid.Ptr(rapid.Int(), true)
 
-	for i := uint64(0); i < 5; i++ {
+	for i := 0; i < 5; i++ {
 		v := gen.Example(i).(*int)
 		if v == nil {
 			fmt.Println("<nil>")

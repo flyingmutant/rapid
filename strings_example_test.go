@@ -19,7 +19,7 @@ import (
 func ExampleRune() {
 	gen := rapid.Rune()
 
-	for i := uint64(0); i < 25; i++ {
+	for i := 0; i < 25; i++ {
 		if i%5 == 0 {
 			fmt.Println()
 		} else {
@@ -45,7 +45,7 @@ func ExampleRuneFrom() {
 	}
 
 	for _, gen := range gens {
-		for i := uint64(0); i < 5; i++ {
+		for i := 0; i < 5; i++ {
 			if i > 0 {
 				fmt.Print(" ")
 			}
@@ -62,7 +62,7 @@ func ExampleRuneFrom() {
 func ExampleString() {
 	gen := rapid.String()
 
-	for i := uint64(0); i < 5; i++ {
+	for i := 0; i < 5; i++ {
 		fmt.Printf("%q\n", gen.Example(i))
 	}
 	// Output:
