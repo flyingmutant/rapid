@@ -97,7 +97,9 @@ func genUintN(s bitStream, max uint64, bias bool) (uint64, bool, bool) {
 }
 
 func genUintRange(s bitStream, min uint64, max uint64, bias bool) (uint64, bool, bool) {
-	assertf(min <= max, "invalid range [%v,  %v]", min, max)
+	if min > max {
+		assertf(false, "invalid range [%v,  %v]", min, max) // avoid allocations in the fast path
+	}
 
 	u, lOverflow, rOverflow := genUintN(s, max-min, bias)
 
@@ -105,7 +107,9 @@ func genUintRange(s bitStream, min uint64, max uint64, bias bool) (uint64, bool,
 }
 
 func genIntRange(s bitStream, min int64, max int64, bias bool) (int64, bool, bool) {
-	assertf(min <= max, "invalid range [%v,  %v]", min, max)
+	if min > max {
+		assertf(false, "invalid range [%v,  %v]", min, max) // avoid allocations in the fast path
+	}
 
 	var posMin, negMin uint64
 	var pNeg float64
