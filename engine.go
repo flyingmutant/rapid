@@ -7,7 +7,6 @@
 package rapid
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -40,8 +39,6 @@ var (
 	debug      = flag.Bool("rapid.debug", false, "rapid: debugging output")
 	debugvis   = flag.Bool("rapid.debugvis", false, "rapid: debugging visualization")
 	shrinkTime = flag.Duration("rapid.shrinktime", 30*time.Second, "rapid: maximum time to spend on test case minimization")
-
-	errCantGenDueToFilter = errors.New("generation failed due to Filter() conditions being too strong")
 
 	emptyStructType  = reflect.TypeOf(struct{}{})
 	emptyStructValue = reflect.ValueOf(struct{}{})

@@ -84,10 +84,7 @@ func example(g *Generator, t *T) (value, int, error) {
 		if err == nil {
 			return r, i, nil
 		} else if i == exampleMaxTries {
-			if err != nil {
-				return nil, i, err
-			}
-			return nil, i, errCantGenDueToFilter
+			return nil, i, err
 		}
 	}
 }
