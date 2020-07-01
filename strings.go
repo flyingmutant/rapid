@@ -331,7 +331,7 @@ func (g *regexpGen) build(w runeWriter, re *syntax.Regexp, t *T) {
 	case syntax.OpBeginLine, syntax.OpEndLine,
 		syntax.OpBeginText, syntax.OpEndText,
 		syntax.OpWordBoundary, syntax.OpNoWordBoundary:
-		t.s.drawBits(0) // do nothing and hope that Assume() is enough
+		t.s.drawBits(0) // do nothing and hope that find() is enough
 	case syntax.OpCapture:
 		g.build(w, re.Sub[0], t)
 	case syntax.OpStar, syntax.OpPlus, syntax.OpQuest, syntax.OpRepeat:
