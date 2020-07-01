@@ -8,6 +8,7 @@ package rapid
 
 import (
 	"math"
+	"math/bits"
 	"sync/atomic"
 	"time"
 )
@@ -190,9 +191,9 @@ func (x *jsf64ctx) init(seed uint64) {
 }
 
 func (x *jsf64ctx) rand() uint64 {
-	e := x.a - (x.b<<7 | x.b>>(64-7)) // using bits.RotateLeft64() prevents gc from inlining rand()
-	x.a = x.b ^ (x.c<<13 | x.c>>(64-13))
-	x.b = x.c + (x.d<<37 | x.d>>(64-37))
+	e := x.a - bits.RotateLeft64(x.b, 7)
+	x.a = x.b ^ bits.RotateLeft64(x.c, 13)
+	x.b = x.c + bits.RotateLeft64(x.d, 37)
 	x.c = x.d + e
 	x.d = e + x.a
 	return x.d
