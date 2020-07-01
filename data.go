@@ -36,9 +36,13 @@ type randomBitStream struct {
 
 func newRandomBitStream(seed uint64, persist bool) *randomBitStream {
 	s := &randomBitStream{}
-	s.ctx.init(seed)
+	s.init(seed)
 	s.persist = persist
 	return s
+}
+
+func (s *randomBitStream) init(seed uint64) {
+	s.ctx.init(seed)
 }
 
 func (s *randomBitStream) drawBits(n int) uint64 {

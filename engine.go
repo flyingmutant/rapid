@@ -156,11 +156,16 @@ func doCheck(tb tb, prop func(*T)) (int, int, uint64, []uint64, *testError, *tes
 func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 	tb.Helper()
 
-	valid := 0
-	invalid := 0
+	var (
+		r       = newRandomBitStream(0, false)
+		t       = newT(tb, r, *verbose)
+		valid   = 0
+		invalid = 0
+	)
+
 	for valid < *checks && invalid < *checks*invalidChecksMult {
 		seed += uint64(valid) + uint64(invalid)
-		t := newT(tb, newRandomBitStream(seed, false), *verbose)
+		r.init(seed)
 		var start time.Time
 		if t.shouldLog() {
 			t.Logf("[rapid] test #%v start (seed %v)", valid+invalid+1, seed)
