@@ -72,3 +72,73 @@ func ExampleString() {
 	// ".*%:<%৲"
 	// ""
 }
+
+func ExampleStringOf() {
+	gen := rapid.StringOf(rapid.RuneFrom(nil, unicode.Tibetan))
+
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%q\n", gen.Example(i))
+	}
+	// Output:
+	// "༁༭༇ཬ༆༐༖ༀྸ༁༆༎ༀ༁ཱི༂༨ༀ༂"
+	// "༂༁ༀ༂༴ༀ༁ྵ"
+	// "ༀ༴༁༅ན༃༁༎ྼ༄༽"
+	// "༎༂༎ༀༀༀཌྷ༂ༀྥ"
+	// ""
+}
+
+func ExampleStringN() {
+	gen := rapid.StringN(5, 5, -1)
+
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%q\n", gen.Example(i))
+	}
+	// Output:
+	// "\\߾⃝!/"
+	// "\u2006𑨷%\v\ufeff"
+	// "?﹩\u0603ᾢÉ"
+	// ".*%:<"
+	// ":?\"~¤"
+}
+
+func ExampleStringOfN() {
+	gen := rapid.StringOfN(rapid.ByteRange(65, 90), 5, 5, -1)
+
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%q\n", gen.Example(i))
+	}
+	// Output:
+	// "AXYHC"
+	// "ESAAC"
+	// "AUGWT"
+	// "BRIOX"
+	// "LYATZ"
+}
+
+func ExampleStringMatching() {
+	gen := rapid.StringMatching(`\(?([0-9]{3})\)?([ .-]?)([0-9]{3})([ .-]?)([0-9]{4})`)
+
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%q\n", gen.Example(i))
+	}
+	// Output:
+	// "(532) 649-9610"
+	// "901)-5783983"
+	// "914.444.1575"
+	// "(316 696.3584"
+	// "816)0861080"
+}
+
+func ExampleSliceOfBytesMatching() {
+	gen := rapid.SliceOfBytesMatching(`[CAGT]+`)
+
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%q\n", gen.Example(i))
+	}
+	// Output:
+	// "CCTTGAGAGCGATACGGAAG"
+	// "GCAGAACT"
+	// "AACCGTCGAG"
+	// "GGGAAAAGAT"
+	// "AGTG"
+}
