@@ -30,13 +30,13 @@ func baseSeed() uint64 {
 }
 
 type randomBitStream struct {
-	jsf64ctx
+	ctx jsf64ctx
 	recordedBits
 }
 
 func newRandomBitStream(seed uint64, persist bool) *randomBitStream {
 	s := &randomBitStream{}
-	s.init(seed)
+	s.ctx.init(seed)
 	s.persist = persist
 	return s
 }
@@ -46,7 +46,7 @@ func (s *randomBitStream) drawBits(n int) uint64 {
 
 	var u uint64
 	if n <= 64 {
-		u = s.rand() & bitmask64(uint(n))
+		u = s.ctx.rand() & bitmask64(uint(n))
 	} else {
 		u = math.MaxUint64
 	}
