@@ -26,11 +26,14 @@ func newGenerator(impl generatorImpl) *Generator {
 	return &Generator{
 		impl: impl,
 		typ:  impl.type_(),
-		str:  impl.String(),
 	}
 }
 
 func (g *Generator) String() string {
+	if g.str == "" {
+		g.str = g.impl.String()
+	}
+
 	return g.str
 }
 
