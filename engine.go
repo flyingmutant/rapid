@@ -159,20 +159,29 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 	valid := 0
 	invalid := 0
 	for valid < *checks && invalid < *checks*invalidChecksMult {
-		start := time.Now()
 		seed += uint64(valid) + uint64(invalid)
 		t := newT(tb, newRandomBitStream(seed, false), *verbose)
-		t.Logf("[rapid] test #%v start (seed %v)", valid+invalid+1, seed)
+		var start time.Time
+		if t.shouldLog() {
+			t.Logf("[rapid] test #%v start (seed %v)", valid+invalid+1, seed)
+			start = time.Now()
+		}
+
 		err := checkOnce(t, prop)
-		dt := time.Since(start)
 		if err == nil {
-			t.Logf("[rapid] test #%v OK (%v)", valid+invalid+1, dt)
+			if t.shouldLog() {
+				t.Logf("[rapid] test #%v OK (%v)", valid+invalid+1, time.Since(start))
+			}
 			valid++
 		} else if err.isInvalidData() {
-			t.Logf("[rapid] test #%v invalid (%v)", valid+invalid+1, dt)
+			if t.shouldLog() {
+				t.Logf("[rapid] test #%v invalid (%v)", valid+invalid+1, time.Since(start))
+			}
 			invalid++
 		} else {
-			t.Logf("[rapid] test #%v failed: %v", valid+invalid+1, err)
+			if t.shouldLog() {
+				t.Logf("[rapid] test #%v failed: %v", valid+invalid+1, err)
+			}
 			return seed, valid, invalid, err
 		}
 	}
@@ -340,6 +349,10 @@ func (t *T) draw(g *Generator, label string) value {
 	t.draws++
 
 	return v
+}
+
+func (t *T) shouldLog() bool {
+	return t.rapidLog != nil || (t.log && t.tb != nil)
 }
 
 func (t *T) Logf(format string, args ...interface{}) {
