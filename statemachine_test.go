@@ -6,9 +6,7 @@
 
 package rapid
 
-import (
-	"testing"
-)
+import "testing"
 
 // https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go
 var gopterBug = false
