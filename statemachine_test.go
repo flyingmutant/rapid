@@ -11,7 +11,7 @@ import "testing"
 // https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go
 var gopterBug = false
 
-// https://godoc.org/github.com/leanovate/gopter/commands#example-package--BuggyCounter
+// https://pkg.go.dev/github.com/leanovate/gopter/commands?tab=doc#example-package-BuggyCounter
 type buggyCounter struct {
 	n int
 }

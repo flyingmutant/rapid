@@ -1,4 +1,4 @@
-# rapid [![GoDoc][godoc-img]][godoc] [![CI][ci-img]][ci]
+# rapid [![PkgGoDev][godev-img]][godev] [![CI][ci-img]][ci]
 
 Rapid is a Go library for property-based testing.
 
@@ -20,8 +20,8 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 - Idiomatic Go API
   - Designed to be used together with `go test` and the `testing` package
   - Works great with libraries like
-    [testify/require](https://godoc.org/github.com/stretchr/testify/require) and
-    [testify/assert](https://godoc.org/github.com/stretchr/testify/assert)
+    [testify/require](https://pkg.go.dev/github.com/stretchr/testify/require) and
+    [testify/assert](https://pkg.go.dev/github.com/stretchr/testify/assert)
 - Fully automatic minimization of failing test cases
 - Support for state machine ("stateful" or "model-based") testing
 - No dependencies outside of the Go standard library
@@ -86,7 +86,7 @@ go test -rapid.checks=1000
 
 Rapid aims to bring to Go the power and convenience Hypothesis brings to Python.
 
-Compared to [gopter](https://godoc.org/github.com/leanovate/gopter), rapid:
+Compared to [gopter](https://pkg.go.dev/github.com/leanovate/gopter), rapid:
 
 - has a much simpler API (queue test in [rapid](./example_statemachine_test.go) vs
   [gopter](https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go))
@@ -116,7 +116,7 @@ please [open an issue](https://github.com/flyingmutant/rapid/issues).
 
 Rapid is licensed under the [Mozilla Public License Version 2.0](./LICENSE). 
 
-[godoc-img]: https://godoc.org/pgregory.net/rapid?status.svg
-[godoc]: https://godoc.org/pgregory.net/rapid
+[godev-img]: https://pkg.go.dev/badge/pgregory.net/rapid
+[godev]: https://pkg.go.dev/pgregory.net/rapid
 [ci-img]: https://github.com/flyingmutant/rapid/workflows/CI/badge.svg
 [ci]: https://github.com/flyingmutant/rapid/actions
