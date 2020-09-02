@@ -225,7 +225,7 @@ func panicToError(p interface{}, skip int) *testError {
 
 	b := &strings.Builder{}
 	f, more, skipSpecial := runtime.Frame{}, true, true
-	for more && f.Function != tracebackStop {
+	for more && !strings.HasSuffix(f.Function, tracebackStop) {
 		f, more = frames.Next()
 
 		if skipSpecial && (tracebackBlacklist[f.Function] || strings.HasPrefix(f.Function, runtimePrefix)) {
