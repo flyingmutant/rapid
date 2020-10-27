@@ -77,6 +77,7 @@
 
 ## Misc
 
+- ability to run tests without shrinking (e.g. for running non-deterministic tests)
 - bitStream -> blockStream?
 - do not play with filter games for the state machine, just find all valid actions
 - when generating numbers in range, try to bias based on the min number,
