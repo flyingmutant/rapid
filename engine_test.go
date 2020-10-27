@@ -56,7 +56,7 @@ func TestPanicTraceback(t *testing.T) {
 	for _, td := range testData {
 		t.Run(td.name, func(t *testing.T) {
 			s := createRandomBitStream(t)
-			nt := newT(t, s, false)
+			nt := newT(t, s, false, nil)
 
 			err := td.fail(nt)
 			if err == nil {

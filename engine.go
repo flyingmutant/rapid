@@ -121,7 +121,7 @@ func checkTB(tb tb, prop func(*T)) {
 			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo try to reproduce, specify -run=%q -rapid.seed=%v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", name, seed, err2, traceback(err2), err1, traceback(err1))
 		}
 
-		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true), prop)
+		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true, nil), prop)
 	}
 
 	if tb.Failed() {
@@ -140,7 +140,7 @@ func doCheck(tb tb, prop func(*T)) (int, int, uint64, []uint64, *testError, *tes
 	}
 
 	s := newRandomBitStream(seed, true)
-	t := newT(tb, s, *verbose)
+	t := newT(tb, s, *verbose, nil)
 	t.Logf("[rapid] trying to reproduce the failure")
 	err2 := checkOnce(t, prop)
 	if !sameError(err1, err2) {
@@ -158,7 +158,7 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 
 	var (
 		r       = newRandomBitStream(0, false)
-		t       = newT(tb, r, *verbose)
+		t       = newT(tb, r, *verbose, nil)
 		valid   = 0
 		invalid = 0
 	)
@@ -310,15 +310,16 @@ type T struct {
 	failed   stopTest
 }
 
-func newT(tb tb, s bitStream, tbLog bool, refDraws ...value) *T {
+func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value) *T {
 	t := &T{
 		tb:       tb,
 		tbLog:    tbLog,
+		rawLog:   rawLog,
 		s:        s,
 		refDraws: refDraws,
 	}
 
-	if *rapidLog {
+	if rawLog == nil && *rapidLog {
 		testName := "rapid test"
 		if tb != nil {
 			testName = tb.Name()

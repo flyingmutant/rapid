@@ -19,7 +19,7 @@ func TestCollectionsWithImpossibleMinSize(t *testing.T) {
 
 	for _, g := range gens {
 		t.Run(g.String(), func(t *testing.T) {
-			_, err := recoverValue(g, newT(nil, s, false))
+			_, err := recoverValue(g, newT(nil, s, false, nil))
 			if err == nil || !err.isInvalidData() {
 				t.Fatalf("got error %v instead of invalid data", err)
 			}
