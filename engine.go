@@ -195,7 +195,7 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 }
 
 func checkOnce(t *T, prop func(*T)) (err *testError) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	defer func() { err = panicToError(recover(), 3) }()
@@ -301,8 +301,8 @@ type tb interface {
 
 type T struct {
 	tb       // unnamed to force re-export of (*T).Helper()
-	log      bool
-	rapidLog *log.Logger
+	tbLog    bool
+	rawLog   *log.Logger
 	s        bitStream
 	draws    int
 	refDraws []value
@@ -310,10 +310,10 @@ type T struct {
 	failed   stopTest
 }
 
-func newT(tb tb, s bitStream, log_ bool, refDraws ...value) *T {
+func newT(tb tb, s bitStream, tbLog bool, refDraws ...value) *T {
 	t := &T{
 		tb:       tb,
-		log:      log_,
+		tbLog:    tbLog,
 		s:        s,
 		refDraws: refDraws,
 	}
@@ -324,7 +324,7 @@ func newT(tb tb, s bitStream, log_ bool, refDraws ...value) *T {
 			testName = tb.Name()
 		}
 
-		t.rapidLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", testName), 0)
+		t.rawLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", testName), 0)
 	}
 
 	return t
@@ -340,12 +340,12 @@ func (t *T) draw(g *Generator, label string) value {
 		}
 	}
 
-	if t.log || t.rapidLog != nil {
+	if t.tbLog || t.rawLog != nil {
 		if label == "" {
 			label = fmt.Sprintf("#%v", t.draws)
 		}
 
-		if t.log && t.tb != nil {
+		if t.tbLog && t.tb != nil {
 			t.tb.Helper()
 		}
 		t.Logf("[rapid] draw %v: %#v", label, v)
@@ -357,22 +357,22 @@ func (t *T) draw(g *Generator, label string) value {
 }
 
 func (t *T) shouldLog() bool {
-	return t.rapidLog != nil || (t.log && t.tb != nil)
+	return t.rawLog != nil || (t.tbLog && t.tb != nil)
 }
 
 func (t *T) Logf(format string, args ...interface{}) {
-	if t.rapidLog != nil {
-		t.rapidLog.Printf(format, args...)
-	} else if t.log && t.tb != nil {
+	if t.rawLog != nil {
+		t.rawLog.Printf(format, args...)
+	} else if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 		t.tb.Logf(format, args...)
 	}
 }
 
 func (t *T) Log(args ...interface{}) {
-	if t.rapidLog != nil {
-		t.rapidLog.Print(args...)
-	} else if t.log && t.tb != nil {
+	if t.rawLog != nil {
+		t.rawLog.Print(args...)
+	} else if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 		t.tb.Log(args...)
 	}
@@ -380,7 +380,7 @@ func (t *T) Log(args ...interface{}) {
 
 // Skipf is equivalent to Logf followed by SkipNow.
 func (t *T) Skipf(format string, args ...interface{}) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -389,7 +389,7 @@ func (t *T) Skipf(format string, args ...interface{}) {
 
 // Skip is equivalent to Log followed by SkipNow.
 func (t *T) Skip(args ...interface{}) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Log(args...)
@@ -409,7 +409,7 @@ func (t *T) SkipNow() {
 
 // Errorf is equivalent to Logf followed by Fail.
 func (t *T) Errorf(format string, args ...interface{}) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -418,7 +418,7 @@ func (t *T) Errorf(format string, args ...interface{}) {
 
 // Error is equivalent to Log followed by Fail.
 func (t *T) Error(args ...interface{}) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Log(args...)
@@ -427,7 +427,7 @@ func (t *T) Error(args ...interface{}) {
 
 // Fatalf is equivalent to Logf followed by FailNow.
 func (t *T) Fatalf(format string, args ...interface{}) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -436,7 +436,7 @@ func (t *T) Fatalf(format string, args ...interface{}) {
 
 // Fatal is equivalent to Log followed by FailNow.
 func (t *T) Fatal(args ...interface{}) {
-	if t.log && t.tb != nil {
+	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
 	t.Log(args...)
