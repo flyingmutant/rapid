@@ -378,6 +378,7 @@ func (t *T) Log(args ...interface{}) {
 	}
 }
 
+// Skipf is equivalent to Logf followed by SkipNow.
 func (t *T) Skipf(format string, args ...interface{}) {
 	if t.log && t.tb != nil {
 		t.tb.Helper()
@@ -386,6 +387,7 @@ func (t *T) Skipf(format string, args ...interface{}) {
 	t.skip(fmt.Sprintf(format, args...))
 }
 
+// Skip is equivalent to Log followed by SkipNow.
 func (t *T) Skip(args ...interface{}) {
 	if t.log && t.tb != nil {
 		t.tb.Helper()
@@ -394,7 +396,8 @@ func (t *T) Skip(args ...interface{}) {
 	t.skip(fmt.Sprint(args...))
 }
 
-// SkipNow marks the current test case as invalid.
+// SkipNow marks the current test case as invalid (except state machine
+// tests, where it marks current action as non-applicable instead).
 // If too many test cases are skipped, rapid will mark the test as failing
 // due to inability to generate enough valid test cases.
 //
@@ -404,6 +407,7 @@ func (t *T) SkipNow() {
 	t.skip("(*T).SkipNow() called")
 }
 
+// Errorf is equivalent to Logf followed by Fail.
 func (t *T) Errorf(format string, args ...interface{}) {
 	if t.log && t.tb != nil {
 		t.tb.Helper()
@@ -412,6 +416,7 @@ func (t *T) Errorf(format string, args ...interface{}) {
 	t.fail(false, fmt.Sprintf(format, args...))
 }
 
+// Error is equivalent to Log followed by Fail.
 func (t *T) Error(args ...interface{}) {
 	if t.log && t.tb != nil {
 		t.tb.Helper()
@@ -420,6 +425,7 @@ func (t *T) Error(args ...interface{}) {
 	t.fail(false, fmt.Sprint(args...))
 }
 
+// Fatalf is equivalent to Logf followed by FailNow.
 func (t *T) Fatalf(format string, args ...interface{}) {
 	if t.log && t.tb != nil {
 		t.tb.Helper()
@@ -428,6 +434,7 @@ func (t *T) Fatalf(format string, args ...interface{}) {
 	t.fail(true, fmt.Sprintf(format, args...))
 }
 
+// Fatal is equivalent to Log followed by FailNow.
 func (t *T) Fatal(args ...interface{}) {
 	if t.log && t.tb != nil {
 		t.tb.Helper()
