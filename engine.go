@@ -31,14 +31,7 @@ const (
 )
 
 var (
-	checks     = flag.Int("rapid.checks", 100, "rapid: number of checks to perform")
-	steps      = flag.Int("rapid.steps", 100, "rapid: number of state machine steps to perform")
-	startSeed  = flag.Uint64("rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
-	rapidLog   = flag.Bool("rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
-	verbose    = flag.Bool("rapid.v", false, "rapid: verbose output")
-	debug      = flag.Bool("rapid.debug", false, "rapid: debugging output")
-	debugvis   = flag.Bool("rapid.debugvis", false, "rapid: debugging visualization")
-	shrinkTime = flag.Duration("rapid.shrinktime", 30*time.Second, "rapid: maximum time to spend on test case minimization")
+	flags cmdline
 
 	emptyStructType  = reflect.TypeOf(struct{}{})
 	emptyStructValue = reflect.ValueOf(struct{}{})
@@ -48,6 +41,28 @@ var (
 		"pgregory.net/rapid.runAction.func1":               true,
 	}
 )
+
+type cmdline struct {
+	checks     int
+	steps      int
+	startSeed  uint64
+	rapidLog   bool
+	verbose    bool
+	debug      bool
+	debugvis   bool
+	shrinkTime time.Duration
+}
+
+func init() {
+	flag.IntVar(&flags.checks, "rapid.checks", 100, "rapid: number of checks to perform")
+	flag.IntVar(&flags.steps, "rapid.steps", 100, "rapid: number of state machine steps to perform")
+	flag.Uint64Var(&flags.startSeed, "rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
+	flag.BoolVar(&flags.rapidLog, "rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
+	flag.BoolVar(&flags.verbose, "rapid.v", false, "rapid: verbose output")
+	flag.BoolVar(&flags.debug, "rapid.debug", false, "rapid: debugging output")
+	flag.BoolVar(&flags.debugvis, "rapid.debugvis", false, "rapid: debugging visualization")
+	flag.DurationVar(&flags.shrinkTime, "rapid.shrinktime", 30*time.Second, "rapid: maximum time to spend on test case minimization")
+}
 
 func assert(ok bool) {
 	if !ok {
@@ -104,7 +119,7 @@ func checkTB(tb tb, prop func(*T)) {
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {
-		if valid == *checks {
+		if valid == flags.checks {
 			tb.Logf("[rapid] OK, passed %v tests (%v)", valid, dt)
 		} else {
 			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
@@ -140,7 +155,7 @@ func doCheck(tb tb, prop func(*T)) (int, int, uint64, []uint64, *testError, *tes
 	}
 
 	s := newRandomBitStream(seed, true)
-	t := newT(tb, s, *verbose, nil)
+	t := newT(tb, s, flags.verbose, nil)
 	t.Logf("[rapid] trying to reproduce the failure")
 	err2 := checkOnce(t, prop)
 	if !sameError(err1, err2) {
@@ -158,12 +173,12 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 
 	var (
 		r       = newRandomBitStream(0, false)
-		t       = newT(tb, r, *verbose, nil)
+		t       = newT(tb, r, flags.verbose, nil)
 		valid   = 0
 		invalid = 0
 	)
 
-	for valid < *checks && invalid < *checks*invalidChecksMult {
+	for valid < flags.checks && invalid < flags.checks*invalidChecksMult {
 		seed += uint64(valid) + uint64(invalid)
 		r.init(seed)
 		var start time.Time
@@ -319,7 +334,7 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value)
 		refDraws: refDraws,
 	}
 
-	if rawLog == nil && *rapidLog {
+	if rawLog == nil && flags.rapidLog {
 		testName := "rapid test"
 		if tb != nil {
 			testName = tb.Name()

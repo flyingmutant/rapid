@@ -46,7 +46,7 @@ func shrink(tb tb, rec recordedBits, err *testError, prop func(*T)) ([]uint64, *
 
 	buf, err := s.shrink()
 
-	if *debugvis {
+	if flags.debugvis {
 		name := fmt.Sprintf("vis-%v.html", strings.Replace(tb.Name(), "/", "_", -1))
 		f, err := os.Create(name)
 		if err != nil {
@@ -76,7 +76,7 @@ type shrinker struct {
 }
 
 func (s *shrinker) debugf(verbose_ bool, format string, args ...interface{}) {
-	if *debug && (!verbose_ || *verbose) {
+	if flags.debug && (!verbose_ || flags.verbose) {
 		s.tb.Helper()
 		s.tb.Logf("[shrink] "+format, args...)
 	}
@@ -90,7 +90,7 @@ func (s *shrinker) shrink() (buf []uint64, err *testError) {
 	}()
 
 	i := 0
-	deadline := time.Now().Add(*shrinkTime)
+	deadline := time.Now().Add(flags.shrinkTime)
 	for shrinks := -1; s.shrinks > shrinks && time.Now().Before(deadline); i++ {
 		shrinks = s.shrinks
 
@@ -259,7 +259,7 @@ func (s *shrinker) accept(buf []uint64, label string, format string, args ...int
 	s.debugf(true, label+": trying to reproduce the failure with a smaller test case: "+format, args...)
 	s.tries[label]++
 	s1 := newBufBitStream(buf, false)
-	err1 := checkOnce(newT(s.tb, s1, *debug && *verbose, nil), s.prop)
+	err1 := checkOnce(newT(s.tb, s1, flags.debug && flags.verbose, nil), s.prop)
 	if traceback(err1) != traceback(s.err) {
 		s.cache[bufStr] = struct{}{}
 		return false
@@ -269,11 +269,11 @@ func (s *shrinker) accept(buf []uint64, label string, format string, args ...int
 	s.tries[label]++
 	s.err = err1
 	s2 := newBufBitStream(buf, true)
-	err2 := checkOnce(newT(s.tb, s2, *debug && *verbose, nil), s.prop)
+	err2 := checkOnce(newT(s.tb, s2, flags.debug && flags.verbose, nil), s.prop)
 	s.rec = s2.recordedBits
 	s.rec.prune()
 	assert(compareData(s.rec.data, buf) <= 0)
-	if *debugvis {
+	if flags.debugvis {
 		s.visBits = append(s.visBits, s.rec)
 	}
 	if !sameError(err1, err2) {

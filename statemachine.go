@@ -59,7 +59,7 @@ func Run(m StateMachine) func(*T) {
 	return func(t *T) {
 		t.Helper()
 
-		repeat := newRepeat(0, *steps, maxInt)
+		repeat := newRepeat(0, flags.steps, maxInt)
 
 		sm := newStateMachine(typ)
 		if sm.init != nil {

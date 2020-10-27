@@ -50,7 +50,7 @@ func (g *customGen) value(t *T) value {
 }
 
 func (g *customGen) maybeValue(t *T) value {
-	t = newT(t.tb, t.s, *debug, nil)
+	t = newT(t.tb, t.s, flags.debug, nil)
 
 	defer func() {
 		if r := recover(); r != nil {
