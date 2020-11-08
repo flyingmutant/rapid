@@ -7,6 +7,7 @@
 package rapid
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -45,6 +46,7 @@ var (
 type cmdline struct {
 	checks     int
 	steps      int
+	failfile   string
 	seed       uint64
 	log        bool
 	verbose    bool
@@ -56,6 +58,7 @@ type cmdline struct {
 func init() {
 	flag.IntVar(&flags.checks, "rapid.checks", 100, "rapid: number of checks to perform")
 	flag.IntVar(&flags.steps, "rapid.steps", 100, "rapid: number of state machine steps to perform")
+	flag.StringVar(&flags.failfile, "rapid.failfile", "", "rapid: fail file to use to reproduce test failure")
 	flag.Uint64Var(&flags.seed, "rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
 	flag.BoolVar(&flags.log, "rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
 	flag.BoolVar(&flags.verbose, "rapid.v", false, "rapid: verbose output")
@@ -115,7 +118,7 @@ func checkTB(tb tb, prop func(*T)) {
 	tb.Helper()
 
 	start := time.Now()
-	valid, invalid, seed, buf, err1, err2 := doCheck(tb, prop)
+	valid, invalid, seed, buf, err1, err2 := doCheck(tb, flags.failfile, flags.checks, baseSeed(), prop)
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {
@@ -125,18 +128,32 @@ func checkTB(tb tb, prop func(*T)) {
 			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
 		}
 	} else {
+		repr := fmt.Sprintf("-rapid.seed=%d", seed)
+		if flags.failfile != "" && seed == 0 {
+			repr = fmt.Sprintf("-rapid.failfile=%q", flags.failfile)
+		} else {
+			failfile := failFileName(tb.Name())
+			out := captureTestOutput(tb, prop, buf)
+			err := saveFailFile(failfile, out, buf)
+			if err == nil {
+				repr = fmt.Sprintf("-rapid.failfile=%q", failfile)
+			} else {
+				tb.Logf("[rapid] %v", err)
+			}
+		}
+
 		name := regexp.QuoteMeta(tb.Name())
 		if traceback(err1) == traceback(err2) {
 			if err2.isStopTest() {
-				tb.Errorf("[rapid] failed after %v tests: %v\nTo reproduce, specify -run=%q -rapid.seed=%v\nFailed test output:", valid, err2, name, seed)
+				tb.Errorf("[rapid] failed after %v tests: %v\nTo reproduce, specify -run=%q %v\nFailed test output:", valid, err2, name, repr)
 			} else {
-				tb.Errorf("[rapid] panic after %v tests: %v\nTo reproduce, specify -run=%q -rapid.seed=%v\nTraceback:\n%vFailed test output:", valid, err2, name, seed, traceback(err2))
+				tb.Errorf("[rapid] panic after %v tests: %v\nTo reproduce, specify -run=%q %v\nTraceback:\n%vFailed test output:", valid, err2, name, repr, traceback(err2))
 			}
 		} else {
-			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo try to reproduce, specify -run=%q -rapid.seed=%v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", name, seed, err2, traceback(err2), err1, traceback(err1))
+			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo try to reproduce, specify -run=%q %v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", name, repr, err2, traceback(err2), err1, traceback(err1))
 		}
 
-		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true, nil), prop)
+		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true, nil), prop) // output using (*testing.T).Log for proper line numbers
 	}
 
 	if tb.Failed() {
@@ -144,12 +161,19 @@ func checkTB(tb tb, prop func(*T)) {
 	}
 }
 
-func doCheck(tb tb, prop func(*T)) (int, int, uint64, []uint64, *testError, *testError) {
+func doCheck(tb tb, failfile string, checks int, seed uint64, prop func(*T)) (int, int, uint64, []uint64, *testError, *testError) {
 	tb.Helper()
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
 
-	seed, valid, invalid, err1 := findBug(tb, baseSeed(), prop)
+	if failfile != "" {
+		buf, err1, err2 := checkFailFile(tb, failfile, prop)
+		if err1 != nil || err2 != nil {
+			return 0, 0, 0, buf, err1, err2
+		}
+	}
+
+	seed, valid, invalid, err1 := findBug(tb, checks, seed, prop)
 	if err1 == nil {
 		return valid, invalid, 0, nil, nil, nil
 	}
@@ -168,7 +192,35 @@ func doCheck(tb tb, prop func(*T)) (int, int, uint64, []uint64, *testError, *tes
 	return valid, invalid, seed, buf, err2, err3
 }
 
-func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
+func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError, *testError) {
+	tb.Helper()
+
+	buf, err := loadFailFile(failfile)
+	if err != nil {
+		tb.Logf("[rapid] ignoring fail file: %v", err)
+		return nil, nil, nil
+	}
+
+	s1 := newBufBitStream(buf, false)
+	t1 := newT(tb, s1, flags.verbose, nil)
+	err1 := checkOnce(t1, prop)
+	if err1 == nil {
+		return nil, nil, nil
+	}
+	if err1.isInvalidData() {
+		tb.Logf("[rapid] fail file %q is no longer valid", failfile)
+		return nil, nil, nil
+	}
+
+	s2 := newBufBitStream(buf, false)
+	t2 := newT(tb, s2, flags.verbose, nil)
+	t2.Logf("[rapid] trying to reproduce the failure")
+	err2 := checkOnce(t2, prop)
+
+	return buf, err1, err2
+}
+
+func findBug(tb tb, checks int, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 	tb.Helper()
 
 	var (
@@ -178,7 +230,7 @@ func findBug(tb tb, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
 		invalid = 0
 	)
 
-	for valid < flags.checks && invalid < flags.checks*invalidChecksMult {
+	for valid < checks && invalid < checks*invalidChecksMult {
 		seed += uint64(valid) + uint64(invalid)
 		r.init(seed)
 		var start time.Time
@@ -219,6 +271,13 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 	t.failOnError()
 
 	return nil
+}
+
+func captureTestOutput(tb tb, prop func(*T), buf []uint64) []byte {
+	var b bytes.Buffer
+	l := log.New(&b, fmt.Sprintf("%s ", tb.Name()), log.Ldate|log.Ltime) // TODO: enable log.Lmsgprefix once all supported versions of Go have it
+	_ = checkOnce(newT(tb, newBufBitStream(buf, false), false, l), prop)
+	return b.Bytes()
 }
 
 type invalidData string

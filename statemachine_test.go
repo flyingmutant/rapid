@@ -265,6 +265,6 @@ func TestStateMachine_DiscardGarbage(t *testing.T) {
 
 func BenchmarkCheckQueue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _, _, _, _, _ = doCheck(b, Run(&queueMachine{}))
+		_, _, _, _, _, _ = doCheck(b, "", 100, baseSeed(), Run(&queueMachine{}))
 	}
 }
