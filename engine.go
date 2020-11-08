@@ -45,8 +45,8 @@ var (
 type cmdline struct {
 	checks     int
 	steps      int
-	startSeed  uint64
-	rapidLog   bool
+	seed       uint64
+	log        bool
 	verbose    bool
 	debug      bool
 	debugvis   bool
@@ -56,8 +56,8 @@ type cmdline struct {
 func init() {
 	flag.IntVar(&flags.checks, "rapid.checks", 100, "rapid: number of checks to perform")
 	flag.IntVar(&flags.steps, "rapid.steps", 100, "rapid: number of state machine steps to perform")
-	flag.Uint64Var(&flags.startSeed, "rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
-	flag.BoolVar(&flags.rapidLog, "rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
+	flag.Uint64Var(&flags.seed, "rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
+	flag.BoolVar(&flags.log, "rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
 	flag.BoolVar(&flags.verbose, "rapid.v", false, "rapid: verbose output")
 	flag.BoolVar(&flags.debug, "rapid.debug", false, "rapid: debugging output")
 	flag.BoolVar(&flags.debugvis, "rapid.debugvis", false, "rapid: debugging visualization")
@@ -334,7 +334,7 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value)
 		refDraws: refDraws,
 	}
 
-	if rawLog == nil && flags.rapidLog {
+	if rawLog == nil && flags.log {
 		testName := "rapid test"
 		if tb != nil {
 			testName = tb.Name()

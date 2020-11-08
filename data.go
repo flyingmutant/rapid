@@ -22,8 +22,8 @@ type bitStream interface {
 }
 
 func baseSeed() uint64 {
-	if flags.startSeed != 0 {
-		return flags.startSeed
+	if flags.seed != 0 {
+		return flags.seed
 	}
 
 	return uint64(time.Now().UnixNano())<<32 + uint64(atomic.AddUint32(&seedCounter, 1))
