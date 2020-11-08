@@ -26,7 +26,7 @@ func baseSeed() uint64 {
 		return flags.startSeed
 	}
 
-	return uint64(time.Now().UnixNano()) + uint64(atomic.AddUint32(&seedCounter, 1))
+	return uint64(time.Now().UnixNano())<<32 + uint64(atomic.AddUint32(&seedCounter, 1))
 }
 
 type randomBitStream struct {
