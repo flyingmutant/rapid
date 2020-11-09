@@ -11,51 +11,49 @@ import (
 	"net/url"
 	"path"
 	"reflect"
-	"strings"
 	"unicode"
 )
 
-type domainNameGen struct {
-	maxLength        int
-	maxElementLength int
+const (
+	domainMaxLength        = 255
+	domainMaxElementLength = 63
+)
+
+var (
+	domainType = reflect.TypeOf("")
+	urlType    = reflect.TypeOf(url.URL{})
+)
+
+type domainNameGen struct{}
+
+func (*domainNameGen) String() string {
+	return "Domain()"
 }
 
-func (g *domainNameGen) String() string {
-	return fmt.Sprintf("Domain(maxLength=%v, mmaxElementLength%v)", g.maxLength, g.maxElementLength)
+func (*domainNameGen) type_() reflect.Type {
+	return domainType
 }
 
-func (g *domainNameGen) type_() reflect.Type {
-	return stringType
-}
+var tldGenerator = SampledFrom(tlds)
 
 func (g *domainNameGen) value(t *T) value {
-	domain := SampledFrom(tlds).
-		Filter(func(s string) bool { return len(s)+2 <= g.maxLength }).
+	domain := tldGenerator.
+		Filter(func(s string) bool { return len(s)+2 <= domainMaxLength }).
 		Map(func(s string) string {
 			var n string
 			for _, ch := range s {
-				n += string(SampledFrom([]rune{unicode.ToUpper(ch), unicode.ToLower(ch)}).Draw(t, "").(rune))
+				n += string(SampledFrom([]rune{unicode.ToLower(ch), unicode.ToUpper(ch)}).Draw(t, "").(rune))
 			}
 
 			return n
-		}).Draw(t, "domain").(string)
+		}).
+		Draw(t, "domain").(string)
 
-	var b strings.Builder
+	expr := fmt.Sprintf(`[a-zA-Z]([a-zA-Z0-9\-]{0,%d}[a-zA-Z0-9])?`, domainMaxElementLength-2)
 	elements := newRepeat(1, 126, 1)
-	b.Grow(elements.avg())
-
-	var expr string
-	switch g.maxElementLength {
-	case 1:
-		expr = `[a-zA-Z]`
-	case 2:
-		expr = `[a-zA-Z][a-zA-Z0-9]?`
-	default:
-		expr = fmt.Sprintf(`[a-zA-Z]([a-zA-Z0-9\-]{0,%d}[a-zA-Z0-9])?`, g.maxElementLength-2)
-	}
 	for elements.more(t.s, g.String()) {
 		subDomain := StringMatching(expr).Draw(t, "subdomain").(string)
-		if len(domain)+len(subDomain) >= g.maxLength {
+		if len(domain)+len(subDomain) >= domainMaxLength {
 			break
 		}
 		domain = subDomain + "." + domain
@@ -66,22 +64,7 @@ func (g *domainNameGen) value(t *T) value {
 
 // Domain generates an RFC 1035 compliant domain name.
 func Domain() *Generator {
-	return DomainOf(255, 63)
-}
-
-// DomainOf generates an RFC 1035 compliant domain name,
-// with a maximum overall length of maxLength
-// and a maximum number of elements of maxElements.
-func DomainOf(maxLength, maxElementLength int) *Generator {
-	assertf(4 <= maxLength, "maximum length (%v) should not be less than 4, to generate a two character domain and a one character subdomain", maxLength)
-	assertf(maxLength <= 255, "maximum length (%v) should not be greater than 255 to comply with RFC 1035", maxLength)
-	assertf(1 <= maxElementLength, "maximum element length (%v) should not be less than 1 to comply with RFC 1035", maxElementLength)
-	assertf(maxElementLength <= 63, "maximum element length (%v) should not be greater than 63 to comply with RFC 1035", maxElementLength)
-
-	return newGenerator(&domainNameGen{
-		maxElementLength: maxElementLength,
-		maxLength:        maxLength,
-	})
+	return newGenerator(&domainNameGen{})
 }
 
 type urlGenerator struct {
@@ -89,11 +72,11 @@ type urlGenerator struct {
 }
 
 func (g *urlGenerator) String() string {
-	return fmt.Sprintf("URLGenerator(schemes=%v)", g.schemes)
+	return "URL()"
 }
 
 func (g *urlGenerator) type_() reflect.Type {
-	return reflect.TypeOf(url.URL{})
+	return urlType
 }
 
 func (g *urlGenerator) value(t *T) value {
