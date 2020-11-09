@@ -9,15 +9,16 @@ package rapid_test
 import (
 	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
 	. "pgregory.net/rapid"
 )
 
+var pathEscapeRegex = regexp.MustCompile(`^[0-9A-Fa-f]{2}`)
+
 func TestURL(t *testing.T) {
-	pathEscapeRegex := regexp.MustCompile(`^[0-9A-Fa-f]{2}`)
+	t.Parallel()
 
 	Check(t, func(t *T) {
 		u := URL().Draw(t, "url").(url.URL)
@@ -43,31 +44,22 @@ func TestURL(t *testing.T) {
 	})
 }
 
-func TestDomainOf(t *testing.T) {
+func TestDomain(t *testing.T) {
 	t.Parallel()
 
-	genFuncs := []func(int, int) *Generator{
-		func(i, j int) *Generator { return DomainOf(i, j) },
-	}
+	Check(t, func(t *T) {
+		d := Domain().Draw(t, "d").(string)
+		if got, want := len(d), 255; got > want {
+			t.Errorf("got domain of length %d with maxLenght of %d", got, want)
+		}
 
-	for i, gf := range genFuncs {
-		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
-			maxLength := IntRange(4, 255).Draw(t, "maxLength").(int)
-			maxElementLength := IntRange(1, 63).Draw(t, "maxElementLength").(int)
+		elements := strings.Split(d, ".")
 
-			d := gf(maxLength, maxElementLength).Draw(t, "d").(string)
-			if got, want := len(d), maxLength; got > want {
-				t.Errorf("got domain of length %d with maxLenght of %d", got, want)
+		// ignore the tld
+		for i, elem := range elements[:len(elements)-1] {
+			if got, want := len(elem), 63; got > want {
+				t.Errorf("got domain element %d of length %d with maxElementLength %d", i, got, want)
 			}
-
-			elements := strings.Split(d, ".")
-
-			// ignore the tld
-			for i, elem := range elements[:len(elements)-1] {
-				if got, want := len(elem), maxElementLength; got > want {
-					t.Errorf("got domain element %d of length %d with maxElementLength %d", i, got, want)
-				}
-			}
-		}))
-	}
+		}
+	})
 }

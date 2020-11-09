@@ -8,6 +8,7 @@ package rapid_test
 
 import (
 	"fmt"
+	"net/url"
 
 	"pgregory.net/rapid"
 )
@@ -20,39 +21,25 @@ func ExampleDomain() {
 	}
 
 	// Output:
-	// MV2zb0-S2j.trAveLcHAnnEL
-	// Z.CU
-	// r.ABBotT
-	// r.AcCoUNTaNT
-	// R.
-}
-
-func ExampleDomainOf() {
-	gen := rapid.DomainOf(6, 5)
-
-	for i := 0; i < 5; i++ {
-		fmt.Println(gen.Example(i))
-	}
-
-	// Output:
-	// Dg5G.
-	// Z.CU
-	// Bs.
-	// AI.HkT
-	// R.
+	// D1C.TRaVElErs
+	// C.cuISiNeLlA
+	// r.abbVIe
+	// MC0zJ.aCcOuntAnTs
+	// T6hFdv10.aaa
 }
 
 func ExampleURL() {
 	gen := rapid.URL()
 
 	for i := 0; i < 5; i++ {
-		fmt.Println(gen.Example(i))
+		e := gen.Example(i).(url.URL)
+		fmt.Println(e.String())
 	}
 
 	// Output:
-	// {https   U.aaA:4 V0%E2%90%9A%226%E0%BC%B0%F0%91%82%B0%F0%97%B3%80%F0%92%91%ADX/1=%22  false   }
-	// {http   C.AarP:11 1%EF%BD%9F/%F0%9F%AA%95%22%D6%93%E0%A9%AD%E1%B3%930%D0%8A/%C2%BC%E0%B4%BE3%F0%9E%8B%B0%F0%91%86%BD%C2%B2%E0%B3%A9%CC%80D/%7C+%F0%9F%81%9D+%5D%CC%81%CB%85/%CC%80/%E1%B0%BF/%CD%82K%E0%A5%A9%CC%81  false   }
-	// {https   Bs.:11   false   }
-	// {http   MC0zJ.aCcOUNtAnT:2 J%E2%9D%87  false   }
-	// {http   t.Xn--RvC1e0am3E:3 %CC%82/%E2%80%A60%CC%80%C3%B7/%CC%81%CC%A2%21%E0%AF%AB%CC%81%C3%A4/%F0%9F%AA%95%EA%99%B4%CC%80%E0%A5%AD/%F0%AD%B9%A9%F0%91%87%AE/%E1%B7%93%CC%8B%E2%87%94%E2%90%8E%EA%A3%A5%E0%B5%9A=%E5%8E%A4%D9%AAB%F0%A5%8F%9A=%C2%A4%C3%AE%F0%91%84%AD%DC%8A%21%E2%82%8D3/%E1%81%8F%23  false   }
+	// https://r125pz05Rz-0j1d-11.AArP:17
+	// http://L2.aBArTh:7/%25F0%259F%25AA%2595%2522%25D6%2593%25E0%25A9%25AD%25E1%25B3%25930%25D0%258A/%25C2%25BC%25E0%25B4%25BE3%25F0%259E%258B%25B0%25F0%2591%2586%25BD%25C2%25B2%25E0%25B3%25A9%25CC%2580D/%257C+%25F0%259F%2581%259D+%255D%25CC%2581%25CB%2585/%25CC%2580/%25E1%25B0%25BF/%25CD%2582K%25E0%25A5%25A9%25CC%2581
+	// https://pH20DR11.aaA
+	// http://h.AcCounTaNtS:4/%25F0%259E%25A5%259F/:%2521J%25E2%259D%2587
+	// http://A.xN--s9bRJ9C:2
 }
