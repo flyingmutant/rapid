@@ -1521,4 +1521,4 @@ ZUERICH
 ZW
 `
 
-var tlds = strings.Split(tldsByAlpha, "\n")
+var tlds = strings.Split(strings.TrimSpace(tldsByAlpha), "\n")
