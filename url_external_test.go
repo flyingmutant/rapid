@@ -8,14 +8,11 @@ package rapid_test
 
 import (
 	"net/url"
-	"regexp"
 	"strings"
 	"testing"
 
 	. "pgregory.net/rapid"
 )
-
-var pathEscapeRegex = regexp.MustCompile(`^[0-9A-Fa-f]{2}`)
 
 func TestURL(t *testing.T) {
 	t.Parallel()
@@ -26,20 +23,6 @@ func TestURL(t *testing.T) {
 		// should be parseable
 		if _, err := url.Parse(u.String()); err != nil {
 			t.Fatalf("URL returned unparseable url %s: %v", u.String(), err)
-		}
-
-		// only valid characters in path
-		for i, ch := range u.Path {
-			if !(('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ('0' <= ch && ch <= '9') || strings.ContainsRune("$-_.+!*'(),%/@=&:~", ch)) {
-				t.Fatalf("URL returned invalid url %s: invalid character %s at %d", u.String(), string(ch), i)
-			}
-		}
-
-		// assert proper path escapes
-		for _, co := range strings.Split(u.Path, "%")[1:] {
-			if ok := pathEscapeRegex.MatchString(co); !ok {
-				t.Fatalf("URL returned invalid url %s: invalid escape %s", u.String(), co)
-			}
 		}
 	})
 }
