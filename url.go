@@ -9,8 +9,8 @@ package rapid
 import (
 	"fmt"
 	"net/url"
-	"path"
 	"reflect"
+	"strings"
 	"unicode"
 )
 
@@ -79,6 +79,8 @@ func (g *urlGenerator) type_() reflect.Type {
 	return urlType
 }
 
+var printableGen = StringOf(RuneFrom(nil, unicode.PrintRanges...))
+
 func (g *urlGenerator) value(t *T) value {
 	scheme := SampledFrom(g.schemes).Draw(t, "scheme").(string)
 	domain := Domain().Draw(t, "domain").(string)
@@ -90,15 +92,16 @@ func (g *urlGenerator) value(t *T) value {
 			return fmt.Sprintf(":%d", i)
 		}).
 		Draw(t, "port").(string)
-	path_ := path.Join(
-		SliceOf(
-			StringOf(RuneFrom(nil, unicode.PrintRanges...)).Map(url.PathEscape),
-		).Draw(t, "path").([]string)...)
+	path_ := SliceOf(printableGen).Draw(t, "path").([]string)
+	query := SliceOf(printableGen.Map(url.QueryEscape)).Draw(t, "query").([]string)
+	fragment := printableGen.Draw(t, "fragment").(string)
 
 	return url.URL{
 		Host:   domain + port,
-		Path:   path_,
+		Path:     strings.Join(path_, "/"),
 		Scheme: scheme,
+		RawQuery: strings.Join(query, "&"),
+		Fragment: fragment,
 	}
 }
 
