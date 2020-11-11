@@ -8,6 +8,7 @@ package rapid
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"reflect"
 	"strings"
@@ -83,7 +84,16 @@ var printableGen = StringOf(RuneFrom(nil, unicode.PrintRanges...))
 
 func (g *urlGenerator) value(t *T) value {
 	scheme := SampledFrom(g.schemes).Draw(t, "scheme").(string)
-	domain := Domain().Draw(t, "domain").(string)
+	var domain string
+	switch SampledFrom([]int{0, 1, 2}).Draw(t, "g").(int) {
+	case 2:
+		domain = Domain().Draw(t, "domain").(string)
+	case 1:
+		domain = IPv6().Draw(t, "domain").(net.IP).String()
+		domain = "[" + domain + "]"
+	case 0:
+		domain = IPv4().Draw(t, "domain").(net.IP).String()
+	}
 	port := IntRange(0, 2^16-1).
 		Map(func(i int) string {
 			if i == 0 {
@@ -97,9 +107,9 @@ func (g *urlGenerator) value(t *T) value {
 	fragment := printableGen.Draw(t, "fragment").(string)
 
 	return url.URL{
-		Host:   domain + port,
+		Host:     domain + port,
 		Path:     strings.Join(path_, "/"),
-		Scheme: scheme,
+		Scheme:   scheme,
 		RawQuery: strings.Join(query, "&"),
 		Fragment: fragment,
 	}
