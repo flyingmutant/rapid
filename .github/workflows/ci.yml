@@ -1,6 +1,7 @@
 name: CI
 on:
   push:
+  pull_request:
   schedule:
     - cron: "0 */13 * * *"
 jobs:
@@ -8,8 +9,8 @@ jobs:
     name: CI
     strategy:
       matrix:
-        go: ['1.13', '1.14', '1.15']
-        os: ['ubuntu-latest', 'windows-latest', 'macOS-latest']
+        go: ["1.13", "1.14", "1.15"]
+        os: ["ubuntu-latest", "windows-latest", "macOS-latest"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Go
