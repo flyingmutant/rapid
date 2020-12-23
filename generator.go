@@ -6,7 +6,10 @@
 
 package rapid
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+)
 
 type value interface{}
 
@@ -17,9 +20,10 @@ type generatorImpl interface {
 }
 
 type Generator struct {
-	impl generatorImpl
-	typ  reflect.Type
-	str  string
+	impl    generatorImpl
+	typ     reflect.Type
+	strOnce sync.Once
+	str     string
 }
 
 func newGenerator(impl generatorImpl) *Generator {
@@ -30,9 +34,9 @@ func newGenerator(impl generatorImpl) *Generator {
 }
 
 func (g *Generator) String() string {
-	if g.str == "" {
+	g.strOnce.Do(func() {
 		g.str = g.impl.String()
-	}
+	})
 
 	return g.str
 }
