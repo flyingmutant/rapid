@@ -17,22 +17,26 @@ func TestFailFileRoundtrip(t *testing.T) {
 	Check(t, func(t *T) {
 		var (
 			testName = String().Draw(t, "testName").(string)
+			version  = StringMatching(`[a-zA-Z0-9._-]+`).Draw(t, "version").(string)
 			output   = SliceOf(Byte()).Draw(t, "output").([]byte)
 			buf      = SliceOf(Uint64()).Draw(t, "buf").([]uint64)
 		)
 
 		fileName := failFileName(testName)
-		err := saveFailFile(fileName, output, buf)
+		err := saveFailFile(fileName, version, output, buf)
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer func() { _ = os.Remove(fileName) }()
 
-		buf2, err := loadFailFile(fileName)
+		version2, buf2, err := loadFailFile(fileName)
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		if version2 != version {
+			t.Fatalf("got version %q instead of %q", version2, version)
+		}
 		if len(buf2) != len(buf) {
 			t.Fatalf("got buf of length %v instead of %v", len(buf2), len(buf))
 		}
