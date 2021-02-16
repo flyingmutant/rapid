@@ -5,7 +5,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 // String generation depends on the Unicode tables, which change with Go versions:
-// +build go1.14
+// +build go1.16
 
 package rapid_test
 
@@ -31,8 +31,8 @@ func ExampleRune() {
 	// '\\' '\ufeff' '?' '~' '-'
 	// '0' '$' '!' '`' '\ue05d'
 	// '"' '&' '#' '\u0604' 'A'
-	// '&' '茞' '@' '#' '|'
-	// '⊙' '𝩔' '$' '҈' '\r'
+	// '&' '苦' '@' '#' '|'
+	// '⊙' '𝩇' '$' '҈' '\r'
 }
 
 func ExampleRuneFrom() {
@@ -67,7 +67,7 @@ func ExampleString() {
 	}
 	// Output:
 	// "\\߾⃝!/?Ⱥ֍"
-	// "\u2006𑨷"
+	// "\u2006𑨃"
 	// "?﹩\u0603ᾢ"
 	// ".*%:<%৲"
 	// ""
@@ -95,7 +95,7 @@ func ExampleStringN() {
 	}
 	// Output:
 	// "\\߾⃝!/"
-	// "\u2006𑨷%\v\ufeff"
+	// "\u2006𑨃%\v\ufeff"
 	// "?﹩\u0603ᾢÉ"
 	// ".*%:<"
 	// ":?\"~¤"
