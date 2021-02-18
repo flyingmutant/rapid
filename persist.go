@@ -42,7 +42,7 @@ func failFileName(testName string) string {
 	return fmt.Sprintf("%s-%s-%d.fail", kindaSafeFilename(testName), ts, os.Getpid())
 }
 
-func saveFailFile(filename string, version string, output []byte, buf []uint64) error {
+func saveFailFile(filename string, version string, output []byte, seed uint64, buf []uint64) error {
 	dir := filepath.Dir(filename)
 	err := os.MkdirAll(dir, persistDirMode)
 	if err != nil {
@@ -64,7 +64,7 @@ func saveFailFile(filename string, version string, output []byte, buf []uint64) 
 		}
 	}
 
-	bs := []string{version}
+	bs := []string{fmt.Sprintf("%v#%v", version, seed)}
 	for _, u := range buf {
 		bs = append(bs, fmt.Sprintf("0x%x", u))
 	}
@@ -83,10 +83,10 @@ func saveFailFile(filename string, version string, output []byte, buf []uint64) 
 	return nil
 }
 
-func loadFailFile(filename string) (string, []uint64, error) {
+func loadFailFile(filename string) (string, uint64, []uint64, error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to open fail file: %w", err)
+		return "", 0, nil, fmt.Errorf("failed to open fail file: %w", err)
 	}
 	defer func() { _ = f.Close() }()
 
@@ -100,22 +100,31 @@ func loadFailFile(filename string) (string, []uint64, error) {
 		data = s
 	}
 	if err := scanner.Err(); err != nil {
-		return "", nil, fmt.Errorf("failed to load fail file %q: %w", filename, err)
+		return "", 0, nil, fmt.Errorf("failed to load fail file %q: %w", filename, err)
 	}
 
 	fields := strings.Fields(data)
 	if len(fields) == 0 {
-		return "", nil, fmt.Errorf("no data in fail file %q", filename)
+		return "", 0, nil, fmt.Errorf("no data in fail file %q", filename)
+	}
+
+	split := strings.Split(fields[0], "#")
+	if len(split) != 2 {
+		return "", 0, nil, fmt.Errorf("invalid version/seed field %q in %q", fields[0], filename)
+	}
+	seed, err := strconv.ParseUint(split[1], 10, 64)
+	if err != nil {
+		return "", 0, nil, fmt.Errorf("invalid seed %q in %q", split[1], filename)
 	}
 
 	var buf []uint64
 	for _, b := range fields[1:] {
 		u, err := strconv.ParseUint(b, 0, 64)
 		if err != nil {
-			return "", nil, fmt.Errorf("failed to load fail file %q: %w", filename, err)
+			return "", 0, nil, fmt.Errorf("failed to load fail file %q: %w", filename, err)
 		}
 		buf = append(buf, u)
 	}
 
-	return fields[0], buf, nil
+	return split[0], seed, buf, nil
 }

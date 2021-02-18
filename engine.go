@@ -134,7 +134,7 @@ func checkTB(tb tb, prop func(*T)) {
 		} else {
 			failfile := failFileName(tb.Name())
 			out := captureTestOutput(tb, prop, buf)
-			err := saveFailFile(failfile, rapidVersion, out, buf)
+			err := saveFailFile(failfile, rapidVersion, out, seed, buf)
 			if err == nil {
 				repr = fmt.Sprintf("-rapid.failfile=%q", failfile)
 			} else {
@@ -195,7 +195,7 @@ func doCheck(tb tb, failfile string, checks int, seed uint64, prop func(*T)) (in
 func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError, *testError) {
 	tb.Helper()
 
-	version, buf, err := loadFailFile(failfile)
+	version, _, buf, err := loadFailFile(failfile)
 	if err != nil {
 		tb.Logf("[rapid] ignoring fail file: %v", err)
 		return nil, nil, nil
