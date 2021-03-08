@@ -23,12 +23,9 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
     [testify/require](https://pkg.go.dev/github.com/stretchr/testify/require) and
     [testify/assert](https://pkg.go.dev/github.com/stretchr/testify/assert)
 - Fully automatic minimization of failing test cases
+- Persistence of minimized failing test cases
 - Support for state machine ("stateful" or "model-based") testing
-- No dependencies outside of the Go standard library
-
-### Planned features
-
-- Automatic persistence of failing test cases
+- No dependencies outside the Go standard library
 
 ## Examples
 
@@ -91,6 +88,7 @@ Compared to [gopter](https://pkg.go.dev/github.com/leanovate/gopter), rapid:
 - has a much simpler API (queue test in [rapid](./example_statemachine_test.go) vs
   [gopter](https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go))
 - does not require any user code to minimize failing test cases
+- persists minimized failing test cases to files for easy reproduction
 - generates biased data to explore "small" values and edge cases more thoroughly (inspired by
   [SmallCheck](https://hackage.haskell.org/package/smallcheck))
 - enables interactive tests by allowing data generation and test code to arbitrarily intermix
