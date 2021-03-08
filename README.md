@@ -103,8 +103,7 @@ Compared to [testing/quick](https://golang.org/pkg/testing/quick/), rapid:
  
 ## Status
 
-Rapid is alpha software. Important pieces of functionality are missing;
-API breakage and bugs should be expected.
+Rapid is preparing for stable 1.0 release. API breakage and bugs should be extremely rare.
 
 If rapid fails to find a bug you believe it should, or the failing test case
 that rapid reports does not look like a minimal one,
