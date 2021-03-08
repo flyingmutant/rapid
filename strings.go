@@ -23,7 +23,7 @@ var (
 	byteSliceType = reflect.TypeOf([]byte(nil))
 
 	defaultRunes = []rune{
-		'?',
+		'A', 'a', '?',
 		'~', '!', '@', '#', '$', '%', '^', '&', '*', '_', '-', '+', '=',
 		'.', ',', ':', ';',
 		' ', '\t', '\r', '\n',

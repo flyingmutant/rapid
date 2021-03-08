@@ -147,7 +147,7 @@ func TestShrink_String(t *testing.T) {
 		if len(s1) > len(s2) {
 			t.Fail()
 		}
-	}, "?", "")
+	}, "A", "")
 }
 
 func TestShrink_StringOfBytes(t *testing.T) {
