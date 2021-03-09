@@ -1,19 +1,10 @@
 # TODO
 
-## Docs
-
-- document every exported symbol
-- doc.go paragraph about defining properties
-- more examples
-  - HTTP API testing
-  - buffers?
-  - DI?
-- tutorial?
-
-## Big things
+## Pre-1.0
 
 - explicit examples support (based on `refDraws` shrink test machinery)
-- failure persistence
+- decide what to do with FP NaNs etc.
+- document every exported symbol?
 
 ## Generators
 
