@@ -3,6 +3,7 @@
 ## Pre-1.0
 
 - explicit examples support (based on `refDraws` shrink test machinery)
+- [go-fuzz](https://github.com/golang/proposal/blob/master/design/draft-fuzzing.md) integration
 - decide what to do with FP NaNs etc.
 - document every exported symbol?
 
