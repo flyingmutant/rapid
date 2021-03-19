@@ -2,7 +2,10 @@
 
 ## Pre-1.0
 
+- cleanly separate generation from the rest (so that people can use only the generation)
+- `Any`/`Arbitrary` generator, + some kind of `DrawInto` API?
 - explicit examples support (based on `refDraws` shrink test machinery)
+- explicit settings support (to not depend on global environment)
 - [go-fuzz](https://github.com/golang/proposal/blob/master/design/draft-fuzzing.md) integration
 - decide what to do with FP NaNs etc.
 - document every exported symbol?
