@@ -69,7 +69,7 @@ func saveFailFile(filename string, version string, output []byte, seed uint64, b
 		bs = append(bs, fmt.Sprintf("0x%x", u))
 	}
 
-	_, err = f.WriteString(strings.Join(bs, " "))
+	_, err = f.WriteString(strings.Join(bs, "\n"))
 	if err != nil {
 		return fmt.Errorf("failed to write data to fail file %q: %w", filename, err)
 	}
@@ -90,27 +90,26 @@ func loadFailFile(filename string) (string, uint64, []uint64, error) {
 	}
 	defer func() { _ = f.Close() }()
 
-	var data string
+	var data []string
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		s := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(s, "#") || s == "" {
 			continue
 		}
-		data = s
+		data = append(data, s)
 	}
 	if err := scanner.Err(); err != nil {
 		return "", 0, nil, fmt.Errorf("failed to load fail file %q: %w", filename, err)
 	}
 
-	fields := strings.Fields(data)
-	if len(fields) == 0 {
+	if len(data) == 0 {
 		return "", 0, nil, fmt.Errorf("no data in fail file %q", filename)
 	}
 
-	split := strings.Split(fields[0], "#")
+	split := strings.Split(data[0], "#")
 	if len(split) != 2 {
-		return "", 0, nil, fmt.Errorf("invalid version/seed field %q in %q", fields[0], filename)
+		return "", 0, nil, fmt.Errorf("invalid version/seed field %q in %q", data[0], filename)
 	}
 	seed, err := strconv.ParseUint(split[1], 10, 64)
 	if err != nil {
@@ -118,7 +117,7 @@ func loadFailFile(filename string) (string, uint64, []uint64, error) {
 	}
 
 	var buf []uint64
-	for _, b := range fields[1:] {
+	for _, b := range data[1:] {
 		u, err := strconv.ParseUint(b, 0, 64)
 		if err != nil {
 			return "", 0, nil, fmt.Errorf("failed to load fail file %q: %w", filename, err)
