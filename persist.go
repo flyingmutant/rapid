@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	rapidVersion = "v0.4.5"
+	rapidVersion = "v0.4.6"
 
 	persistDirMode     = 0775
 	failfileTmpPattern = ".rapid-failfile-tmp-*"
