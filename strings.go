@@ -383,12 +383,12 @@ func expandRangeTable(t *unicode.RangeTable, key interface{}) []rune {
 
 	var ret []rune
 	for _, r := range t.R16 {
-		for i := r.Lo; i <= r.Hi; i += r.Stride {
+		for i := uint32(r.Lo); i <= uint32(r.Hi); i += uint32(r.Stride) {
 			ret = append(ret, rune(i))
 		}
 	}
 	for _, r := range t.R32 {
-		for i := r.Lo; i <= r.Hi; i += r.Stride {
+		for i := uint64(r.Lo); i <= uint64(r.Hi); i += uint64(r.Stride) {
 			ret = append(ret, rune(i))
 		}
 	}
