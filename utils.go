@@ -24,7 +24,7 @@ func bitmask64(n uint) uint64 {
 }
 
 func genFloat01(s bitStream) float64 {
-	return float64(s.drawBits(53)) / (1 << 53)
+	return float64(s.drawBits(53)) * 0x1.0p-53
 }
 
 func genGeom(s bitStream, p float64) uint64 {
