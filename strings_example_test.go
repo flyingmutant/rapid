@@ -5,6 +5,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 // String generation depends on the Unicode tables, which change with Go versions:
+//go:build go1.16
 // +build go1.16
 
 package rapid_test
