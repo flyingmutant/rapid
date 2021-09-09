@@ -365,6 +365,22 @@ func traceback(err *testError) string {
 	return err.traceback
 }
 
+// TB is a common interface between *testing.T, *testing.B and *T.
+type TB interface {
+	Helper()
+	Name() string
+	Logf(format string, args ...interface{})
+	Log(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Error(args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Fatal(args ...interface{})
+	FailNow()
+	Fail()
+	Failed() bool
+}
+
+// tb is a private copy of TB, made to avoid T having public fields
 type tb interface {
 	Helper()
 	Name() string
