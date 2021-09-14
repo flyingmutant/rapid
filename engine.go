@@ -395,6 +395,11 @@ type tb interface {
 	Failed() bool
 }
 
+// T is similar to testing.T, but with extra bookkeeping for property-based tests.
+//
+// For tests to be reproducible, they should generally run in a single goroutine.
+// If concurrency is unavoidable, methods on *T, such as Helper and Errorf, are safe for concurrent calls,
+// but Draw from a given *T is not.
 type T struct {
 	tb       // unnamed to force re-export of (*T).Helper()
 	tbLog    bool
