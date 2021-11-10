@@ -29,6 +29,10 @@ var all_stats stats = make(stats)
 
 // Event records an event for test `t` and
 // stores the event for calculating statistics.
+//
+// Recording events and printing a their statistic is a tool for
+// analysing test data generations. It helps to understand if
+// your customer generators produce value in the expected range.
 func Event(t TEvent, event string) {
 	t.Helper()
 	c, found := all_stats[t.Name()]
