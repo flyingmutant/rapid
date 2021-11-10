@@ -16,14 +16,6 @@ type counterPair struct {
 	event     string
 }
 
-// TEvent is a minimal interface for recording events and
-// printing statistics.
-type TEvent interface {
-	Helper()
-	Name() string
-	Logf(fmt string, data ...interface{})
-}
-
 // global variable for statistics
 var all_stats stats = make(stats)
 
@@ -33,7 +25,7 @@ var all_stats stats = make(stats)
 // Recording events and printing a their statistic is a tool for
 // analysing test data generations. It helps to understand if
 // your customer generators produce value in the expected range.
-func Event(t TEvent, event string) {
+func Event(t TB, event string) {
 	t.Helper()
 	c, found := all_stats[t.Name()]
 	if !found {
@@ -45,7 +37,7 @@ func Event(t TEvent, event string) {
 
 // PrintStats logs a table of events and their relative frequency.
 // To see these statistics, run the tests with `go test -v`
-func PrintStats(t TEvent) {
+func PrintStats(t TB) {
 	t.Helper()
 	s, found := all_stats[t.Name()]
 	if !found {
