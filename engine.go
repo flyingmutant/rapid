@@ -263,6 +263,9 @@ func findBug(tb tb, checks int, seed uint64, prop func(*T)) (uint64, int, int, *
 			return seed, valid, invalid, err
 		}
 	}
+	// Finally, print the stats
+	// TODO; Does not print the stats, but seems to count correctly?
+	printStats(t)
 
 	return 0, valid, invalid, nil
 }
@@ -275,7 +278,6 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 
 	prop(t)
 	t.failOnError()
-
 	return nil
 }
 
@@ -409,6 +411,8 @@ type T struct {
 	refDraws []value
 	mu       sync.RWMutex
 	failed   stopTest
+	evChan   chan event
+	evDone   chan done
 }
 
 func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value) *T {
