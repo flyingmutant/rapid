@@ -17,14 +17,14 @@ func ExampleEvent(t *testing.T) {
 		x := rapid.Int().Draw(t, "x").(int)
 		y := rapid.Int().Draw(t, "y").(int)
 		// ... report them ...
-		rapid.Event(t, fmt.Sprintf("x = %d", x))
-		rapid.Event(t, fmt.Sprintf("y = %d", y))
+		rapid.Event(t, "x", fmt.Sprintf("%d", x))
+		rapid.Event(t, "y", fmt.Sprintf("%d", y))
 
 		// ... the property holds
 		if x+y != y+x {
 			t.Fatalf("associativty of + does not hold")
 		}
+		// statistics are printed after the property (if called with go test -v)
 	})
-	// print statistics after the property (if called with go test -v)
-	rapid.PrintStats(t)
+	// Output:
 }
