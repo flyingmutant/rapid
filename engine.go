@@ -411,8 +411,8 @@ type T struct {
 	refDraws []value
 	mu       sync.RWMutex
 	failed   stopTest
-	evChan   chan event
-	evDone   chan done
+	allstats stats
+	statMux  sync.Mutex
 }
 
 func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value) *T {
