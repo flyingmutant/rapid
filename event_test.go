@@ -45,3 +45,14 @@ func TestTrivialPropertyWithEvents(t *testing.T) {
 		}
 	})
 }
+
+func TestFilteredGenWithAutoEvents(t *testing.T) {
+	t.Parallel()
+	Check(t, func(te *T) {
+		x := Uint8().Filter(func(n uint8) bool { return n%2 == 0 }).Draw(te, "even x").(uint8)
+		Event(te, "x", fmt.Sprintf("%d", x))
+		if x > 255 {
+			t.Fatalf("x should fit into a byte")
+		}
+	})
+}
