@@ -30,7 +30,9 @@ type counterPair struct {
 // run the tests with `go test -v`.
 //
 func Event(t *T, label string, value string) {
-	t.Helper()
+	if t.tb != nil {
+		t.Helper()
+	}
 	t.statMux.Lock()
 	defer t.statMux.Unlock()
 	if t.allstats == nil {
@@ -69,7 +71,7 @@ func printStats(t *T) {
 			sort.Slice(events, func(i, j int) bool { return events[i].event < events[j].event })
 			sort.SliceStable(events, func(i, j int) bool { return events[i].frequency > events[j].frequency })
 			for _, ev := range events {
-				log.Printf("%s: %d (%f %%)\n", ev.event, ev.frequency, float32(ev.frequency)/float32(sum)*100.0)
+				log.Printf("  %s: %d (%f %%)\n", ev.event, ev.frequency, float32(ev.frequency)/float32(sum)*100.0)
 			}
 		}
 	}
