@@ -48,26 +48,29 @@ func Event(t *T, label string, value string) {
 func printStats(t *T) {
 	t.statMux.Lock()
 	defer t.statMux.Unlock()
-	log.Printf("Now we can print the stats")
-	log.Printf("stats received")
-	log.Printf("Statistics for %s\n", t.Name())
-	for label := range t.allstats {
-		log.Printf("Events with label %s", label)
-		s := t.allstats[label]
-		events := make([]counterPair, 0)
-		sum := 0
-		count := 0
-		for ev := range s {
-			sum += s[ev]
-			count++
-			events = append(events, counterPair{event: ev, frequency: s[ev]})
-		}
-		log.Printf("Total of %d different events\n", count)
-		// we sort twice to sort same frequency alphabetically
-		sort.Slice(events, func(i, j int) bool { return events[i].event < events[j].event })
-		sort.SliceStable(events, func(i, j int) bool { return events[i].frequency > events[j].frequency })
-		for _, ev := range events {
-			log.Printf("%s: %d (%f %%)\n", ev.event, ev.frequency, float32(ev.frequency)/float32(sum)*100.0)
+	if t.tbLog && t.tb != nil {
+		t.tb.Helper()
+	}
+	if len(t.allstats) > 0 {
+		log.Printf("Statistics for %s\n", t.Name())
+		for label := range t.allstats {
+			log.Printf("Events with label %s", label)
+			s := t.allstats[label]
+			events := make([]counterPair, 0)
+			sum := 0
+			count := 0
+			for ev := range s {
+				sum += s[ev]
+				count++
+				events = append(events, counterPair{event: ev, frequency: s[ev]})
+			}
+			log.Printf("Total of %d different events\n", count)
+			// we sort twice to sort same frequency alphabetically
+			sort.Slice(events, func(i, j int) bool { return events[i].event < events[j].event })
+			sort.SliceStable(events, func(i, j int) bool { return events[i].frequency > events[j].frequency })
+			for _, ev := range events {
+				log.Printf("%s: %d (%f %%)\n", ev.event, ev.frequency, float32(ev.frequency)/float32(sum)*100.0)
+			}
 		}
 	}
 }
