@@ -46,6 +46,18 @@ func TestTrivialPropertyWithEvents(t *testing.T) {
 	})
 }
 
+func TestTrivialPropertyWithNumEvents(t *testing.T) {
+	t.Parallel()
+	Check(t, func(te *T) {
+		x := Uint8().Draw(te, "x").(uint8)
+		Event(te, "x", fmt.Sprintf("%d", x))
+		NumericEvent(te, "x", x)
+		if x > 255 {
+			t.Fatalf("x should fit into a byte")
+		}
+	})
+}
+
 func TestFilteredGenWithAutoEvents(t *testing.T) {
 	t.Parallel()
 	Check(t, func(te *T) {

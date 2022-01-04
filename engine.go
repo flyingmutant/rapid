@@ -412,6 +412,7 @@ type T struct {
 	mu       sync.RWMutex
 	failed   stopTest
 	allstats stats
+	numStats nStats
 	statMux  sync.Mutex
 }
 
