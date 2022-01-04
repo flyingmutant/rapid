@@ -31,7 +31,7 @@ type counterPair struct {
 //
 func Event(t *T, label string, value string) {
 	if t.tb != nil {
-		t.Helper()
+		t.tb.Helper()
 	}
 	t.statMux.Lock()
 	defer t.statMux.Unlock()
