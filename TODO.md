@@ -4,7 +4,6 @@
 
 - explicit examples support (based on `refDraws` shrink test machinery)
 - explicit settings support (to not depend on global environment)
-- [go-fuzz](https://github.com/golang/proposal/blob/master/design/draft-fuzzing.md) integration
 
 ## Generators
 

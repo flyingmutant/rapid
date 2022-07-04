@@ -8,6 +8,7 @@ package rapid
 
 import (
 	"bytes"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"log"
@@ -110,6 +111,46 @@ func MakeCheck(prop func(*T)) func(*testing.T) {
 	return func(t *testing.T) {
 		t.Helper()
 		checkTB(t, prop)
+	}
+}
+
+// MakeFuzz creates a fuzz target for [*testing.F.Fuzz]:
+//
+//	func FuzzFoo(f *testing.F) {
+//	    f.Fuzz(rapid.MakeFuzz(func(t *rapid.T) {
+//	        // test code
+//	    }))
+//	}
+func MakeFuzz(prop func(*T)) func(*testing.T, []byte) {
+	return func(t *testing.T, input []byte) {
+		t.Helper()
+		checkFuzz(t, prop, input)
+	}
+}
+
+func checkFuzz(tb tb, prop func(*T), input []byte) {
+	tb.Helper()
+
+	var buf []uint64
+	for len(input) > 0 {
+		var tmp [8]byte
+		n := copy(tmp[:], input)
+		buf = append(buf, binary.LittleEndian.Uint64(tmp[:]))
+		input = input[n:]
+	}
+
+	t := newT(tb, newBufBitStream(buf, false), flags.verbose, nil)
+	err := checkOnce(t, prop)
+
+	switch {
+	case err == nil:
+		// do nothing
+	case err.isInvalidData():
+		tb.SkipNow()
+	case err.isStopTest():
+		tb.Fatalf("[rapid] failed: %v", err)
+	default:
+		tb.Fatalf("[rapid] panic: %v\nTraceback:\n%v", err, traceback(err))
 	}
 }
 
@@ -373,6 +414,9 @@ type TB interface {
 	Name() string
 	Logf(format string, args ...any)
 	Log(args ...any)
+	Skipf(format string, args ...any)
+	Skip(args ...any)
+	SkipNow()
 	Errorf(format string, args ...any)
 	Error(args ...any)
 	Fatalf(format string, args ...any)
@@ -388,6 +432,9 @@ type tb interface {
 	Name() string
 	Logf(format string, args ...any)
 	Log(args ...any)
+	Skipf(format string, args ...any)
+	Skip(args ...any)
+	SkipNow()
 	Errorf(format string, args ...any)
 	Error(args ...any)
 	Fatalf(format string, args ...any)
