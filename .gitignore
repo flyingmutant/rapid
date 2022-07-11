@@ -7,7 +7,7 @@
 /cpu.prof
 /mem.prof
 /profile*
-/*.fail
+/testdata/
 
 /doc.html
 /vis-*.html

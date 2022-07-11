@@ -134,7 +134,7 @@ func checkTB(tb tb, prop func(*T)) {
 		if flags.failfile != "" && seed == 0 {
 			repr = fmt.Sprintf("-rapid.failfile=%q", flags.failfile)
 		} else if !flags.nofailfile {
-			failfile := failFileName(tb.Name())
+			_, failfile := failFileName(tb.Name())
 			out := captureTestOutput(tb, prop, buf)
 			err := saveFailFile(failfile, rapidVersion, out, seed, buf)
 			if err == nil {

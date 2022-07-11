@@ -24,12 +24,12 @@ func TestFailFileRoundtrip(t *testing.T) {
 			buf      = SliceOf(Uint64()).Draw(t, "buf").([]uint64)
 		)
 
-		fileName := failFileName(testName)
+		dirName, fileName := failFileName(testName)
 		err := saveFailFile(fileName, version, output, seed, buf)
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer func() { _ = os.Remove(fileName) }()
+		defer func() { _ = os.RemoveAll(dirName) }()
 
 		version2, seed2, buf2, err := loadFailFile(fileName)
 		if err != nil {
