@@ -17,11 +17,11 @@ import (
 func TestSliceOf(t *testing.T) {
 	t.Parallel()
 
-	gens := []*Generator{
-		SliceOf(Bool()),
-		SliceOf(Byte()),
-		SliceOf(Int()),
-		SliceOf(Uint()),
+	gens := []*Generator[any]{
+		SliceOf(Bool()).AsAny(),
+		SliceOf(Byte()).AsAny(),
+		SliceOf(Int()).AsAny(),
+		SliceOf(Uint()).AsAny(),
 	}
 
 	for _, g := range gens {
@@ -40,10 +40,10 @@ func TestSliceOf(t *testing.T) {
 func TestSliceOfDistinct(t *testing.T) {
 	t.Parallel()
 
-	g := SliceOfDistinct(Int(), nil)
+	g := SliceOfDistinct(Int(), ID[int])
 
 	Check(t, func(t *T) {
-		s := g.Draw(t, "s").([]int)
+		s := g.Draw(t, "s")
 		m := map[int]struct{}{}
 		for _, i := range s {
 			m[i] = struct{}{}
@@ -60,7 +60,7 @@ func TestSliceOfDistinctBy(t *testing.T) {
 	g := SliceOfDistinct(Int(), func(i int) string { return strconv.Itoa(i % 5) })
 
 	Check(t, func(t *T) {
-		s := g.Draw(t, "s").([]int)
+		s := g.Draw(t, "s")
 		m := map[int]struct{}{}
 		for _, i := range s {
 			m[i%5] = struct{}{}
@@ -74,10 +74,10 @@ func TestSliceOfDistinctBy(t *testing.T) {
 func TestMapOf(t *testing.T) {
 	t.Parallel()
 
-	gens := []*Generator{
-		MapOf(Bool(), Int()),
-		MapOf(Int(), Uint()),
-		MapOf(Uint(), SliceOf(Bool())),
+	gens := []*Generator[any]{
+		MapOf(Bool(), Int()).AsAny(),
+		MapOf(Int(), Uint()).AsAny(),
+		MapOf(Uint(), SliceOf(Bool())).AsAny(),
 	}
 
 	for _, g := range gens {
@@ -99,7 +99,7 @@ func TestMapOfValues(t *testing.T) {
 	g := MapOfValues(Custom(genStruct), func(s testStruct) int { return s.x })
 
 	Check(t, func(t *T) {
-		m := g.Draw(t, "m").(map[int]testStruct)
+		m := g.Draw(t, "m")
 		for k, v := range m {
 			if k != v.x {
 				t.Fatalf("got key %v with value %v", k, v)
@@ -108,42 +108,27 @@ func TestMapOfValues(t *testing.T) {
 	})
 }
 
-func TestArrayOf(t *testing.T) {
-	t.Parallel()
-
-	elems := []*Generator{Bool(), Int(), Uint()}
-	counts := []int{0, 1, 3, 17}
-
-	for _, e := range elems {
-		for _, c := range counts {
-			g := ArrayOf(c, e)
-			t.Run(g.String(), MakeCheck(func(t *T) {
-				v := g.Draw(t, "v")
-				if rv(v).Len() != c {
-					t.Fatalf("len is %v instead of %v", rv(v).Len(), c)
-				}
-			}))
-		}
-	}
-}
-
 func TestCollectionLenLimits(t *testing.T) {
 	t.Parallel()
 
-	genFuncs := []func(i, j int) *Generator{
-		func(i, j int) *Generator { return StringOfN(Byte(), i, j, -1) },
-		func(i, j int) *Generator { return SliceOfN(Byte(), i, j) },
-		func(i, j int) *Generator { return SliceOfNDistinct(Byte(), i, j, nil) },
-		func(i, j int) *Generator { return SliceOfNDistinct(Int(), i, j, func(n int) int { return n % j }) },
-		func(i, j int) *Generator { return MapOfN(Int(), Int(), i, j) },
-		func(i, j int) *Generator { return MapOfNValues(Int(), i, j, nil) },
-		func(i, j int) *Generator { return MapOfNValues(Int(), i, j, func(n int) int { return n % j }) },
+	genFuncs := []func(i, j int) *Generator[any]{
+		func(i, j int) *Generator[any] { return StringOfN(Int32Range('A', 'Z'), i, j, -1).AsAny() },
+		func(i, j int) *Generator[any] { return SliceOfN(Byte(), i, j).AsAny() },
+		func(i, j int) *Generator[any] { return SliceOfNDistinct(Byte(), i, j, ID[byte]).AsAny() },
+		func(i, j int) *Generator[any] {
+			return SliceOfNDistinct(Int(), i, j, func(n int) int { return n % j }).AsAny()
+		},
+		func(i, j int) *Generator[any] { return MapOfN(Int(), Int(), i, j).AsAny() },
+		func(i, j int) *Generator[any] { return MapOfNValues(Int(), i, j, ID[int]).AsAny() },
+		func(i, j int) *Generator[any] {
+			return MapOfNValues(Int(), i, j, func(n int) int { return n % j }).AsAny()
+		},
 	}
 
 	for i, gf := range genFuncs {
 		t.Run(strconv.Itoa(i), MakeCheck(func(t *T) {
-			minLen := IntRange(0, 256).Draw(t, "minLen").(int)
-			maxLen := IntMin(minLen).Draw(t, "maxLen").(int)
+			minLen := IntRange(0, 256).Draw(t, "minLen")
+			maxLen := IntMin(minLen).Draw(t, "maxLen")
 
 			s := rv(gf(minLen, maxLen).Draw(t, "s"))
 			if s.Len() < minLen {

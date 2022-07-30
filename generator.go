@@ -7,33 +7,29 @@
 package rapid
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 )
 
-type value interface{}
-
-type generatorImpl interface {
+type generatorImpl[V any] interface {
 	String() string
-	type_() reflect.Type
-	value(t *T) value
+	value(t *T) V
 }
 
-type Generator struct {
-	impl    generatorImpl
-	typ     reflect.Type
+type Generator[V any] struct {
+	impl    generatorImpl[V]
 	strOnce sync.Once
 	str     string
 }
 
-func newGenerator(impl generatorImpl) *Generator {
-	return &Generator{
+func newGenerator[V any](impl generatorImpl[V]) *Generator[V] {
+	return &Generator[V]{
 		impl: impl,
-		typ:  impl.type_(),
 	}
 }
 
-func (g *Generator) String() string {
+func (g *Generator[V]) String() string {
 	g.strOnce.Do(func() {
 		g.str = g.impl.String()
 	})
@@ -41,31 +37,44 @@ func (g *Generator) String() string {
 	return g.str
 }
 
-func (g *Generator) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *Generator) Draw(t *T, label string) interface{} {
+func (g *Generator[V]) Draw(t *T, label string) V {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
-	return t.draw(g, label)
-}
 
-func (g *Generator) value(t *T) value {
-	i := t.s.beginGroup(g.str, true)
+	v := g.value(t)
 
-	v := g.impl.value(t)
-	u := reflect.TypeOf(v)
-	assertf(v != nil, "%v has generated a nil value", g)
-	assertf(u.AssignableTo(g.typ), "%v has generated a value of type %v which is not assignable to %v", g, u, g.typ)
+	if len(t.refDraws) > 0 {
+		ref := t.refDraws[t.draws]
+		if !reflect.DeepEqual(v, ref) {
+			t.tb.Fatalf("draw %v differs: %#v vs expected %#v", t.draws, v, ref)
+		}
+	}
 
-	t.s.endGroup(i, false)
+	if t.tbLog || t.rawLog != nil {
+		if label == "" {
+			label = fmt.Sprintf("#%v", t.draws)
+		}
+
+		if t.tbLog && t.tb != nil {
+			t.tb.Helper()
+		}
+		t.Logf("[rapid] draw %v: %#v", label, v)
+	}
+
+	t.draws++
 
 	return v
 }
 
-func (g *Generator) Example(seed ...int) interface{} {
+func (g *Generator[V]) value(t *T) V {
+	i := t.s.beginGroup(g.str, true)
+	v := g.impl.value(t)
+	t.s.endGroup(i, false)
+	return v
+}
+
+func (g *Generator[V]) Example(seed ...int) V {
 	s := baseSeed()
 	if len(seed) > 0 {
 		s = uint64(seed[0])
@@ -77,26 +86,27 @@ func (g *Generator) Example(seed ...int) interface{} {
 	return v
 }
 
-func (g *Generator) Filter(fn interface{}) *Generator {
+func (g *Generator[V]) Filter(fn func(V) bool) *Generator[V] {
 	return filter(g, fn)
 }
 
-func (g *Generator) Map(fn interface{}) *Generator {
-	return map_(g, fn)
+func (g *Generator[V]) AsAny() *Generator[any] {
+	return asAny(g)
 }
 
-func example(g *Generator, t *T) (value, int, error) {
+func example[V any](g *Generator[V], t *T) (V, int, error) {
 	for i := 1; ; i++ {
 		r, err := recoverValue(g, t)
 		if err == nil {
 			return r, i, nil
 		} else if i == exampleMaxTries {
-			return nil, i, err
+			var zero V
+			return zero, i, err
 		}
 	}
 }
 
-func recoverValue(g *Generator, t *T) (v value, err *testError) {
+func recoverValue[V any](g *Generator[V], t *T) (v V, err *testError) {
 	defer func() { err = panicToError(recover(), 3) }()
 
 	return g.value(t), nil

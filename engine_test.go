@@ -28,7 +28,7 @@ func TestPanicTraceback(t *testing.T) {
 	}{
 		{
 			"impossible filter",
-			"pgregory.net/rapid.find",
+			"pgregory.net/rapid.find[...]",
 			func(t *T) *testError {
 				g := Bool().Filter(func(bool) bool { return false })
 				_, err := recoverValue(g, t)
@@ -48,7 +48,7 @@ func TestPanicTraceback(t *testing.T) {
 			"broken state machine",
 			"pgregory.net/rapid.(*brokenMachine).DoNothing",
 			func(t *T) *testError {
-				return checkOnce(t, Run(&brokenMachine{}))
+				return checkOnce(t, Run[*brokenMachine]())
 			},
 		},
 	}

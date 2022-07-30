@@ -20,8 +20,8 @@ func ExampleCustom() {
 
 	gen := rapid.Custom(func(t *rapid.T) point {
 		return point{
-			x: rapid.Int().Draw(t, "x").(int),
-			y: rapid.Int().Draw(t, "y").(int),
+			x: rapid.IntRange(-100, 100).Draw(t, "x"),
+			y: rapid.IntRange(-100, 100).Draw(t, "y"),
 		}
 	})
 
@@ -29,11 +29,31 @@ func ExampleCustom() {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// {-3 1303}
-	// {-186981 -59881619}
-	// {4 441488606}
-	// {-2 -5863986}
-	// {43 -3513}
+	// {-1 23}
+	// {-3 -50}
+	// {0 94}
+	// {-2 -50}
+	// {11 -57}
+}
+
+func recursive() *rapid.Generator[any] {
+	return rapid.OneOf(
+		rapid.Bool().AsAny(),
+		rapid.SliceOfN(rapid.Deferred(recursive), 1, 2).AsAny(),
+	)
+}
+
+func ExampleDeferred() {
+	gen := recursive()
+	for i := 0; i < 5; i++ {
+		fmt.Println(gen.Example(i))
+	}
+	// Output:
+	// [[[[false] false]]]
+	// false
+	// [[true [[[true]]]]]
+	// true
+	// true
 }
 
 func ExampleJust() {
@@ -65,7 +85,7 @@ func ExampleSampledFrom() {
 }
 
 func ExampleOneOf() {
-	gen := rapid.OneOf(rapid.Int32Range(1, 10), rapid.Float32Range(100, 1000))
+	gen := rapid.OneOf(rapid.Int32Range(1, 10).AsAny(), rapid.Float32Range(100, 1000).AsAny())
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
@@ -82,7 +102,7 @@ func ExamplePtr() {
 	gen := rapid.Ptr(rapid.Int(), true)
 
 	for i := 0; i < 5; i++ {
-		v := gen.Example(i).(*int)
+		v := gen.Example(i)
 		if v == nil {
 			fmt.Println("<nil>")
 		} else {

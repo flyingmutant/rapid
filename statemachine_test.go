@@ -67,7 +67,7 @@ func (m *counterMachine) Check(t *T) {
 func TestStateMachine_Counter(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Run(&counterMachine{}),
+	checkShrink(t, Run[*counterMachine](),
 		"Inc", "Inc", "Inc", "Inc",
 		"Dec",
 	)
@@ -90,7 +90,7 @@ func (m *haltingMachine) A(t *T) {
 		t.SkipNow()
 	}
 
-	m.a = append(m.a, Int().Draw(t, "a").(int))
+	m.a = append(m.a, Int().Draw(t, "a"))
 }
 
 func (m *haltingMachine) B(t *T) {
@@ -98,7 +98,7 @@ func (m *haltingMachine) B(t *T) {
 		t.SkipNow()
 	}
 
-	m.b = append(m.b, Int().Draw(t, "b").(int))
+	m.b = append(m.b, Int().Draw(t, "b"))
 }
 
 func (m *haltingMachine) C(t *T) {
@@ -106,18 +106,18 @@ func (m *haltingMachine) C(t *T) {
 		t.SkipNow()
 	}
 
-	m.c = append(m.c, Int().Draw(t, "c").(int))
+	m.c = append(m.c, Int().Draw(t, "c"))
 }
 
 func TestStateMachine_Halting(t *testing.T) {
 	t.Parallel()
 
-	a := []value{"A", 0, "A", 0, "A", 0}
+	a := []any{"A", 0, "A", 0, "A", 0}
 	for i := 0; i < 100; i++ {
 		a = append(a, "A") // TODO proper shrinking of "stuck" state machines
 	}
 
-	checkShrink(t, Run(&haltingMachine{}), a...)
+	checkShrink(t, Run[*haltingMachine](), a...)
 }
 
 // https://www.cs.tufts.edu/~nr/cs257/archive/john-hughes/quviq-testing.pdf
@@ -163,7 +163,7 @@ type queueMachine struct {
 }
 
 func (m *queueMachine) Init(t *T) {
-	size := IntRange(1, 1000).Draw(t, "size").(int)
+	size := IntRange(1, 1000).Draw(t, "size")
 	m.q = newBuggyQueue(size)
 	m.size = size
 }
@@ -185,7 +185,7 @@ func (m *queueMachine) Put(t *T) {
 		t.Skip("queue full")
 	}
 
-	n := Int().Draw(t, "n").(int)
+	n := Int().Draw(t, "n")
 	m.q.Put(n)
 	m.state = append(m.state, n)
 }
@@ -199,7 +199,7 @@ func (m *queueMachine) Check(t *T) {
 func TestStateMachine_Queue(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Run(&queueMachine{}),
+	checkShrink(t, Run[*queueMachine](),
 		1,
 		"Put", 0,
 		"Get",
@@ -217,17 +217,17 @@ func (m *garbageMachine) AddA(t *T) {
 		t.Skip("too early")
 	}
 
-	n := Int().Draw(t, "a").(int)
+	n := Int().Draw(t, "a")
 	m.a = append(m.a, n)
 }
 
 func (m *garbageMachine) AddB(t *T) {
-	n := Int().Draw(t, "b").(int)
+	n := Int().Draw(t, "b")
 	m.b = append(m.b, n)
 }
 
 func (m *garbageMachine) Whatever1(t *T) {
-	b := Bool().Draw(t, "whatever 1/1").(bool)
+	b := Bool().Draw(t, "whatever 1/1")
 	if b {
 		t.Skip("arbitrary decision")
 	}
@@ -236,11 +236,11 @@ func (m *garbageMachine) Whatever1(t *T) {
 }
 
 func (m *garbageMachine) Whatever2(t *T) {
-	SliceOfDistinct(Int(), nil).Draw(t, "whatever 2")
+	SliceOfDistinct(Int(), ID[int]).Draw(t, "whatever 2")
 }
 
 func (m *garbageMachine) Whatever3(t *T) {
-	OneOf(SliceOf(Byte()), MapOf(Int(), String())).Draw(t, "whatever 3")
+	OneOf(SliceOf(Byte()), SliceOf(ByteMax(239))).Draw(t, "whatever 3")
 }
 
 func (m *garbageMachine) Check(t *T) {
@@ -252,7 +252,7 @@ func (m *garbageMachine) Check(t *T) {
 func TestStateMachine_DiscardGarbage(t *testing.T) {
 	t.Parallel()
 
-	checkShrink(t, Run(&garbageMachine{}),
+	checkShrink(t, Run[*garbageMachine](),
 		"AddB", 0,
 		"AddB", 0,
 		"AddB", 0,
@@ -265,6 +265,6 @@ func TestStateMachine_DiscardGarbage(t *testing.T) {
 
 func BenchmarkCheckQueue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, _, _, _, _, _ = doCheck(b, "", 100, baseSeed(), Run(&queueMachine{}))
+		_, _, _, _, _, _ = doCheck(b, "", 100, baseSeed(), Run[*queueMachine]())
 	}
 }

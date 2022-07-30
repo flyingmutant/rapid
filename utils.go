@@ -207,14 +207,15 @@ type repeat struct {
 	rejected   bool
 	rejections int
 	forceStop  bool
+	label      string
 }
 
-func newRepeat(minCount int, maxCount int, avgCount float64) *repeat {
+func newRepeat(minCount int, maxCount int, avgCount float64, label string) *repeat {
 	if minCount < 0 {
 		minCount = 0
 	}
 	if maxCount < 0 {
-		maxCount = maxInt
+		maxCount = math.MaxInt
 	}
 	if avgCount < 0 {
 		avgCount = float64(minCount) + math.Min(math.Max(float64(minCount), small), (float64(maxCount)-float64(minCount))/2)
@@ -226,6 +227,7 @@ func newRepeat(minCount int, maxCount int, avgCount float64) *repeat {
 		avgCount:  avgCount,
 		pContinue: 1 - 1/(1+avgCount-float64(minCount)), // TODO was no -minCount intentional?
 		group:     -1,
+		label:     label + repeatLabel,
 	}
 }
 
@@ -233,12 +235,12 @@ func (r *repeat) avg() int {
 	return int(math.Ceil(r.avgCount))
 }
 
-func (r *repeat) more(s bitStream, label string) bool {
+func (r *repeat) more(s bitStream) bool {
 	if r.group >= 0 {
 		s.endGroup(r.group, r.rejected)
 	}
 
-	r.group = s.beginGroup(label+repeatLabel, true)
+	r.group = s.beginGroup(r.label, true)
 	r.rejected = false
 
 	pCont := r.pContinue

@@ -8,48 +8,31 @@ package rapid
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 )
 
 const tryLabel = "try"
 
-var (
-	boolType           = reflect.TypeOf(false)
-	tPtrType           = reflect.TypeOf((*T)(nil))
-	emptyInterfaceType = reflect.TypeOf([]interface{}{}).Elem()
-)
-
-func Custom(fn interface{}) *Generator {
-	f := reflect.ValueOf(fn)
-	t := f.Type()
-
-	assertCallable(t, tPtrType, "fn")
-
-	return newGenerator(&customGen{
-		typ: t.Out(0),
-		fn:  f,
+func Custom[V any](fn func(*T) V) *Generator[V] {
+	return newGenerator[V](&customGen[V]{
+		fn: fn,
 	})
 }
 
-type customGen struct {
-	typ reflect.Type
-	fn  reflect.Value
+type customGen[V any] struct {
+	fn func(*T) V
 }
 
-func (g *customGen) String() string {
-	return fmt.Sprintf("Custom(%v)", g.typ)
+func (g *customGen[V]) String() string {
+	var v V
+	return fmt.Sprintf("Custom(%T)", v)
 }
 
-func (g *customGen) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *customGen) value(t *T) value {
+func (g *customGen[V]) value(t *T) V {
 	return find(g.maybeValue, t, small)
 }
 
-func (g *customGen) maybeValue(t *T) value {
+func (g *customGen[V]) maybeValue(t *T) (V, bool) {
 	t = newT(t.tb, t.s, flags.debug, nil)
 
 	defer func() {
@@ -60,57 +43,67 @@ func (g *customGen) maybeValue(t *T) value {
 		}
 	}()
 
-	return call(g.fn, reflect.ValueOf(t))
+	return g.fn(t), true
 }
 
-func filter(g *Generator, fn interface{}) *Generator {
-	f := reflect.ValueOf(fn)
-	t := f.Type()
-
-	assertCallable(t, g.type_(), "fn")
-	assertf(t.Out(0) == boolType, "fn should return bool, not %v", t.Out(0))
-
-	return newGenerator(&filteredGen{
-		g: g,
-		fn: func(v value) bool {
-			return call(f, reflect.ValueOf(v)).(bool)
-		},
+func Deferred[V any](fn func() *Generator[V]) *Generator[V] {
+	return newGenerator[V](&deferredGen[V]{
+		fn: fn,
 	})
 }
 
-type filteredGen struct {
-	g  *Generator
-	fn func(value) bool
+type deferredGen[V any] struct {
+	g  *Generator[V]
+	fn func() *Generator[V]
 }
 
-func (g *filteredGen) String() string {
+func (g *deferredGen[V]) String() string {
+	var v V
+	return fmt.Sprintf("Deferred(%T)", v)
+}
+
+func (g *deferredGen[V]) value(t *T) V {
+	if g.g == nil {
+		g.g = g.fn()
+	}
+	return g.g.value(t)
+}
+
+func filter[V any](g *Generator[V], fn func(V) bool) *Generator[V] {
+	return newGenerator[V](&filteredGen[V]{
+		g:  g,
+		fn: fn,
+	})
+}
+
+type filteredGen[V any] struct {
+	g  *Generator[V]
+	fn func(V) bool
+}
+
+func (g *filteredGen[V]) String() string {
 	return fmt.Sprintf("%v.Filter(...)", g.g)
 }
 
-func (g *filteredGen) type_() reflect.Type {
-	return g.g.type_()
-}
-
-func (g *filteredGen) value(t *T) value {
+func (g *filteredGen[V]) value(t *T) V {
 	return find(g.maybeValue, t, small)
 }
 
-func (g *filteredGen) maybeValue(t *T) value {
+func (g *filteredGen[V]) maybeValue(t *T) (V, bool) {
 	v := g.g.value(t)
 	if g.fn(v) {
-		return v
+		return v, true
 	} else {
-		return nil
+		var zero V
+		return zero, false
 	}
 }
 
-func find(gen func(*T) value, t *T, tries int) value {
+func find[V any](gen func(*T) (V, bool), t *T, tries int) V {
 	for n := 0; n < tries; n++ {
 		i := t.s.beginGroup(tryLabel, false)
-		v := gen(t)
-		ok := v != nil
+		v, ok := gen(t)
 		t.s.endGroup(i, !ok)
-
 		if ok {
 			return v
 		}
@@ -119,103 +112,69 @@ func find(gen func(*T) value, t *T, tries int) value {
 	panic(invalidData(fmt.Sprintf("failed to find suitable value in %d tries", tries)))
 }
 
-func map_(g *Generator, fn interface{}) *Generator {
-	f := reflect.ValueOf(fn)
-	t := f.Type()
-
-	assertCallable(t, g.type_(), "fn")
-
-	return newGenerator(&mappedGen{
-		typ: t.Out(0),
-		g:   g,
-		fn:  f,
+func Transform[U any, V any](g *Generator[U], fn func(U) V) *Generator[V] {
+	return newGenerator[V](&mappedGen[U, V]{
+		g:  g,
+		fn: fn,
 	})
 }
 
-type mappedGen struct {
-	typ reflect.Type
-	g   *Generator
-	fn  reflect.Value
+type mappedGen[U any, V any] struct {
+	g  *Generator[U]
+	fn func(U) V
 }
 
-func (g *mappedGen) String() string {
-	return fmt.Sprintf("%v.Map(func(...) %v)", g.g, g.typ)
+func (g *mappedGen[U, V]) String() string {
+	return fmt.Sprintf("Transform(%v, %T)", g.g, g.fn)
 }
 
-func (g *mappedGen) type_() reflect.Type {
-	return g.typ
+func (g *mappedGen[U, V]) value(t *T) V {
+	return g.fn(g.g.value(t))
 }
 
-func (g *mappedGen) value(t *T) value {
-	v := reflect.ValueOf(g.g.value(t))
-	return call(g.fn, v)
+func Just[V any](val V) *Generator[V] {
+	return SampledFrom([]V{val})
 }
 
-func Just(val interface{}) *Generator {
-	return SampledFrom([]interface{}{val})
-}
+func SampledFrom[S ~[]E, E any](slice S) *Generator[E] {
+	assertf(len(slice) > 0, "slice should not be empty")
 
-func SampledFrom(slice interface{}) *Generator {
-	v := reflect.ValueOf(slice)
-	t := v.Type()
-
-	assertf(t.Kind() == reflect.Slice, "argument should be a slice, not %v", t.Kind())
-	assertf(v.Len() > 0, "slice should not be empty")
-
-	return newGenerator(&sampledGen{
-		typ:   t.Elem(),
-		slice: v,
-		n:     v.Len(),
+	return newGenerator[E](&sampledGen[E]{
+		slice: slice,
 	})
 }
 
-type sampledGen struct {
-	typ   reflect.Type
-	slice reflect.Value
-	n     int
+type sampledGen[E any] struct {
+	slice []E
 }
 
-func (g *sampledGen) String() string {
-	if g.n == 1 {
-		return fmt.Sprintf("Just(%v)", g.slice.Index(0).Interface())
+func (g *sampledGen[E]) String() string {
+	if len(g.slice) == 1 {
+		return fmt.Sprintf("Just(%v)", g.slice[0])
 	} else {
-		return fmt.Sprintf("SampledFrom(%v %v)", g.n, g.typ)
+		return fmt.Sprintf("SampledFrom(%v %T)", len(g.slice), g.slice[0])
 	}
 }
 
-func (g *sampledGen) type_() reflect.Type {
-	return g.typ
+func (g *sampledGen[E]) value(t *T) E {
+	i := genIndex(t.s, len(g.slice), true)
+
+	return g.slice[i]
 }
 
-func (g *sampledGen) value(t *T) value {
-	i := genIndex(t.s, g.n, true)
-
-	return g.slice.Index(i).Interface()
-}
-
-func OneOf(gens ...*Generator) *Generator {
+func OneOf[V any](gens ...*Generator[V]) *Generator[V] {
 	assertf(len(gens) > 0, "at least one generator should be specified")
 
-	typ := gens[0].type_()
-	for _, g := range gens {
-		if g.type_() != gens[0].type_() {
-			typ = emptyInterfaceType
-			break
-		}
-	}
-
-	return newGenerator(&oneOfGen{
-		typ:  typ,
+	return newGenerator[V](&oneOfGen[V]{
 		gens: gens,
 	})
 }
 
-type oneOfGen struct {
-	typ  reflect.Type
-	gens []*Generator
+type oneOfGen[V any] struct {
+	gens []*Generator[V]
 }
 
-func (g *oneOfGen) String() string {
+func (g *oneOfGen[V]) String() string {
 	strs := make([]string, len(g.gens))
 	for i, g := range g.gens {
 		strs[i] = g.String()
@@ -224,49 +183,56 @@ func (g *oneOfGen) String() string {
 	return fmt.Sprintf("OneOf(%v)", strings.Join(strs, ", "))
 }
 
-func (g *oneOfGen) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *oneOfGen) value(t *T) value {
+func (g *oneOfGen[V]) value(t *T) V {
 	i := genIndex(t.s, len(g.gens), true)
 
 	return g.gens[i].value(t)
 }
 
-func Ptr(elem *Generator, allowNil bool) *Generator {
-	return newGenerator(&ptrGen{
-		typ:      reflect.PtrTo(elem.type_()),
+func Ptr[E any](elem *Generator[E], allowNil bool) *Generator[*E] {
+	return newGenerator[*E](&ptrGen[E]{
 		elem:     elem,
 		allowNil: allowNil,
 	})
 }
 
-type ptrGen struct {
-	typ      reflect.Type
-	elem     *Generator
+type ptrGen[E any] struct {
+	elem     *Generator[E]
 	allowNil bool
 }
 
-func (g *ptrGen) String() string {
+func (g *ptrGen[E]) String() string {
 	return fmt.Sprintf("Ptr(%v, allowNil=%v)", g.elem, g.allowNil)
 }
 
-func (g *ptrGen) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *ptrGen) value(t *T) value {
+func (g *ptrGen[E]) value(t *T) *E {
 	pNonNil := float64(1)
 	if g.allowNil {
 		pNonNil = 0.5
 	}
 
 	if flipBiasedCoin(t.s, pNonNil) {
-		p := reflect.New(g.elem.type_())
-		p.Elem().Set(reflect.ValueOf(g.elem.value(t)))
-		return p.Interface()
+		e := g.elem.value(t)
+		return &e
 	} else {
-		return reflect.Zero(g.typ).Interface()
+		return nil
 	}
+}
+
+func asAny[V any](g *Generator[V]) *Generator[any] {
+	return newGenerator[any](&asAnyGen[V]{
+		gen: g,
+	})
+}
+
+type asAnyGen[V any] struct {
+	gen *Generator[V]
+}
+
+func (g *asAnyGen[V]) String() string {
+	return fmt.Sprintf("%v.AsAny()", g.gen)
+}
+
+func (g *asAnyGen[V]) value(t *T) any {
+	return g.gen.value(t)
 }

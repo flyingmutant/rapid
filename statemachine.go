@@ -7,6 +7,7 @@
 package rapid
 
 import (
+	"math"
 	"reflect"
 	"sort"
 	"testing"
@@ -51,10 +52,10 @@ type StateMachine interface {
 //	    m.Check(t)
 //	}
 //
-// Run synthesizes such test from the type of m, which must be a pointer.
-// Note that for each test case, new state machine instance is created
-// via reflection; any data inside m is ignored.
-func Run(m StateMachine) func(*T) {
+// Run synthesizes such test from the M type, which must be a pointer,
+// using reflection.
+func Run[M StateMachine]() func(*T) {
+	var m M
 	typ := reflect.TypeOf(m)
 
 	steps := flags.steps
@@ -65,7 +66,7 @@ func Run(m StateMachine) func(*T) {
 	return func(t *T) {
 		t.Helper()
 
-		repeat := newRepeat(0, steps, maxInt)
+		repeat := newRepeat(0, steps, math.MaxInt, typ.String())
 
 		sm := newStateMachine(typ)
 		if sm.init != nil {
@@ -78,7 +79,7 @@ func Run(m StateMachine) func(*T) {
 
 		sm.check(t)
 		t.failOnError()
-		for repeat.more(t.s, typ.String()) {
+		for repeat.more(t.s) {
 			ok := sm.executeAction(t)
 			if ok {
 				sm.check(t)
@@ -94,7 +95,7 @@ type stateMachine struct {
 	init       func(*T)
 	cleanup    func()
 	check      func(*T)
-	actionKeys *Generator
+	actionKeys *Generator[string]
 	actions    map[string]func(*T)
 }
 
@@ -144,7 +145,7 @@ func (sm *stateMachine) executeAction(t *T) bool {
 
 	for n := 0; n < validActionTries; n++ {
 		i := t.s.beginGroup(actionLabel, false)
-		action := sm.actions[sm.actionKeys.Draw(t, "action").(string)]
+		action := sm.actions[sm.actionKeys.Draw(t, "action")]
 		invalid, skipped := runAction(t, action)
 		t.s.endGroup(i, false)
 

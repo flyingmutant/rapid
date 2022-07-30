@@ -12,9 +12,9 @@ func TestCollectionsWithImpossibleMinSize(t *testing.T) {
 	t.Parallel()
 
 	s := createRandomBitStream(t)
-	gens := []*Generator{
-		MapOfN(Bool(), Int(), 10, -1),
-		SliceOfNDistinct(Int(), 10, -1, func(i int) int { return i % 5 }),
+	gens := []*Generator[any]{
+		MapOfN(Bool(), Int(), 10, -1).AsAny(),
+		SliceOfNDistinct(Int(), 10, -1, func(i int) int { return i % 5 }).AsAny(),
 	}
 
 	for _, g := range gens {

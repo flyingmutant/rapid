@@ -18,6 +18,7 @@ a descendant of [QuickCheck](https://hackage.haskell.org/package/QuickCheck).
 ## Features
 
 - Idiomatic Go API
+  - Type-safe data generation using generics
   - Designed to be used together with `go test` and the `testing` package
   - Works great with libraries like
     [testify/require](https://pkg.go.dev/github.com/stretchr/testify/require) and
@@ -48,7 +49,7 @@ func TestParseValidIPv4(t *testing.T) {
 		`\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])`
 
 	rapid.Check(t, func(t *rapid.T) {
-		addr := rapid.StringMatching(ipv4re).Draw(t, "addr").(string)
+		addr := rapid.StringMatching(ipv4re).Draw(t, "addr")
 		ip := net.ParseIP(addr)
 		if ip == nil || ip.String() != addr {
 			t.Fatalf("parsed %q into %v", addr, ip)
@@ -85,6 +86,7 @@ Rapid aims to bring to Go the power and convenience Hypothesis brings to Python.
 
 Compared to [gopter](https://pkg.go.dev/github.com/leanovate/gopter), rapid:
 
+- provides type-safe data generation using generics
 - has a much simpler API (queue test in [rapid](./example_statemachine_test.go) vs
   [gopter](https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go))
 - does not require any user code to minimize failing test cases

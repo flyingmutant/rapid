@@ -23,18 +23,18 @@ var (
 )
 
 func TestIntExamples(t *testing.T) {
-	gens := []*Generator{
-		Int(),
-		IntMin(-3),
-		IntMax(3),
-		IntRange(-3, 7),
-		IntRange(-1000, 1000000),
-		IntRange(0, 9),
-		IntRange(0, 15),
-		IntRange(10, 100),
-		IntRange(100, 10000),
-		IntRange(100, 1000000),
-		IntRange(100, 1<<60-1),
+	gens := []*Generator[any]{
+		Int().AsAny(),
+		IntMin(-3).AsAny(),
+		IntMax(3).AsAny(),
+		IntRange(-3, 7).AsAny(),
+		IntRange(-1000, 1000000).AsAny(),
+		IntRange(0, 9).AsAny(),
+		IntRange(0, 15).AsAny(),
+		IntRange(10, 100).AsAny(),
+		IntRange(100, 10000).AsAny(),
+		IntRange(100, 1000000).AsAny(),
+		IntRange(100, 1<<60-1).AsAny(),
 	}
 
 	for _, g := range gens {
@@ -52,29 +52,45 @@ func TestIntExamples(t *testing.T) {
 	}
 }
 
-func createGen(ctor interface{}, args ...interface{}) *Generator {
-	refArgs := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		refArgs[i] = rv(arg)
-	}
-
-	return rv(ctor).Call(refArgs)[0].Interface().(*Generator)
-}
-
 func TestIntMinMaxRange(t *testing.T) {
 	t.Parallel()
 
 	data := []struct {
-		g      *Generator
-		min    interface{}
-		max    interface{}
-		range_ interface{}
+		g      *Generator[any]
+		min    func(any) *Generator[any]
+		max    func(any) *Generator[any]
+		range_ func(any, any) *Generator[any]
 	}{
-		{Int(), IntMin, IntMax, IntRange},
-		{Int8(), Int8Min, Int8Max, Int8Range},
-		{Int16(), Int16Min, Int16Max, Int16Range},
-		{Int32(), Int32Min, Int32Max, Int32Range},
-		{Int64(), Int64Min, Int64Max, Int64Range},
+		{
+			Int().AsAny(),
+			func(i any) *Generator[any] { return IntMin(i.(int)).AsAny() },
+			func(i any) *Generator[any] { return IntMax(i.(int)).AsAny() },
+			func(i, j any) *Generator[any] { return IntRange(i.(int), j.(int)).AsAny() },
+		},
+		{
+			Int8().AsAny(),
+			func(i any) *Generator[any] { return Int8Min(i.(int8)).AsAny() },
+			func(i any) *Generator[any] { return Int8Max(i.(int8)).AsAny() },
+			func(i, j any) *Generator[any] { return Int8Range(i.(int8), j.(int8)).AsAny() },
+		},
+		{
+			Int16().AsAny(),
+			func(i any) *Generator[any] { return Int16Min(i.(int16)).AsAny() },
+			func(i any) *Generator[any] { return Int16Max(i.(int16)).AsAny() },
+			func(i, j any) *Generator[any] { return Int16Range(i.(int16), j.(int16)).AsAny() },
+		},
+		{
+			Int32().AsAny(),
+			func(i any) *Generator[any] { return Int32Min(i.(int32)).AsAny() },
+			func(i any) *Generator[any] { return Int32Max(i.(int32)).AsAny() },
+			func(i, j any) *Generator[any] { return Int32Range(i.(int32), j.(int32)).AsAny() },
+		},
+		{
+			Int64().AsAny(),
+			func(i any) *Generator[any] { return Int64Min(i.(int64)).AsAny() },
+			func(i any) *Generator[any] { return Int64Max(i.(int64)).AsAny() },
+			func(i, j any) *Generator[any] { return Int64Range(i.(int64), j.(int64)).AsAny() },
+		},
 	}
 
 	for _, d := range data {
@@ -85,17 +101,17 @@ func TestIntMinMaxRange(t *testing.T) {
 				t.Skip("min > max")
 			}
 
-			i := createGen(d.min, min).Draw(t, "i")
+			i := d.min(min).Draw(t, "i")
 			if rv(i).Int() < rv(min).Int() {
 				t.Fatalf("got %v which is less than min %v", i, min)
 			}
 
-			j := createGen(d.max, max).Draw(t, "j")
+			j := d.max(max).Draw(t, "j")
 			if rv(j).Int() > rv(max).Int() {
 				t.Fatalf("got %v which is more than max %v", j, max)
 			}
 
-			k := createGen(d.range_, min, max).Draw(t, "k")
+			k := d.range_(min, max).Draw(t, "k")
 			if rv(k).Int() < rv(min).Int() || rv(k).Int() > rv(max).Int() {
 				t.Fatalf("got %v which is out of bounds [%v, %v]", k, min, max)
 			}
@@ -107,18 +123,53 @@ func TestUintMinMaxRange(t *testing.T) {
 	t.Parallel()
 
 	data := []struct {
-		g      *Generator
-		min    interface{}
-		max    interface{}
-		range_ interface{}
+		g      *Generator[any]
+		min    func(any) *Generator[any]
+		max    func(any) *Generator[any]
+		range_ func(any, any) *Generator[any]
 	}{
-		{Byte(), ByteMin, ByteMax, ByteRange},
-		{Uint(), UintMin, UintMax, UintRange},
-		{Uint8(), Uint8Min, Uint8Max, Uint8Range},
-		{Uint16(), Uint16Min, Uint16Max, Uint16Range},
-		{Uint32(), Uint32Min, Uint32Max, Uint32Range},
-		{Uint64(), Uint64Min, Uint64Max, Uint64Range},
-		{Uintptr(), UintptrMin, UintptrMax, UintptrRange},
+		{
+			Byte().AsAny(),
+			func(i any) *Generator[any] { return ByteMin(i.(byte)).AsAny() },
+			func(i any) *Generator[any] { return ByteMax(i.(byte)).AsAny() },
+			func(i, j any) *Generator[any] { return ByteRange(i.(byte), j.(byte)).AsAny() },
+		},
+		{
+			Uint().AsAny(),
+			func(i any) *Generator[any] { return UintMin(i.(uint)).AsAny() },
+			func(i any) *Generator[any] { return UintMax(i.(uint)).AsAny() },
+			func(i, j any) *Generator[any] { return UintRange(i.(uint), j.(uint)).AsAny() },
+		},
+		{
+			Uint8().AsAny(),
+			func(i any) *Generator[any] { return Uint8Min(i.(uint8)).AsAny() },
+			func(i any) *Generator[any] { return Uint8Max(i.(uint8)).AsAny() },
+			func(i, j any) *Generator[any] { return Uint8Range(i.(uint8), j.(uint8)).AsAny() },
+		},
+		{
+			Uint16().AsAny(),
+			func(i any) *Generator[any] { return Uint16Min(i.(uint16)).AsAny() },
+			func(i any) *Generator[any] { return Uint16Max(i.(uint16)).AsAny() },
+			func(i, j any) *Generator[any] { return Uint16Range(i.(uint16), j.(uint16)).AsAny() },
+		},
+		{
+			Uint32().AsAny(),
+			func(i any) *Generator[any] { return Uint32Min(i.(uint32)).AsAny() },
+			func(i any) *Generator[any] { return Uint32Max(i.(uint32)).AsAny() },
+			func(i, j any) *Generator[any] { return Uint32Range(i.(uint32), j.(uint32)).AsAny() },
+		},
+		{
+			Uint64().AsAny(),
+			func(i any) *Generator[any] { return Uint64Min(i.(uint64)).AsAny() },
+			func(i any) *Generator[any] { return Uint64Max(i.(uint64)).AsAny() },
+			func(i, j any) *Generator[any] { return Uint64Range(i.(uint64), j.(uint64)).AsAny() },
+		},
+		{
+			Uintptr().AsAny(),
+			func(i any) *Generator[any] { return UintptrMin(i.(uintptr)).AsAny() },
+			func(i any) *Generator[any] { return UintptrMax(i.(uintptr)).AsAny() },
+			func(i, j any) *Generator[any] { return UintptrRange(i.(uintptr), j.(uintptr)).AsAny() },
+		},
 	}
 
 	for _, d := range data {
@@ -129,17 +180,17 @@ func TestUintMinMaxRange(t *testing.T) {
 				t.Skip("min > max")
 			}
 
-			i := createGen(d.min, min).Draw(t, "i")
+			i := d.min(min).Draw(t, "i")
 			if rv(i).Uint() < rv(min).Uint() {
 				t.Fatalf("got %v which is less than min %v", i, min)
 			}
 
-			j := createGen(d.max, max).Draw(t, "j")
+			j := d.max(max).Draw(t, "j")
 			if rv(j).Uint() > rv(max).Uint() {
 				t.Fatalf("got %v which is more than max %v", j, max)
 			}
 
-			k := createGen(d.range_, min, max).Draw(t, "k")
+			k := d.range_(min, max).Draw(t, "k")
 			if rv(k).Uint() < rv(min).Uint() || rv(k).Uint() > rv(max).Uint() {
 				t.Fatalf("got %v which is out of bounds [%v, %v]", k, min, max)
 			}
@@ -151,8 +202,8 @@ func TestIntBoundCoverage(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		min := Int().Draw(t, "min").(int)
-		max := Int().Draw(t, "max").(int)
+		min := Int().Draw(t, "min")
+		max := Int().Draw(t, "max")
 		if min > max {
 			min, max = max, min
 		}
@@ -160,7 +211,7 @@ func TestIntBoundCoverage(t *testing.T) {
 		g := IntRange(min, max)
 		var gotMin, gotMax, gotZero bool
 		for i := 0; i < 250; i++ {
-			n := g.Example(i).(int)
+			n := g.Example(i)
 
 			gotMin = gotMin || n == min
 			gotMax = gotMax || n == max

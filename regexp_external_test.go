@@ -1066,7 +1066,7 @@ func TestStringMatching(t *testing.T) {
 			}
 
 			Check(t, func(t *T) {
-				s := StringMatching(expr).Draw(t, "s").(string)
+				s := StringMatching(expr).Draw(t, "s")
 				if !re.MatchString(s) {
 					t.Fatalf("%q does not match %q", s, expr)
 				}
@@ -1086,7 +1086,7 @@ func TestSliceOfBytesMatching(t *testing.T) {
 			}
 
 			Check(t, func(t *T) {
-				s := SliceOfBytesMatching(expr).Draw(t, "s").([]byte)
+				s := SliceOfBytesMatching(expr).Draw(t, "s")
 				if !re.Match(s) {
 					t.Fatalf("%q does not match %q", s, expr)
 				}

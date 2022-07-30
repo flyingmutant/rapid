@@ -15,12 +15,12 @@ type intPair struct {
 
 func BenchmarkHeavyChain3(b *testing.B) {
 	t := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
-	g := Custom(func(t *T) int { return Int().Draw(t, "").(int) }).
-		Map(func(i int) intPair { return intPair{i, i << 13} }).
-		Map(func(p intPair) int { return p.x + p.y })
+	g1 := Custom(func(t *T) int { return Int().Draw(t, "") })
+	g2 := Transform(g1, func(i int) intPair { return intPair{i, i << 13} })
+	g3 := Transform(g2, func(p intPair) int { return p.x + p.y })
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		g.value(t)
+		g3.value(t)
 	}
 }

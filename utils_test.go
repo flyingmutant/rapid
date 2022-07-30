@@ -110,7 +110,7 @@ func TestUintsExamplesHist(t *testing.T) {
 	}
 }
 
-func ensureWithin3Sigma(t *testing.T, ctx interface{}, y int, n int, p float64) {
+func ensureWithin3Sigma(t *testing.T, ctx any, y int, n int, p float64) {
 	t.Helper()
 
 	mu := float64(n) * p
@@ -320,8 +320,8 @@ func TestRepeat(t *testing.T) {
 		n := 5000
 		c := make([]int, n)
 		for i := 0; i < n; i++ {
-			r := newRepeat(min, max, float64(avg))
-			for r.more(s, "") {
+			r := newRepeat(min, max, float64(avg), "")
+			for r.more(s) {
 				c[i]++
 			}
 

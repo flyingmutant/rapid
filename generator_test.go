@@ -6,16 +6,12 @@
 
 package rapid
 
-import (
-	"reflect"
-	"testing"
-)
+import "testing"
 
 type trivialGenImpl struct{}
 
-func (trivialGenImpl) String() string      { return "" }
-func (trivialGenImpl) type_() reflect.Type { return uint64Type }
-func (trivialGenImpl) value(t *T) value    { return t.s.drawBits(64) }
+func (trivialGenImpl) String() string    { return "" }
+func (trivialGenImpl) value(t *T) uint64 { return t.s.drawBits(64) }
 
 func BenchmarkTrivialGenImplValue(b *testing.B) {
 	t := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
@@ -29,7 +25,7 @@ func BenchmarkTrivialGenImplValue(b *testing.B) {
 
 func BenchmarkGenerator_Value(b *testing.B) {
 	t := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
-	g := newGenerator(trivialGenImpl{})
+	g := newGenerator[uint64](trivialGenImpl{})
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {

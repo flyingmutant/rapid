@@ -75,7 +75,7 @@ type shrinker struct {
 	hits    int
 }
 
-func (s *shrinker) debugf(verbose_ bool, format string, args ...interface{}) {
+func (s *shrinker) debugf(verbose_ bool, format string, args ...any) {
 	if flags.debug && (!verbose_ || flags.verbose) {
 		s.tb.Helper()
 		s.tb.Logf("[shrink] "+format, args...)
@@ -246,7 +246,7 @@ func (s *shrinker) removeGroupSpans(deadline time.Time) {
 	}
 }
 
-func (s *shrinker) accept(buf []uint64, label string, format string, args ...interface{}) bool {
+func (s *shrinker) accept(buf []uint64, label string, format string, args ...any) bool {
 	if compareData(buf, s.rec.data) >= 0 {
 		return false
 	}

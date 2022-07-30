@@ -37,7 +37,7 @@ func TestShrink_IntCmp(t *testing.T) {
 	for _, r := range ref {
 		t.Run(fmt.Sprintf("%v", r), func(t *testing.T) {
 			checkShrink(t, func(t *T) {
-				i := Int().Draw(t, "i").(int)
+				i := Int().Draw(t, "i")
 				if ((r.gt && i > r.a) || (!r.gt && i < r.a)) || (r.eq && i == r.a) {
 					t.Fail()
 				}
@@ -71,7 +71,7 @@ func TestShrink_FloatCmp(t *testing.T) {
 	for _, r := range ref {
 		t.Run(fmt.Sprintf("%v", r), func(t *testing.T) {
 			checkShrink(t, func(t *T) {
-				f := Float64().Draw(t, "f").(float64)
+				f := Float64().Draw(t, "f")
 				if ((r.gt && f > r.a) || (!r.gt && f < r.a)) || (r.eq && f == r.a) {
 					t.Fail()
 				}
@@ -84,7 +84,7 @@ func TestShrink_IntSliceNElemsGt(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s := SliceOf(Int()).Draw(t, "s").([]int)
+		s := SliceOf(Int()).Draw(t, "s")
 		n := 0
 		for _, i := range s {
 			if i > 1000000 {
@@ -101,8 +101,8 @@ func TestShrink_IntSliceElemGe(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s := SliceOfN(Int(), 1, -1).Draw(t, "s").([]int)
-		ix := IntRange(0, len(s)-1).Draw(t, "ix").(int)
+		s := SliceOfN(Int(), 1, -1).Draw(t, "s")
+		ix := IntRange(0, len(s)-1).Draw(t, "ix")
 
 		if s[ix] >= 100 {
 			t.Fail()
@@ -114,7 +114,7 @@ func TestShrink_IntSliceElemSpanGe(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s := SliceOfN(Int(), 4, -1).Draw(t, "s").([]int)
+		s := SliceOfN(Int(), 4, -1).Draw(t, "s")
 		if len(s)%3 == 1 && s[len(s)-1] >= 100 {
 			t.Fail()
 		}
@@ -125,7 +125,7 @@ func TestShrink_IntSliceNoDuplicates(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s := SliceOfN(IntMin(1), 5, -1).Draw(t, "s").([]int)
+		s := SliceOfN(IntMin(1), 5, -1).Draw(t, "s")
 		sort.Ints(s)
 		last := 0
 		for _, i := range s {
@@ -142,31 +142,31 @@ func TestShrink_String(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s1 := String().Draw(t, "s1").(string)
-		s2 := String().Draw(t, "s2").(string)
+		s1 := String().Draw(t, "s1")
+		s2 := String().Draw(t, "s2")
 		if len(s1) > len(s2) {
 			t.Fail()
 		}
 	}, "A", "")
 }
 
-func TestShrink_StringOfBytes(t *testing.T) {
+func TestShrink_StringOf(t *testing.T) {
 	t.Parallel()
 
 	checkShrink(t, func(t *T) {
-		s1 := StringOf(Byte()).Draw(t, "s1").(string)
-		s2 := StringOf(Byte()).Draw(t, "s2").(string)
+		s1 := StringOf(RuneFrom([]rune{'X', 'Y', 'Z'})).Draw(t, "s1")
+		s2 := StringOf(RuneFrom([]rune{'U', 'V', 'W'})).Draw(t, "s2")
 		if len(s1) > len(s2) {
 			t.Fail()
 		}
-	}, "\x00", "")
+	}, "X", "")
 }
 
 func TestMinimize_UnsetBits(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		mask := Uint64Range(0, math.MaxUint64).Draw(t, "mask").(uint64)
+		mask := Uint64Range(0, math.MaxUint64).Draw(t, "mask")
 		best := minimize(math.MaxUint64, func(x uint64, s string) bool { return x&mask == mask })
 		if best != mask {
 			t.Fatalf("unset to %v instead of %v", bin(best), bin(mask))
@@ -178,7 +178,7 @@ func TestMinimize_SortBits(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		u := Uint64Range(0, math.MaxUint64).Draw(t, "u").(uint64)
+		u := Uint64Range(0, math.MaxUint64).Draw(t, "u")
 		n := bits.OnesCount64(u)
 		v := uint64(1<<uint(n) - 1)
 
@@ -193,8 +193,8 @@ func TestMinimize_LowerBound(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		min := Uint64().Draw(t, "min").(uint64)
-		u := Uint64Min(min).Draw(t, "u").(uint64)
+		min := Uint64().Draw(t, "min")
+		u := Uint64Min(min).Draw(t, "u")
 
 		best := minimize(u, func(x uint64, s string) bool { return x >= min })
 		if best != min {
@@ -203,7 +203,7 @@ func TestMinimize_LowerBound(t *testing.T) {
 	})
 }
 
-func checkShrink(t *testing.T, prop func(*T), draws ...value) {
+func checkShrink(t *testing.T, prop func(*T), draws ...any) {
 	t.Helper()
 
 	for i := 0; i < shrinkTestRuns; i++ {

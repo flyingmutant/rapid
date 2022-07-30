@@ -6,126 +6,100 @@
 
 package rapid
 
-import (
-	"fmt"
-	"reflect"
-)
+import "fmt"
 
-func SliceOf(elem *Generator) *Generator {
+// ID returns its argument as is. ID is a helper for use with [SliceOfDistinct] and similar functions.
+func ID[V any](v V) V {
+	return v
+}
+
+func SliceOf[E any](elem *Generator[E]) *Generator[[]E] {
 	return SliceOfN(elem, -1, -1)
 }
 
-func SliceOfN(elem *Generator, minLen int, maxLen int) *Generator {
+func SliceOfN[E any](elem *Generator[E], minLen int, maxLen int) *Generator[[]E] {
 	assertValidRange(minLen, maxLen)
 
-	return newGenerator(&sliceGen{
-		typ:    reflect.SliceOf(elem.type_()),
+	return newGenerator[[]E](&sliceGen[E, struct{}]{
 		minLen: minLen,
 		maxLen: maxLen,
 		elem:   elem,
 	})
 }
 
-func SliceOfDistinct(elem *Generator, keyFn interface{}) *Generator {
+func SliceOfDistinct[E any, K comparable](elem *Generator[E], keyFn func(E) K) *Generator[[]E] {
 	return SliceOfNDistinct(elem, -1, -1, keyFn)
 }
 
-func SliceOfNDistinct(elem *Generator, minLen int, maxLen int, keyFn interface{}) *Generator {
+func SliceOfNDistinct[E any, K comparable](elem *Generator[E], minLen int, maxLen int, keyFn func(E) K) *Generator[[]E] {
 	assertValidRange(minLen, maxLen)
 
-	keyTyp := elem.type_()
-	if keyFn != nil {
-		t := reflect.TypeOf(keyFn)
-		assertCallable(t, elem.type_(), "keyFn")
-		keyTyp = t.Out(0)
-	}
-	assertf(keyTyp.Comparable(), "key type should be comparable (got %v)", keyTyp)
-
-	return newGenerator(&sliceGen{
-		typ:    reflect.SliceOf(elem.type_()),
+	return newGenerator[[]E](&sliceGen[E, K]{
 		minLen: minLen,
 		maxLen: maxLen,
 		elem:   elem,
-		keyTyp: keyTyp,
-		keyFn:  reflect.ValueOf(keyFn),
+		keyFn:  keyFn,
 	})
 }
 
-type sliceGen struct {
-	typ    reflect.Type
+type sliceGen[E any, K comparable] struct {
 	minLen int
 	maxLen int
-	elem   *Generator
-	keyTyp reflect.Type
-	keyFn  reflect.Value
+	elem   *Generator[E]
+	keyFn  func(E) K
 }
 
-func (g *sliceGen) String() string {
-	if g.keyTyp == nil {
+func (g *sliceGen[E, K]) String() string {
+	if g.keyFn == nil {
 		if g.minLen < 0 && g.maxLen < 0 {
 			return fmt.Sprintf("SliceOf(%v)", g.elem)
 		} else {
 			return fmt.Sprintf("SliceOfN(%v, minLen=%v, maxLen=%v)", g.elem, g.minLen, g.maxLen)
 		}
 	} else {
-		key := ""
-		if g.keyFn.IsValid() {
-			key = fmt.Sprintf(", key=func(%v) %v", g.elem.type_(), g.keyTyp)
-		}
-
 		if g.minLen < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("SliceOfDistinct(%v%v)", g.elem, key)
+			return fmt.Sprintf("SliceOfDistinct(%v, key=%T)", g.elem, g.keyFn)
 		} else {
-			return fmt.Sprintf("SliceOfNDistinct(%v, minLen=%v, maxLen=%v%v)", g.elem, g.minLen, g.maxLen, key)
+			return fmt.Sprintf("SliceOfNDistinct(%v, minLen=%v, maxLen=%v, key=%T)", g.elem, g.minLen, g.maxLen, g.keyFn)
 		}
 	}
 }
 
-func (g *sliceGen) type_() reflect.Type {
-	return g.typ
-}
+func (g *sliceGen[E, K]) value(t *T) []E {
+	repeat := newRepeat(g.minLen, g.maxLen, -1, g.elem.String())
 
-func (g *sliceGen) value(t *T) value {
-	repeat := newRepeat(g.minLen, g.maxLen, -1)
-
-	var seen reflect.Value
-	if g.keyTyp != nil {
-		seen = reflect.MakeMapWithSize(reflect.MapOf(g.keyTyp, emptyStructType), repeat.avg())
+	var seen map[K]struct{}
+	if g.keyFn != nil {
+		seen = make(map[K]struct{}, repeat.avg())
 	}
 
-	sl := reflect.MakeSlice(g.typ, 0, repeat.avg())
-	for repeat.more(t.s, g.elem.String()) {
-		e := reflect.ValueOf(g.elem.value(t))
-		if g.keyTyp == nil {
-			sl = reflect.Append(sl, e)
+	sl := make([]E, 0, repeat.avg())
+	for repeat.more(t.s) {
+		e := g.elem.value(t)
+		if g.keyFn == nil {
+			sl = append(sl, e)
 		} else {
-			k := e
-			if g.keyFn.IsValid() {
-				k = g.keyFn.Call([]reflect.Value{k})[0]
-			}
-
-			if seen.MapIndex(k).IsValid() {
+			k := g.keyFn(e)
+			if _, ok := seen[k]; ok {
 				repeat.reject()
 			} else {
-				seen.SetMapIndex(k, emptyStructValue)
-				sl = reflect.Append(sl, e)
+				seen[k] = struct{}{}
+				sl = append(sl, e)
 			}
 		}
 	}
 
-	return sl.Interface()
+	return sl
 }
 
-func MapOf(key *Generator, val *Generator) *Generator {
+func MapOf[K comparable, V any](key *Generator[K], val *Generator[V]) *Generator[map[K]V] {
 	return MapOfN(key, val, -1, -1)
 }
 
-func MapOfN(key *Generator, val *Generator, minLen int, maxLen int) *Generator {
+func MapOfN[K comparable, V any](key *Generator[K], val *Generator[V], minLen int, maxLen int) *Generator[map[K]V] {
 	assertValidRange(minLen, maxLen)
-	assertf(key.type_().Comparable(), "key type should be comparable (got %v)", key.type_())
 
-	return newGenerator(&mapGen{
-		typ:    reflect.MapOf(key.type_(), val.type_()),
+	return newGenerator[map[K]V](&mapGen[K, V]{
 		minLen: minLen,
 		maxLen: maxLen,
 		key:    key,
@@ -133,133 +107,71 @@ func MapOfN(key *Generator, val *Generator, minLen int, maxLen int) *Generator {
 	})
 }
 
-func MapOfValues(val *Generator, keyFn interface{}) *Generator {
+func MapOfValues[K comparable, V any](val *Generator[V], keyFn func(V) K) *Generator[map[K]V] {
 	return MapOfNValues(val, -1, -1, keyFn)
 }
 
-func MapOfNValues(val *Generator, minLen int, maxLen int, keyFn interface{}) *Generator {
+func MapOfNValues[K comparable, V any](val *Generator[V], minLen int, maxLen int, keyFn func(V) K) *Generator[map[K]V] {
 	assertValidRange(minLen, maxLen)
 
-	keyTyp := val.type_()
-	if keyFn != nil {
-		t := reflect.TypeOf(keyFn)
-		assertCallable(t, val.type_(), "keyFn")
-		keyTyp = t.Out(0)
-	}
-	assertf(keyTyp.Comparable(), "key type should be comparable (got %v)", keyTyp)
-
-	return newGenerator(&mapGen{
-		typ:    reflect.MapOf(keyTyp, val.type_()),
+	return newGenerator[map[K]V](&mapGen[K, V]{
 		minLen: minLen,
 		maxLen: maxLen,
 		val:    val,
-		keyTyp: keyTyp,
-		keyFn:  reflect.ValueOf(keyFn),
+		keyFn:  keyFn,
 	})
 }
 
-type mapGen struct {
-	typ    reflect.Type
+type mapGen[K comparable, V any] struct {
 	minLen int
 	maxLen int
-	key    *Generator
-	val    *Generator
-	keyTyp reflect.Type
-	keyFn  reflect.Value
+	key    *Generator[K]
+	val    *Generator[V]
+	keyFn  func(V) K
 }
 
-func (g *mapGen) String() string {
-	if g.keyTyp == nil {
+func (g *mapGen[K, V]) String() string {
+	if g.key != nil {
 		if g.minLen < 0 && g.maxLen < 0 {
 			return fmt.Sprintf("MapOf(%v, %v)", g.key, g.val)
 		} else {
 			return fmt.Sprintf("MapOfN(%v, %v, minLen=%v, maxLen=%v)", g.key, g.val, g.minLen, g.maxLen)
 		}
 	} else {
-		key := ""
-		if g.keyFn.IsValid() {
-			key = fmt.Sprintf(", key=func(%v) %v", g.val.type_(), g.keyTyp)
-		}
-
 		if g.minLen < 0 && g.maxLen < 0 {
-			return fmt.Sprintf("MapOfValues(%v%v)", g.val, key)
+			return fmt.Sprintf("MapOfValues(%v, key=%T)", g.val, g.keyFn)
 		} else {
-			return fmt.Sprintf("MapOfNValues(%v, minLen=%v, maxLen=%v%v)", g.val, g.minLen, g.maxLen, key)
+			return fmt.Sprintf("MapOfNValues(%v, minLen=%v, maxLen=%v, key=%T)", g.val, g.minLen, g.maxLen, g.keyFn)
 		}
 	}
 }
 
-func (g *mapGen) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *mapGen) value(t *T) value {
+func (g *mapGen[K, V]) value(t *T) map[K]V {
 	label := g.val.String()
 	if g.key != nil {
 		label = g.key.String() + "," + label
 	}
 
-	repeat := newRepeat(g.minLen, g.maxLen, -1)
+	repeat := newRepeat(g.minLen, g.maxLen, -1, label)
 
-	m := reflect.MakeMapWithSize(g.typ, repeat.avg())
-	for repeat.more(t.s, label) {
-		var k, v reflect.Value
-		if g.keyTyp == nil {
-			k = reflect.ValueOf(g.key.value(t))
-			v = reflect.ValueOf(g.val.value(t))
+	m := make(map[K]V, repeat.avg())
+	for repeat.more(t.s) {
+		var k K
+		var v V
+		if g.key != nil {
+			k = g.key.value(t)
+			v = g.val.value(t)
 		} else {
-			v = reflect.ValueOf(g.val.value(t))
-			k = v
-			if g.keyFn.IsValid() {
-				k = g.keyFn.Call([]reflect.Value{v})[0]
-			}
+			v = g.val.value(t)
+			k = g.keyFn(v)
 		}
 
-		if m.MapIndex(k).IsValid() {
+		if _, ok := m[k]; ok {
 			repeat.reject()
 		} else {
-			m.SetMapIndex(k, v)
+			m[k] = v
 		}
 	}
 
-	return m.Interface()
-}
-
-func ArrayOf(count int, elem *Generator) *Generator {
-	assertf(count >= 0 && count < 1024, "array element count should be in [0, 1024] (got %v)", count)
-
-	return newGenerator(&arrayGen{
-		typ:   reflect.ArrayOf(count, elem.type_()),
-		count: count,
-		elem:  elem,
-	})
-}
-
-type arrayGen struct {
-	typ   reflect.Type
-	count int
-	elem  *Generator
-}
-
-func (g *arrayGen) String() string {
-	return fmt.Sprintf("ArrayOf(%v, %v)", g.count, g.elem)
-}
-
-func (g *arrayGen) type_() reflect.Type {
-	return g.typ
-}
-
-func (g *arrayGen) value(t *T) value {
-	a := reflect.Indirect(reflect.New(g.typ))
-
-	if g.count == 0 {
-		t.s.drawBits(0)
-	} else {
-		for i := 0; i < g.count; i++ {
-			e := reflect.ValueOf(g.elem.value(t))
-			a.Index(i).Set(e)
-		}
-	}
-
-	return a.Interface()
+	return m
 }

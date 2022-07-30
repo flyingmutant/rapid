@@ -123,17 +123,3 @@ func ExampleMapOfNValues() {
 	// map[2:ub 8:waraafmd 10:bfiqcaxazu 16:rjgqimcasnapgaad 17:gckfbljafcedhcvfc]
 	// map[1:k 2:ay 3:wzb 4:dign 7:faabhcb]
 }
-
-func ExampleArrayOf() {
-	gen := rapid.ArrayOf(5, rapid.Int())
-
-	for i := 0; i < 5; i++ {
-		fmt.Println(gen.Example(i))
-	}
-	// Output:
-	// [-3 1303 184 7 236258]
-	// [-186981 -59881619 0 -1 168442]
-	// [4 441488606 -4008258 -2 297]
-	// [-2 -5863986 22973756520 -15 766316951]
-	// [43 -3513 16 141395 -9223372036854775808]
-}

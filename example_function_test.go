@@ -43,9 +43,9 @@ func ParseDate(s string) (int, int, int, error) {
 }
 
 func testParseDate(t *rapid.T) {
-	y := rapid.IntRange(0, 9999).Draw(t, "y").(int)
-	m := rapid.IntRange(1, 12).Draw(t, "m").(int)
-	d := rapid.IntRange(1, 31).Draw(t, "d").(int)
+	y := rapid.IntRange(0, 9999).Draw(t, "y")
+	m := rapid.IntRange(1, 12).Draw(t, "m")
+	d := rapid.IntRange(1, 31).Draw(t, "d")
 
 	s := fmt.Sprintf("%04d-%02d-%02d", y, m, d)
 

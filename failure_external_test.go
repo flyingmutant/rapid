@@ -14,7 +14,7 @@ import (
 )
 
 // wrapper to test (*T).Helper()
-func fatalf(t *T, format string, args ...interface{}) {
+func fatalf(t *T, format string, args ...any) {
 	t.Helper()
 	t.Fatalf(format, args...)
 }
@@ -31,7 +31,7 @@ func TestFailure_Trivial(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		i := Int().Draw(t, "i").(int)
+		i := Int().Draw(t, "i")
 		if i > 1000000000 {
 			fatalf(t, "got a huge integer: %v", i)
 		}
@@ -42,7 +42,7 @@ func TestFailure_SimpleCollection(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := SliceOf(Int().Filter(func(i int) bool { return i%2 == -1 })).Draw(t, "s").([]int)
+		s := SliceOf(Int().Filter(func(i int) bool { return i%2 == -1 })).Draw(t, "s")
 		if len(s) > 3 {
 			fatalf(t, "got a long sequence: %v", s)
 		}
@@ -53,7 +53,7 @@ func TestFailure_CollectionElements(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := SliceOfN(Int(), 2, -1).Draw(t, "s").([]int)
+		s := SliceOfN(Int(), 2, -1).Draw(t, "s")
 
 		n := 0
 		for _, i := range s {
@@ -72,7 +72,7 @@ func TestFailure_TrivialString(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := String().Draw(t, "s").(string)
+		s := String().Draw(t, "s")
 		if len(s) > 7 {
 			fatalf(t, "got bad string %v", s)
 		}
@@ -83,7 +83,7 @@ func TestFailure_Make(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		n := IntMin(0).Draw(t, "n").(int)
+		n := IntMin(0).Draw(t, "n")
 		_ = make([]int, n)
 	})
 }
@@ -92,7 +92,7 @@ func TestFailure_Mean(t *testing.T) {
 	t.Skip("expected failure")
 
 	Check(t, func(t *T) {
-		s := SliceOf(Float64()).Draw(t, "s").([]float64)
+		s := SliceOf(Float64()).Draw(t, "s")
 
 		mean := 0.0
 		for _, f := range s {
@@ -125,7 +125,7 @@ func TestFailure_ExampleParseDate(t *testing.T) {
 func TestFailure_ExampleQueue(t *testing.T) {
 	t.Skip("expected failure")
 
-	Check(t, Run(&queueMachine{}))
+	Check(t, Run[*queueMachine]())
 }
 
 // LastIndex returns the index of the last instance of x in list, or
@@ -149,8 +149,8 @@ func TestFailure_LastIndex(t *testing.T) {
 	t.Skip("expected failure (flaky)")
 
 	Check(t, func(t *T) {
-		s := SliceOf(Int()).Draw(t, "s").([]int)
-		x := Int().Draw(t, "x").(int)
+		s := SliceOf(Int()).Draw(t, "s")
+		x := Int().Draw(t, "x")
 		ix := LastIndex(s, x)
 
 		// index is either -1 or in bounds

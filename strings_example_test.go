@@ -4,10 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-// String generation depends on the Unicode tables, which change with Go versions:
-//go:build go1.16
-// +build go1.16
-
 package rapid_test
 
 import (
@@ -37,7 +33,7 @@ func ExampleRune() {
 }
 
 func ExampleRuneFrom() {
-	gens := []*rapid.Generator{
+	gens := []*rapid.Generator[rune]{
 		rapid.RuneFrom([]rune{'A', 'B', 'C'}),
 		rapid.RuneFrom(nil, unicode.Cyrillic, unicode.Greek),
 		rapid.RuneFrom([]rune{'⌘'}, &unicode.RangeTable{
@@ -103,17 +99,17 @@ func ExampleStringN() {
 }
 
 func ExampleStringOfN() {
-	gen := rapid.StringOfN(rapid.ByteRange(65, 90), 5, 5, -1)
+	gen := rapid.StringOfN(rapid.RuneFrom(nil, unicode.ASCII_Hex_Digit), 6, 6, -1)
 
 	for i := 0; i < 5; i++ {
 		fmt.Printf("%q\n", gen.Example(i))
 	}
 	// Output:
-	// "AXYHC"
-	// "ESAAC"
-	// "AUGWT"
-	// "BRIOX"
-	// "LYATZ"
+	// "1D7B6a"
+	// "2102e0"
+	// "0e15c3"
+	// "E2E000"
+	// "aEd623"
 }
 
 func ExampleStringMatching() {

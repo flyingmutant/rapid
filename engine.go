@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
 	"regexp"
 	"runtime"
 	"strings"
@@ -34,12 +33,9 @@ const (
 var (
 	flags cmdline
 
-	emptyStructType  = reflect.TypeOf(struct{}{})
-	emptyStructValue = reflect.ValueOf(struct{}{})
-
 	tracebackBlacklist = map[string]bool{
-		"pgregory.net/rapid.(*customGen).maybeValue.func1": true,
-		"pgregory.net/rapid.runAction.func1":               true,
+		"pgregory.net/rapid.(*customGen[...]).maybeValue.func1": true,
+		"pgregory.net/rapid.runAction.func1":                    true,
 	}
 )
 
@@ -75,14 +71,16 @@ func assert(ok bool) {
 	}
 }
 
-func assertf(ok bool, format string, args ...interface{}) {
+func assertf(ok bool, format string, args ...any) {
 	if !ok {
 		panic(fmt.Sprintf(format, args...))
 	}
 }
 
 func assertValidRange(min int, max int) {
-	assertf(max < 0 || min <= max, fmt.Sprintf("invalid range [%d, %d]", min, max))
+	if max >= 0 && min > max {
+		panic(fmt.Sprintf("invalid range [%d, %d]", min, max))
+	}
 }
 
 // Check fails the current test if rapid can find a test case which falsifies prop.
@@ -285,7 +283,7 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 
 func captureTestOutput(tb tb, prop func(*T), buf []uint64) []byte {
 	var b bytes.Buffer
-	l := log.New(&b, fmt.Sprintf("%s ", tb.Name()), log.Ldate|log.Ltime) // TODO: enable log.Lmsgprefix once all supported versions of Go have it
+	l := log.New(&b, fmt.Sprintf("%s ", tb.Name()), log.Lmsgprefix|log.Ldate|log.Ltime)
 	_ = checkOnce(newT(tb, newBufBitStream(buf, false), false, l), prop)
 	return b.Bytes()
 }
@@ -294,11 +292,11 @@ type invalidData string
 type stopTest string
 
 type testError struct {
-	data      interface{}
+	data      any
 	traceback string
 }
 
-func panicToError(p interface{}, skip int) *testError {
+func panicToError(p any, skip int) *testError {
 	if p == nil {
 		return nil
 	}
@@ -373,12 +371,12 @@ func traceback(err *testError) string {
 type TB interface {
 	Helper()
 	Name() string
-	Logf(format string, args ...interface{})
-	Log(args ...interface{})
-	Errorf(format string, args ...interface{})
-	Error(args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Fatal(args ...interface{})
+	Logf(format string, args ...any)
+	Log(args ...any)
+	Errorf(format string, args ...any)
+	Error(args ...any)
+	Fatalf(format string, args ...any)
+	Fatal(args ...any)
 	FailNow()
 	Fail()
 	Failed() bool
@@ -388,12 +386,12 @@ type TB interface {
 type tb interface {
 	Helper()
 	Name() string
-	Logf(format string, args ...interface{})
-	Log(args ...interface{})
-	Errorf(format string, args ...interface{})
-	Error(args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Fatal(args ...interface{})
+	Logf(format string, args ...any)
+	Log(args ...any)
+	Errorf(format string, args ...any)
+	Error(args ...any)
+	Fatalf(format string, args ...any)
+	Fatal(args ...any)
 	FailNow()
 	Fail()
 	Failed() bool
@@ -410,12 +408,12 @@ type T struct {
 	rawLog   *log.Logger
 	s        bitStream
 	draws    int
-	refDraws []value
+	refDraws []any
 	mu       sync.RWMutex
 	failed   stopTest
 }
 
-func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value) *T {
+func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) *T {
 	t := &T{
 		tb:       tb,
 		tbLog:    tbLog,
@@ -436,37 +434,11 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...value)
 	return t
 }
 
-func (t *T) draw(g *Generator, label string) value {
-	v := g.value(t)
-
-	if len(t.refDraws) > 0 {
-		ref := t.refDraws[t.draws]
-		if !reflect.DeepEqual(v, ref) {
-			t.tb.Fatalf("draw %v differs: %#v vs expected %#v", t.draws, v, ref)
-		}
-	}
-
-	if t.tbLog || t.rawLog != nil {
-		if label == "" {
-			label = fmt.Sprintf("#%v", t.draws)
-		}
-
-		if t.tbLog && t.tb != nil {
-			t.tb.Helper()
-		}
-		t.Logf("[rapid] draw %v: %#v", label, v)
-	}
-
-	t.draws++
-
-	return v
-}
-
 func (t *T) shouldLog() bool {
 	return t.rawLog != nil || (t.tbLog && t.tb != nil)
 }
 
-func (t *T) Logf(format string, args ...interface{}) {
+func (t *T) Logf(format string, args ...any) {
 	if t.rawLog != nil {
 		t.rawLog.Printf(format, args...)
 	} else if t.tbLog && t.tb != nil {
@@ -475,7 +447,7 @@ func (t *T) Logf(format string, args ...interface{}) {
 	}
 }
 
-func (t *T) Log(args ...interface{}) {
+func (t *T) Log(args ...any) {
 	if t.rawLog != nil {
 		t.rawLog.Print(args...)
 	} else if t.tbLog && t.tb != nil {
@@ -485,7 +457,7 @@ func (t *T) Log(args ...interface{}) {
 }
 
 // Skipf is equivalent to [T.Logf] followed by [T.SkipNow].
-func (t *T) Skipf(format string, args ...interface{}) {
+func (t *T) Skipf(format string, args ...any) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
@@ -494,7 +466,7 @@ func (t *T) Skipf(format string, args ...interface{}) {
 }
 
 // Skip is equivalent to [T.Log] followed by [T.SkipNow].
-func (t *T) Skip(args ...interface{}) {
+func (t *T) Skip(args ...any) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
@@ -514,7 +486,7 @@ func (t *T) SkipNow() {
 }
 
 // Errorf is equivalent to [T.Logf] followed by [T.Fail].
-func (t *T) Errorf(format string, args ...interface{}) {
+func (t *T) Errorf(format string, args ...any) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
@@ -523,7 +495,7 @@ func (t *T) Errorf(format string, args ...interface{}) {
 }
 
 // Error is equivalent to [T.Log] followed by [T.Fail].
-func (t *T) Error(args ...interface{}) {
+func (t *T) Error(args ...any) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
@@ -532,7 +504,7 @@ func (t *T) Error(args ...interface{}) {
 }
 
 // Fatalf is equivalent to [T.Logf] followed by [T.FailNow].
-func (t *T) Fatalf(format string, args ...interface{}) {
+func (t *T) Fatalf(format string, args ...any) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
@@ -541,7 +513,7 @@ func (t *T) Fatalf(format string, args ...interface{}) {
 }
 
 // Fatal is equivalent to [T.Log] followed by [T.FailNow].
-func (t *T) Fatal(args ...interface{}) {
+func (t *T) Fatal(args ...any) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
 	}
@@ -584,23 +556,5 @@ func (t *T) failOnError() {
 
 	if t.failed != "" {
 		panic(t.failed)
-	}
-}
-
-func assertCallable(fn reflect.Type, t reflect.Type, name string) {
-	assertf(fn.Kind() == reflect.Func, "%v should be a function, not %v", name, fn.Kind())
-	assertf(fn.NumIn() == 1, "%v should have 1 parameter, not %v", name, fn.NumIn())
-	assertf(fn.NumOut() == 1, "%v should have 1 output parameter, not %v", name, fn.NumOut())
-	assertf(t.AssignableTo(fn.In(0)), "parameter #0 (%v) of %v should be assignable from %v", fn.In(0), name, t)
-}
-
-func call(fn reflect.Value, arg reflect.Value) value {
-	r := fn.Call([]reflect.Value{arg})
-
-	if len(r) == 0 {
-		return nil
-	} else {
-		assert(len(r) == 1)
-		return r[0].Interface()
 	}
 }
