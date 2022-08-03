@@ -88,14 +88,14 @@ func assertValidRange(min int, max int) {
 // Check fails the current test if rapid can find a test case which falsifies prop.
 //
 // Property is falsified in case of a panic or a call to
-// (*T).Fatalf, (*T).Fatal, (*T).Errorf, (*T).Error, (*T).FailNow or (*T).Fail.
+// [*T.Fatalf], [*T.Fatal], [*T.Errorf], [*T.Error], [*T.FailNow] or [*T.Fail].
 func Check(t *testing.T, prop func(*T)) {
 	t.Helper()
 	checkTB(t, prop)
 }
 
 // MakeCheck is a convenience function for defining subtests suitable for
-// (*testing.T).Run. It allows you to write this:
+// [*testing.T.Run]. It allows you to write this:
 //
 //	t.Run("subtest name", rapid.MakeCheck(func(t *rapid.T) {
 //	    // test code
@@ -369,7 +369,7 @@ func traceback(err *testError) string {
 	return err.traceback
 }
 
-// TB is a common interface between *testing.T, *testing.B and *T.
+// TB is a common interface between [*testing.T], [*testing.B] and [*T].
 type TB interface {
 	Helper()
 	Name() string
@@ -399,11 +399,11 @@ type tb interface {
 	Failed() bool
 }
 
-// T is similar to testing.T, but with extra bookkeeping for property-based tests.
+// T is similar to [testing.T], but with extra bookkeeping for property-based tests.
 //
 // For tests to be reproducible, they should generally run in a single goroutine.
-// If concurrency is unavoidable, methods on *T, such as Helper and Errorf, are safe for concurrent calls,
-// but Draw from a given *T is not.
+// If concurrency is unavoidable, methods on *T, such as [*testing.T.Helper] and [*T.Errorf],
+// are safe for concurrent calls, but *Generator.Draw from a given *T is not.
 type T struct {
 	tb       // unnamed to force re-export of (*T).Helper()
 	tbLog    bool
@@ -484,7 +484,7 @@ func (t *T) Log(args ...interface{}) {
 	}
 }
 
-// Skipf is equivalent to Logf followed by SkipNow.
+// Skipf is equivalent to [T.Logf] followed by [T.SkipNow].
 func (t *T) Skipf(format string, args ...interface{}) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
@@ -493,7 +493,7 @@ func (t *T) Skipf(format string, args ...interface{}) {
 	t.skip(fmt.Sprintf(format, args...))
 }
 
-// Skip is equivalent to Log followed by SkipNow.
+// Skip is equivalent to [T.Log] followed by [T.SkipNow].
 func (t *T) Skip(args ...interface{}) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
@@ -507,13 +507,13 @@ func (t *T) Skip(args ...interface{}) {
 // If too many test cases are skipped, rapid will mark the test as failing
 // due to inability to generate enough valid test cases.
 //
-// Prefer Filter to SkipNow, and prefer generators that always produce
+// Prefer *Generator.Filter to SkipNow, and prefer generators that always produce
 // valid test cases to Filter.
 func (t *T) SkipNow() {
 	t.skip("(*T).SkipNow() called")
 }
 
-// Errorf is equivalent to Logf followed by Fail.
+// Errorf is equivalent to [T.Logf] followed by [T.Fail].
 func (t *T) Errorf(format string, args ...interface{}) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
@@ -522,7 +522,7 @@ func (t *T) Errorf(format string, args ...interface{}) {
 	t.fail(false, fmt.Sprintf(format, args...))
 }
 
-// Error is equivalent to Log followed by Fail.
+// Error is equivalent to [T.Log] followed by [T.Fail].
 func (t *T) Error(args ...interface{}) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
@@ -531,7 +531,7 @@ func (t *T) Error(args ...interface{}) {
 	t.fail(false, fmt.Sprint(args...))
 }
 
-// Fatalf is equivalent to Logf followed by FailNow.
+// Fatalf is equivalent to [T.Logf] followed by [T.FailNow].
 func (t *T) Fatalf(format string, args ...interface{}) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
@@ -540,7 +540,7 @@ func (t *T) Fatalf(format string, args ...interface{}) {
 	t.fail(true, fmt.Sprintf(format, args...))
 }
 
-// Fatal is equivalent to Log followed by FailNow.
+// Fatal is equivalent to [T.Log] followed by [T.FailNow].
 func (t *T) Fatal(args ...interface{}) {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()

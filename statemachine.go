@@ -37,7 +37,7 @@ type StateMachine interface {
 }
 
 // Run is a convenience function for defining "state machine" tests,
-// to be run by Check or MakeCheck.
+// to be run by [Check] or [MakeCheck].
 //
 // State machine test is a pattern for testing stateful systems that looks
 // like this:
