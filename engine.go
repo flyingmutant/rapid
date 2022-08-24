@@ -119,12 +119,17 @@ func MakeCheck(prop func(*T)) func(*testing.T) {
 func checkTB(tb tb, prop func(*T)) {
 	tb.Helper()
 
+	checks := flags.checks
+	if testing.Short() {
+		checks /= 5
+	}
+
 	start := time.Now()
-	valid, invalid, seed, buf, err1, err2 := doCheck(tb, flags.failfile, flags.checks, baseSeed(), prop)
+	valid, invalid, seed, buf, err1, err2 := doCheck(tb, flags.failfile, checks, baseSeed(), prop)
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {
-		if valid == flags.checks {
+		if valid == checks {
 			tb.Logf("[rapid] OK, passed %v tests (%v)", valid, dt)
 		} else {
 			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)

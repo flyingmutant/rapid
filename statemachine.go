@@ -9,6 +9,7 @@ package rapid
 import (
 	"reflect"
 	"sort"
+	"testing"
 )
 
 const (
@@ -56,10 +57,15 @@ type StateMachine interface {
 func Run(m StateMachine) func(*T) {
 	typ := reflect.TypeOf(m)
 
+	steps := flags.steps
+	if testing.Short() {
+		steps /= 5
+	}
+
 	return func(t *T) {
 		t.Helper()
 
-		repeat := newRepeat(0, flags.steps, maxInt)
+		repeat := newRepeat(0, steps, maxInt)
 
 		sm := newStateMachine(typ)
 		if sm.init != nil {
