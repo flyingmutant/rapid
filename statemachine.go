@@ -42,14 +42,14 @@ type StateMachine interface {
 // State machine test is a pattern for testing stateful systems that looks
 // like this:
 //
-//   m := new(StateMachineType)
-//   m.Init(t)          // optional
-//   defer m.Cleanup()  // optional
-//   m.Check(t)
-//   for {
-//       m.RandomAction(t)
-//       m.Check(t)
-//   }
+//	m := new(StateMachineType)
+//	m.Init(t)          // optional
+//	defer m.Cleanup()  // optional
+//	m.Check(t)
+//	for {
+//	    m.RandomAction(t)
+//	    m.Check(t)
+//	}
 //
 // Run synthesizes such test from the type of m, which must be a pointer.
 // Note that for each test case, new state machine instance is created
