@@ -98,8 +98,10 @@ func (g *filteredGen) value(t *T) value {
 func (g *filteredGen) maybeValue(t *T) value {
 	v := g.g.value(t)
 	if g.fn(v) {
+		Event(t, g.String(), "satisfied")
 		return v
 	} else {
+		Event(t, g.String(), "failed")
 		return nil
 	}
 }
