@@ -2,7 +2,6 @@
 
 ## Pre-1.0
 
-- cleanly separate generation from the rest (so that people can use only the generation)
 - explicit examples support (based on `refDraws` shrink test machinery)
 - explicit settings support (to not depend on global environment)
 - [go-fuzz](https://github.com/golang/proposal/blob/master/design/draft-fuzzing.md) integration
@@ -13,12 +12,10 @@
 - complex numbers
 - big numbers
 - ip addresses & masks
-- deferred
 - subset-of-slice
 - permutation-of-slice
 - runes with rune/range blacklist
 - recursive (base + extend)
-- arbitrary(type)
 
 ## Shrinking
 
