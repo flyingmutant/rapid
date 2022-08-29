@@ -58,13 +58,13 @@ func TestParseValidIPv4(t *testing.T) {
 }
 ```
 
-You can [play around](https://play.golang.org/p/Lp_C99wMBve) with the IPv4
+You can [play around](https://go.dev/play/p/gtrfx-BK0t2) with the IPv4
 regexp to see what happens when it is generating invalid addresses
 (or try to pass the test with your own `ParseIP` implementation). More complete
 function ([source code](./example_function_test.go),
-[playground](https://play.golang.org/p/lJmJvKRE_7H)) and state machine
+[playground](https://go.dev/play/p/tZFU8zv8AUl)) and state machine
 ([source code](./example_statemachine_test.go),
-[playground](https://play.golang.org/p/ywwugVkCm3m)) example tests are provided.
+[playground](https://go.dev/play/p/LRb_Nm1s9T5)) example tests are provided.
 They both fail. Making them pass is a good way to get first real experience
 of working with rapid.
 
