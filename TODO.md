@@ -1,10 +1,5 @@
 # TODO
 
-## Pre-1.0
-
-- explicit examples support (based on `refDraws` shrink test machinery)
-- explicit settings support (to not depend on global environment)
-
 ## Generators
 
 - times, durations, locations
