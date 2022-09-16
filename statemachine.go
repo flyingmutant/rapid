@@ -55,6 +55,12 @@ type StateMachine interface {
 // Run synthesizes such test from the M type, which must be a pointer,
 // using reflection.
 func Run[M StateMachine]() func(*T) {
+	return RunWithSpecializer[M](nil)
+}
+
+// RunWithSpecializer is like Run but you can further specialize the
+// instantiated state machine.
+func RunWithSpecializer[M StateMachine](specializer func(*T, any)) func(*T) {
 	var m M
 	typ := reflect.TypeOf(m)
 
@@ -68,13 +74,16 @@ func Run[M StateMachine]() func(*T) {
 
 		repeat := newRepeat(0, steps, math.MaxInt, typ.String())
 
-		sm := newStateMachine(typ)
+		sm := newStateMachine(typ, specializer)
 		if sm.init != nil {
 			sm.init(t)
 			t.failOnError()
 		}
 		if sm.cleanup != nil {
 			defer sm.cleanup()
+		}
+		if sm.specializer != nil {
+			sm.specializer(t)
 		}
 
 		sm.check(t)
@@ -92,14 +101,15 @@ func Run[M StateMachine]() func(*T) {
 }
 
 type stateMachine struct {
-	init       func(*T)
-	cleanup    func()
-	check      func(*T)
-	actionKeys *Generator[string]
-	actions    map[string]func(*T)
+	init        func(*T)
+	cleanup     func()
+	specializer func(*T)
+	check       func(*T)
+	actionKeys  *Generator[string]
+	actions     map[string]func(*T)
 }
 
-func newStateMachine(typ reflect.Type) *stateMachine {
+func newStateMachine(typ reflect.Type, specializer func(*T, any)) *stateMachine {
 	assertf(typ.Kind() == reflect.Ptr, "state machine type should be a pointer, not %v", typ.Kind())
 
 	var (
@@ -128,15 +138,20 @@ func newStateMachine(typ reflect.Type) *stateMachine {
 		}
 	}
 
+	specializerWrapper := func(t *T) {
+		specializer(t, v.Interface())
+	}
+
 	assertf(len(actions) > 0, "state machine of type %v has no actions specified", typ)
 	sort.Strings(actionKeys)
 
 	return &stateMachine{
-		init:       init,
-		cleanup:    cleanup,
-		check:      v.Interface().(StateMachine).Check,
-		actionKeys: SampledFrom(actionKeys),
-		actions:    actions,
+		init:        init,
+		cleanup:     cleanup,
+		specializer: specializerWrapper,
+		check:       v.Interface().(StateMachine).Check,
+		actionKeys:  SampledFrom(actionKeys),
+		actions:     actions,
 	}
 }
 
