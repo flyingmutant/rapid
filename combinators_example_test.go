@@ -84,6 +84,20 @@ func ExampleSampledFrom() {
 	// 1
 }
 
+func ExamplePermutation() {
+	gen := rapid.Permutation([]int{1, 2, 3})
+
+	for i := 0; i < 5; i++ {
+		fmt.Println(gen.Example(i))
+	}
+	// Output:
+	// [2 3 1]
+	// [3 2 1]
+	// [2 1 3]
+	// [3 2 1]
+	// [1 2 3]
+}
+
 func ExampleOneOf() {
 	gen := rapid.OneOf(rapid.Int32Range(1, 10).AsAny(), rapid.Float32Range(100, 1000).AsAny())
 

@@ -8,6 +8,7 @@ package rapid
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -160,6 +161,38 @@ func (g *sampledGen[E]) value(t *T) E {
 	i := genIndex(t.s, len(g.slice), true)
 
 	return g.slice[i]
+}
+
+func Permutation[S ~[]E, E any](s S) *Generator[S] {
+	return newGenerator[S](&permGen[S, E]{
+		slice: s,
+	})
+}
+
+type permGen[S ~[]E, E any] struct {
+	slice S
+}
+
+func (g *permGen[S, E]) String() string {
+	var zero E
+	return fmt.Sprintf("Permutation(%v %T)", len(g.slice), zero)
+}
+
+func (g *permGen[S, E]) value(t *T) S {
+	s := append(S(nil), g.slice...)
+	n := len(s)
+	if n <= 1 {
+		return s
+	}
+
+	// shrink-friendly variant of Fisher–Yates shuffle: shrinks to lower number of smaller distance swaps
+	repeat := newRepeat(0, n-1, math.MaxInt, "permute")
+	for i := 0; repeat.more(t.s); i++ {
+		j, _, _ := genUintRange(t.s, uint64(i), uint64(n-1), false)
+		s[i], s[j] = s[j], s[i]
+	}
+
+	return s
 }
 
 func OneOf[V any](gens ...*Generator[V]) *Generator[V] {
