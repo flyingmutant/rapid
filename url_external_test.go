@@ -18,7 +18,7 @@ func TestURL(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		u := URL().Draw(t, "url").(url.URL)
+		u := URL().Draw(t, "url")
 
 		// should be parseable
 		if _, err := url.Parse(u.String()); err != nil {
@@ -31,7 +31,7 @@ func TestDomain(t *testing.T) {
 	t.Parallel()
 
 	Check(t, func(t *T) {
-		d := Domain().Draw(t, "d").(string)
+		d := Domain().Draw(t, "d")
 		if got, want := len(d), 255; got > want {
 			t.Errorf("got domain of length %d with maxLenght of %d", got, want)
 		}

@@ -17,7 +17,7 @@ package rapid
 import "strings"
 
 // sourced from https://data.iana.org/TLD/tlds-alpha-by-domain.txt
-// Version $(date +%Y%m%d00), Last Updated $(date --utc)
+// Version $(date +%Y%m%d00), Last Updated $(date -u)
 const tldsByAlpha = \`
 ${TLD}
 \`

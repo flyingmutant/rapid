@@ -8,7 +8,6 @@ package rapid_test
 
 import (
 	"fmt"
-	"net"
 
 	"pgregory.net/rapid"
 )
@@ -17,7 +16,7 @@ func ExampleIPv4() {
 	gen := rapid.IPv4()
 
 	for i := 0; i < 5; i++ {
-		addr := gen.Example(i).(net.IP)
+		addr := gen.Example(i)
 		fmt.Println(addr.String())
 	}
 
@@ -33,7 +32,7 @@ func ExampleIPv6() {
 	gen := rapid.IPv6()
 
 	for i := 0; i < 5; i++ {
-		addr := gen.Example(i).(net.IP)
+		addr := gen.Example(i)
 		fmt.Println(addr.String())
 	}
 
