@@ -8,17 +8,12 @@ package rapid
 
 import (
 	"fmt"
-	"net"
+	"net/netip"
 )
 
 const (
 	ipv4Len = 4
 	ipv6Len = 16
-)
-
-var (
-	ipv4Gen = SliceOfN(Byte(), ipv4Len, ipv4Len)
-	ipv6Gen = SliceOfN(Byte(), ipv6Len, ipv6Len)
 )
 
 type ipGen struct {
@@ -29,26 +24,26 @@ func (g *ipGen) String() string {
 	return fmt.Sprintf("IP(ipv6=%v)", g.ipv6)
 }
 
-func (g *ipGen) value(t *T) net.IP {
-	var gen *Generator[[]byte]
+func (g *ipGen) value(t *T) netip.Addr {
+	var b []byte
 	if g.ipv6 {
-		gen = ipv6Gen
+		b = SliceOfN(Byte(), ipv6Len, ipv6Len).Draw(t, g.String())
 	} else {
-		gen = ipv4Gen
+		b = SliceOfN(Byte(), ipv4Len, ipv4Len).Draw(t, g.String())
 	}
 
-	b := gen.Draw(t, g.String())
-	return net.IP(b)
+	addr, _ := netip.AddrFromSlice(b)
+	return addr
 }
 
-func IPv4() *Generator[net.IP] {
-	return newGenerator[net.IP](&ipGen{
+func IPv4() *Generator[netip.Addr] {
+	return newGenerator[netip.Addr](&ipGen{
 		ipv6: false,
 	})
 }
 
-func IPv6() *Generator[net.IP] {
-	return newGenerator[net.IP](&ipGen{
+func IPv6() *Generator[netip.Addr] {
+	return newGenerator[netip.Addr](&ipGen{
 		ipv6: true,
 	})
 }
