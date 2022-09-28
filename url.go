@@ -77,31 +77,40 @@ func (g *urlGenerator) value(t *T) url.URL {
 	case 0:
 		domain = IPv4().Draw(t, "domain").String()
 	}
-	port := IntRange(0, 2^16-1).Draw(t, "port")
-	path_ := SliceOf(printableGen).Draw(t, "path")
-	query := SliceOf(printableGen).Draw(t, "query")
+
+	port := Transform(IntRange(0, 2^16-1), func(i int) string {
+		if i == 0 {
+			return ""
+		}
+
+		return fmt.Sprintf(":%d", i)
+	}).Draw(t, "port")
+
+	path_ := Transform(SliceOf(printableGen), func(paths []string) string {
+		// URL escape path
+		for i := range paths {
+			paths[i] = url.PathEscape(paths[i])
+		}
+
+		return strings.Join(paths, "/")
+	}).Draw(t, "path")
+
+	query := Transform(SliceOf(printableGen), func(queries []string) string {
+		// url escape query strings
+		for i := range queries {
+			queries[i] = url.QueryEscape(queries[i])
+		}
+
+		return strings.Join(queries, "&")
+	}).Draw(t, "query")
+
 	fragment := printableGen.Draw(t, "fragment")
 
-	// join domain and port
-	if port > 0 {
-		domain += fmt.Sprintf(":%d", port)
-	}
-
-	// URL escape path
-	for i := range path_ {
-		path_[i] = url.PathEscape(path_[i])
-	}
-
-	// url escape query strings
-	for i := range query {
-		query[i] = url.QueryEscape(query[i])
-	}
-
 	return url.URL{
-		Host:     domain,
-		Path:     strings.Join(path_, "/"),
+		Host:     domain + port,
+		Path:     path_,
 		Scheme:   scheme,
-		RawQuery: strings.Join(query, "&"),
+		RawQuery: query,
 		Fragment: fragment,
 	}
 }
