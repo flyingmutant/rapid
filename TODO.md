@@ -7,7 +7,6 @@
 - big numbers
 - ip addresses & masks
 - subset-of-slice
-- permutation-of-slice
 - runes with rune/range blacklist
 - recursive (base + extend)
 
@@ -68,8 +67,6 @@
   - because min number defines the "magnitude" of the whole thing, kind of?
   - so when we are generating numbers in [1000000; +inf) we do not stick with 1000000 too hard
 - more powerful assume/filter (look at what hypothesis is doing)
-- builtin go-fuzz integration
-  - compare property-based testing with fuzzing in README
 - incorporate special case checking (bounds esp.)
 
 ## Wild ideas
