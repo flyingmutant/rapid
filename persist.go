@@ -9,7 +9,6 @@ package rapid
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -51,7 +50,7 @@ func saveFailFile(filename string, version string, output []byte, seed uint64, b
 		return fmt.Errorf("failed to create directory for fail file %q: %w", filename, err)
 	}
 
-	f, err := ioutil.TempFile(dir, failfileTmpPattern)
+	f, err := os.CreateTemp(dir, failfileTmpPattern)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file for fail file %q: %w", filename, err)
 	}
