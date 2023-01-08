@@ -14,6 +14,9 @@ import (
 
 const tryLabel = "try"
 
+// Custom creates a generator which produces results of calling fn. In fn, values should be generated
+// by calling other generators; it is invalid to return a value from fn without using any other generator.
+// Custom is a primary way of creating user-defined generators.
 func Custom[V any](fn func(*T) V) *Generator[V] {
 	return newGenerator[V](&customGen[V]{
 		fn: fn,
@@ -47,6 +50,8 @@ func (g *customGen[V]) maybeValue(t *T) (V, bool) {
 	return g.fn(t), true
 }
 
+// Deferred creates a generator which defers calling fn until attempting to produce a value. This allows
+// to define recursive generators.
 func Deferred[V any](fn func() *Generator[V]) *Generator[V] {
 	return newGenerator[V](&deferredGen[V]{
 		fn: fn,
@@ -113,6 +118,7 @@ func find[V any](gen func(*T) (V, bool), t *T, tries int) V {
 	panic(invalidData(fmt.Sprintf("failed to find suitable value in %d tries", tries)))
 }
 
+// Map creates a generator producing fn(u) for each u produced by g.
 func Map[U any, V any](g *Generator[U], fn func(U) V) *Generator[V] {
 	return newGenerator[V](&mappedGen[U, V]{
 		g:  g,
@@ -133,10 +139,14 @@ func (g *mappedGen[U, V]) value(t *T) V {
 	return g.fn(g.g.value(t))
 }
 
+// Just creates a generator which always produces the given value.
+// Just(val) is equivalent to SampledFrom([]V{val}).
 func Just[V any](val V) *Generator[V] {
 	return SampledFrom([]V{val})
 }
 
+// SampledFrom creates a generator which produces values from the given slice.
+// SampledFrom panics if slice is empty.
 func SampledFrom[S ~[]E, E any](slice S) *Generator[E] {
 	assertf(len(slice) > 0, "slice should not be empty")
 
@@ -163,9 +173,10 @@ func (g *sampledGen[E]) value(t *T) E {
 	return g.slice[i]
 }
 
-func Permutation[S ~[]E, E any](s S) *Generator[S] {
+// Permutation creates a generator which produces permutations of the given slice.
+func Permutation[S ~[]E, E any](slice S) *Generator[S] {
 	return newGenerator[S](&permGen[S, E]{
-		slice: s,
+		slice: slice,
 	})
 }
 
@@ -196,6 +207,8 @@ func (g *permGen[S, E]) value(t *T) S {
 	return s
 }
 
+// OneOf creates a generator which produces each value by selecting one of gens and producing a value from it.
+// OneOf panics if gens is empty.
 func OneOf[V any](gens ...*Generator[V]) *Generator[V] {
 	assertf(len(gens) > 0, "at least one generator should be specified")
 
@@ -223,6 +236,7 @@ func (g *oneOfGen[V]) value(t *T) V {
 	return g.gens[i].value(t)
 }
 
+// Ptr creates a *E generator. If allowNil is true, Ptr can return nil pointers.
 func Ptr[E any](elem *Generator[E], allowNil bool) *Generator[*E] {
 	return newGenerator[*E](&ptrGen[E]{
 		elem:     elem,
