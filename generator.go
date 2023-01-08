@@ -17,6 +17,7 @@ type generatorImpl[V any] interface {
 	value(t *T) V
 }
 
+// Generator describes a generator of values of type V.
 type Generator[V any] struct {
 	impl    generatorImpl[V]
 	strOnce sync.Once
@@ -37,6 +38,7 @@ func (g *Generator[V]) String() string {
 	return g.str
 }
 
+// Draw produces a value from the generator.
 func (g *Generator[V]) Draw(t *T, label string) V {
 	if t.tbLog && t.tb != nil {
 		t.tb.Helper()
@@ -74,6 +76,8 @@ func (g *Generator[V]) value(t *T) V {
 	return v
 }
 
+// Example produces an example value from the generator. If seed is provided, value is produced deterministically
+// based on seed. Example should only be used for examples; always use *Generator.Draw in property-based tests.
 func (g *Generator[V]) Example(seed ...int) V {
 	s := baseSeed()
 	if len(seed) > 0 {
@@ -86,10 +90,12 @@ func (g *Generator[V]) Example(seed ...int) V {
 	return v
 }
 
+// Filter creates a generator producing only values from g for which fn returns true.
 func (g *Generator[V]) Filter(fn func(V) bool) *Generator[V] {
 	return filter(g, fn)
 }
 
+// AsAny creates a generator producing values from g converted to any.
 func (g *Generator[V]) AsAny() *Generator[any] {
 	return asAny(g)
 }
