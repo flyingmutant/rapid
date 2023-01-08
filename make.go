@@ -11,6 +11,7 @@ import (
 	"reflect"
 )
 
+// Make creates a generator of values of type V, using reflection to infer the required structure.
 func Make[V any]() *Generator[V] {
 	var zero V
 	gen := newMakeGen(reflect.TypeOf(zero))
