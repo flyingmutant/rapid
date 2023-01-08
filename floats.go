@@ -23,22 +23,22 @@ const (
 	floatSignifLabel = "floatsignif"
 )
 
-// Float32 is a shorthand for Float32Range(-[math.MaxFloat32], [math.MaxFloat32]).
+// Float32 is a shorthand for [Float32Range](-[math.MaxFloat32], [math.MaxFloat32]).
 func Float32() *Generator[float32] {
 	return Float32Range(-math.MaxFloat32, math.MaxFloat32)
 }
 
-// Float32Min is a shorthand for Float32Range(min, [math.MaxFloat32]).
+// Float32Min is a shorthand for [Float32Range](min, [math.MaxFloat32]).
 func Float32Min(min float32) *Generator[float32] {
 	return Float32Range(min, math.MaxFloat32)
 }
 
-// Float32Max is a shorthand for Float32Range(-[math.MaxFloat32], max).
+// Float32Max is a shorthand for [Float32Range](-[math.MaxFloat32], max).
 func Float32Max(max float32) *Generator[float32] {
 	return Float32Range(-math.MaxFloat32, max)
 }
 
-// Float32Range returns a generator of 32-bit floating-point numbers in range [min, max].
+// Float32Range creates a generator of 32-bit floating-point numbers in range [min, max].
 // Both min and max can be infinite.
 func Float32Range(min float32, max float32) *Generator[float32] {
 	assertf(min == min, "min should not be a NaN")
@@ -55,22 +55,22 @@ func Float32Range(min float32, max float32) *Generator[float32] {
 	})
 }
 
-// Float64 is a shorthand for Float64Range(-[math.MaxFloat64], [math.MaxFloat64]).
+// Float64 is a shorthand for [Float64Range](-[math.MaxFloat64], [math.MaxFloat64]).
 func Float64() *Generator[float64] {
 	return Float64Range(-math.MaxFloat64, math.MaxFloat64)
 }
 
-// Float64Min is a shorthand for Float64Range(min, [math.MaxFloat64]).
+// Float64Min is a shorthand for [Float64Range](min, [math.MaxFloat64]).
 func Float64Min(min float64) *Generator[float64] {
 	return Float64Range(min, math.MaxFloat64)
 }
 
-// Float64Max is a shorthand for Float64Range(-[math.MaxFloat64], max).
+// Float64Max is a shorthand for [Float64Range](-[math.MaxFloat64], max).
 func Float64Max(max float64) *Generator[float64] {
 	return Float64Range(-math.MaxFloat64, max)
 }
 
-// Float64Range returns a generator of 64-bit floating-point numbers in range [min, max].
+// Float64Range creates a generator of 64-bit floating-point numbers in range [min, max].
 // Both min and max can be infinite.
 func Float64Range(min float64, max float64) *Generator[float64] {
 	assertf(min == min, "min should not be a NaN")
