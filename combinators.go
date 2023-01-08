@@ -140,7 +140,7 @@ func (g *mappedGen[U, V]) value(t *T) V {
 }
 
 // Just creates a generator which always produces the given value.
-// Just(val) is equivalent to SampledFrom([]V{val}).
+// Just(val) is a shorthand for [SampledFrom]([]V{val}).
 func Just[V any](val V) *Generator[V] {
 	return SampledFrom([]V{val})
 }

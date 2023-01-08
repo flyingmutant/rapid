@@ -70,7 +70,7 @@ type compiledRegexp struct {
 	re  *regexp.Regexp
 }
 
-// Rune creates a rune generator.
+// Rune creates a rune generator. Rune is equivalent to [RuneFrom] with default set of runes and tables.
 func Rune() *Generator[rune] {
 	return runesFrom(true, defaultRunes, defaultTables...)
 }
@@ -139,24 +139,17 @@ func (g *runeGen) value(t *T) rune {
 	return runes[genIndex(t.s, len(runes), true)]
 }
 
-// String creates a UTF-8 string generator. String() is equivalent to StringOf(Rune()).
+// String is a shorthand for [StringOf]([Rune]()).
 func String() *Generator[string] {
 	return StringOf(anyRuneGen)
 }
 
-// StringN creates a UTF-8 string generator.
-// If minRunes >= 0, generated strings have minimum minRunes runes.
-// If maxRunes >= 0, generated strings have maximum maxRunes runes.
-// If maxLen >= 0, generates strings have maximum length of maxLen.
-// StringN panics if maxRunes >= 0 and minRunes > maxRunes.
-// StringN panics if maxLen >= 0 and maxLen < maxRunes.
-// StringN(minRunes, maxRunes, maxLen) is equivalent to StringOfN(Rune(), minRunes, maxRunes, maxLen).
+// StringN is a shorthand for [StringOfN]([Rune](), minRunes, maxRunes, maxLen).
 func StringN(minRunes int, maxRunes int, maxLen int) *Generator[string] {
 	return StringOfN(anyRuneGen, minRunes, maxRunes, maxLen)
 }
 
-// StringOf creates a UTF-8 string generator.
-// StringOf(elem) is equivalent to StringOfN(elem, -1, -1, -1).
+// StringOf is a shorthand for [StringOfN](elem, -1, -1, -1).
 func StringOf(elem *Generator[rune]) *Generator[string] {
 	return StringOfN(elem, -1, -1, -1)
 }
