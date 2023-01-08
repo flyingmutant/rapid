@@ -360,7 +360,15 @@ func expandRangeTable(t *unicode.RangeTable, key any) []rune {
 		return cached.([]rune)
 	}
 
-	var ret []rune
+	n := 0
+	for _, r := range t.R16 {
+		n += int(r.Hi-r.Lo)/int(r.Stride) + 1
+	}
+	for _, r := range t.R32 {
+		n += int(r.Hi-r.Lo)/int(r.Stride) + 1
+	}
+
+	ret := make([]rune, 0, n)
 	for _, r := range t.R16 {
 		for i := uint32(r.Lo); i <= uint32(r.Hi); i += uint32(r.Stride) {
 			ret = append(ret, rune(i))
@@ -416,7 +424,7 @@ func charClassGen(re *syntax.Regexp) *Generator[rune] {
 		return cached.(*Generator[rune])
 	}
 
-	t := &unicode.RangeTable{}
+	t := &unicode.RangeTable{R32: make([]unicode.Range32, 0, len(re.Rune)/2)}
 	for i := 0; i < len(re.Rune); i += 2 {
 		t.R32 = append(t.R32, unicode.Range32{
 			Lo:     uint32(re.Rune[i]),
