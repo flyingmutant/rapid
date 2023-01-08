@@ -8,6 +8,7 @@ package rapid_test
 
 import (
 	"fmt"
+	"strconv"
 
 	"pgregory.net/rapid"
 )
@@ -54,6 +55,19 @@ func ExampleDeferred() {
 	// [[true [[[true]]]]]
 	// true
 	// true
+}
+
+func ExampleMap() {
+	gen := rapid.Map(rapid.Int(), strconv.Itoa)
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%#v\n", gen.Example(i))
+	}
+	// Output:
+	// "-3"
+	// "-186981"
+	// "4"
+	// "-2"
+	// "43"
 }
 
 func ExampleJust() {
