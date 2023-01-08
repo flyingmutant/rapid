@@ -158,9 +158,13 @@ func genAnyStruct(typ reflect.Type) *Generator[any] {
 
 	return Custom[any](func(t *T) any {
 		s := reflect.Indirect(reflect.New(typ))
-		for i := 0; i < numFields; i++ {
-			f := reflect.ValueOf(fieldGens[i].value(t))
-			s.Field(i).Set(f)
+		if numFields == 0 {
+			t.s.drawBits(0)
+		} else {
+			for i := 0; i < numFields; i++ {
+				f := reflect.ValueOf(fieldGens[i].value(t))
+				s.Field(i).Set(f)
+			}
 		}
 		return s.Interface()
 	})
