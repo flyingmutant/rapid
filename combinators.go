@@ -181,12 +181,13 @@ func (g *permGen[S, E]) String() string {
 func (g *permGen[S, E]) value(t *T) S {
 	s := append(S(nil), g.slice...)
 	n := len(s)
-	if n <= 1 {
-		return s
+	m := n - 1
+	if m < 0 {
+		m = 0
 	}
 
 	// shrink-friendly variant of Fisher–Yates shuffle: shrinks to lower number of smaller distance swaps
-	repeat := newRepeat(0, n-1, math.MaxInt, "permute")
+	repeat := newRepeat(0, m, math.MaxInt, "permute")
 	for i := 0; repeat.more(t.s); i++ {
 		j, _, _ := genUintRange(t.s, uint64(i), uint64(n-1), false)
 		s[i], s[j] = s[j], s[i]
