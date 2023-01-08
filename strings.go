@@ -70,10 +70,13 @@ type compiledRegexp struct {
 	re  *regexp.Regexp
 }
 
+// Rune creates a rune generator.
 func Rune() *Generator[rune] {
 	return runesFrom(true, defaultRunes, defaultTables...)
 }
 
+// RuneFrom creates a rune generator from provided runes and tables.
+// RuneFrom panics if both runes and tables are empty. RuneFrom panics if tables contain an empty table.
 func RuneFrom(runes []rune, tables ...*unicode.RangeTable) *Generator[rune] {
 	return runesFrom(false, runes, tables...)
 }
@@ -136,18 +139,34 @@ func (g *runeGen) value(t *T) rune {
 	return runes[genIndex(t.s, len(runes), true)]
 }
 
+// String creates a UTF-8 string generator. String() is equivalent to StringOf(Rune()).
 func String() *Generator[string] {
 	return StringOf(anyRuneGen)
 }
 
+// StringN creates a UTF-8 string generator.
+// If minRunes >= 0, generated strings have minimum minRunes runes.
+// If maxRunes >= 0, generated strings have maximum maxRunes runes.
+// If maxLen >= 0, generates strings have maximum length of maxLen.
+// StringN panics if maxRunes >= 0 and minRunes > maxRunes.
+// StringN panics if maxLen >= 0 and maxLen < maxRunes.
+// StringN(minRunes, maxRunes, maxLen) is equivalent to StringOfN(Rune(), minRunes, maxRunes, maxLen).
 func StringN(minRunes int, maxRunes int, maxLen int) *Generator[string] {
 	return StringOfN(anyRuneGen, minRunes, maxRunes, maxLen)
 }
 
+// StringOf creates a UTF-8 string generator.
+// StringOf(elem) is equivalent to StringOfN(elem, -1, -1, -1).
 func StringOf(elem *Generator[rune]) *Generator[string] {
 	return StringOfN(elem, -1, -1, -1)
 }
 
+// StringOfN creates a UTF-8 string generator.
+// If minRunes >= 0, generated strings have minimum minRunes runes.
+// If maxRunes >= 0, generated strings have maximum maxRunes runes.
+// If maxLen >= 0, generates strings have maximum length of maxLen.
+// StringOfN panics if maxRunes >= 0 and minRunes > maxRunes.
+// StringOfN panics if maxLen >= 0 and maxLen < maxRunes.
 func StringOfN(elem *Generator[rune], minRunes int, maxRunes int, maxLen int) *Generator[string] {
 	assertValidRange(minRunes, maxRunes)
 	assertf(maxLen < 0 || maxLen >= maxRunes, "maximum length (%v) should not be less than maximum number of runes (%v)", maxLen, maxRunes)
@@ -208,6 +227,7 @@ func (g *stringGen) value(t *T) string {
 	return b.String()
 }
 
+// StringMatching creates a UTF-8 string generator matching the provided [syntax.Perl] regular expression.
 func StringMatching(expr string) *Generator[string] {
 	compiled, err := compileRegexp(expr)
 	assertf(err == nil, "%v", err)
@@ -221,6 +241,7 @@ func StringMatching(expr string) *Generator[string] {
 	})
 }
 
+// SliceOfBytesMatching creates a UTF-8 byte slice generator matching the provided [syntax.Perl] regular expression.
 func SliceOfBytesMatching(expr string) *Generator[[]byte] {
 	compiled, err := compileRegexp(expr)
 	assertf(err == nil, "%v", err)
