@@ -113,7 +113,7 @@ func find[V any](gen func(*T) (V, bool), t *T, tries int) V {
 	panic(invalidData(fmt.Sprintf("failed to find suitable value in %d tries", tries)))
 }
 
-func Transform[U any, V any](g *Generator[U], fn func(U) V) *Generator[V] {
+func Map[U any, V any](g *Generator[U], fn func(U) V) *Generator[V] {
 	return newGenerator[V](&mappedGen[U, V]{
 		g:  g,
 		fn: fn,
@@ -126,7 +126,7 @@ type mappedGen[U any, V any] struct {
 }
 
 func (g *mappedGen[U, V]) String() string {
-	return fmt.Sprintf("Transform(%v, %T)", g.g, g.fn)
+	return fmt.Sprintf("Map(%v, %T)", g.g, g.fn)
 }
 
 func (g *mappedGen[U, V]) value(t *T) V {

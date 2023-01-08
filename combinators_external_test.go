@@ -76,7 +76,7 @@ func TestFilter(t *testing.T) {
 func TestMap(t *testing.T) {
 	t.Parallel()
 
-	g := Transform(Int(), strconv.Itoa)
+	g := Map(Int(), strconv.Itoa)
 
 	Check(t, func(t *T) {
 		s := g.Draw(t, "s")
