@@ -426,6 +426,8 @@ func charClassGen(re *syntax.Regexp) *Generator[rune] {
 
 	t := &unicode.RangeTable{R32: make([]unicode.Range32, 0, len(re.Rune)/2)}
 	for i := 0; i < len(re.Rune); i += 2 {
+		// not a valid unicode.Range32, since it requires that Lo and Hi must always be >= 1<<16
+		// however, we don't really care, since the only use of these ranges is as input to expandRangeTable
 		t.R32 = append(t.R32, unicode.Range32{
 			Lo:     uint32(re.Rune[i]),
 			Hi:     uint32(re.Rune[i+1]),
