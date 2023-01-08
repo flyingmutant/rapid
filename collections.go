@@ -13,10 +13,14 @@ func ID[V any](v V) V {
 	return v
 }
 
+// SliceOf creates a []E generator. SliceOf(elem) is equivalent to SliceOfN(elem, -1, -1).
 func SliceOf[E any](elem *Generator[E]) *Generator[[]E] {
 	return SliceOfN(elem, -1, -1)
 }
 
+// SliceOfN creates a []E generator. If minLen >= 0, generated slices have minimum length of minLen.
+// If maxLen >= 0, generated slices have maximum length of maxLen. SliceOfN panics if maxLen >= 0
+// and minLen > maxLen.
 func SliceOfN[E any](elem *Generator[E], minLen int, maxLen int) *Generator[[]E] {
 	assertValidRange(minLen, maxLen)
 
@@ -27,10 +31,17 @@ func SliceOfN[E any](elem *Generator[E], minLen int, maxLen int) *Generator[[]E]
 	})
 }
 
+// SliceOfDistinct creates a []E generator. Elements of each generated slice are distinct according to keyFn.
+// [ID] helper can be used as keyFn to generate slices of distinct comparable elements.
+// SliceOfDistinct(elem, keyFn) is equivalent to SliceOfNDistinct(elem, -1, -1, keyFn).
 func SliceOfDistinct[E any, K comparable](elem *Generator[E], keyFn func(E) K) *Generator[[]E] {
 	return SliceOfNDistinct(elem, -1, -1, keyFn)
 }
 
+// SliceOfNDistinct creates a []E generator. Elements of each generated slice are distinct according to keyFn.
+// If minLen >= 0, generated slices have minimum length of minLen. If maxLen >= 0, generated slices
+// have maximum length of maxLen. SliceOfNDistinct panics if maxLen >= 0 and minLen > maxLen.
+// [ID] helper can be used as keyFn to generate slices of distinct comparable elements.
 func SliceOfNDistinct[E any, K comparable](elem *Generator[E], minLen int, maxLen int, keyFn func(E) K) *Generator[[]E] {
 	assertValidRange(minLen, maxLen)
 
