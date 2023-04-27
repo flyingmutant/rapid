@@ -26,8 +26,10 @@ func ExampleMake() {
 	// map[]
 }
 
+type nodeValue int
+
 type tree struct {
-	Value       int
+	Value       nodeValue
 	Left, Right *tree
 }
 
