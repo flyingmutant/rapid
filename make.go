@@ -35,7 +35,7 @@ func (g *makeGen[V]) value(t *T) V {
 
 func newMakeGen(typ reflect.Type) *Generator[any] {
 	gen, mayNeedCast := newMakeKindGen(typ)
-	if !mayNeedCast || typ.Name() == typ.Kind().String() {
+	if !mayNeedCast || typ.String() == typ.Kind().String() {
 		return gen // fast path with less reflect
 	}
 	return newGenerator[any](&castGen{gen, typ})
