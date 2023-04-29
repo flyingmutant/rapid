@@ -16,7 +16,6 @@ func brokenGen(*T) int { panic("this generator is not working") }
 type brokenMachine struct{}
 
 func (m *brokenMachine) DoNothing(_ *T) { panic("this state machine is not working") }
-func (m *brokenMachine) Check(*T)       {}
 
 func TestPanicTraceback(t *testing.T) {
 	t.Parallel()
@@ -48,7 +47,12 @@ func TestPanicTraceback(t *testing.T) {
 			"broken state machine",
 			"pgregory.net/rapid.(*brokenMachine).DoNothing",
 			func(t *T) *testError {
-				return checkOnce(t, Run[*brokenMachine]())
+				return checkOnce(t, func(t *T) {
+					var sm brokenMachine
+					t.Run(map[string]func(*T){
+						"DoNothing": sm.DoNothing,
+					})
+				})
 			},
 		},
 	}

@@ -125,7 +125,7 @@ func TestFailure_ExampleParseDate(t *testing.T) {
 func TestFailure_ExampleQueue(t *testing.T) {
 	t.Skip("expected failure")
 
-	Check(t, Run[*queueMachine]())
+	Check(t, testQueue)
 }
 
 // LastIndex returns the index of the last instance of x in list, or

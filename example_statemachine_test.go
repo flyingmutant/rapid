@@ -42,53 +42,42 @@ func (q *Queue) Size() int {
 	return (q.in - q.out) % len(q.buf)
 }
 
-// queueMachine is a description of a rapid state machine for testing Queue
-type queueMachine struct {
-	q     *Queue // queue being tested
-	n     int    // maximum queue size
-	state []int  // model of the queue
-}
+func testQueue(t *rapid.T) {
+	n := rapid.IntRange(1, 1000).Draw(t, "n") // maximum queue size
+	q := NewQueue(n)                          // queue being tested
+	var state []int                           // model of the queue
 
-// Init is an action for initializing  a queueMachine instance.
-func (m *queueMachine) Init(t *rapid.T) {
-	n := rapid.IntRange(1, 1000).Draw(t, "n")
-	m.q = NewQueue(n)
-	m.n = n
-}
+	t.Run(map[string]func(*rapid.T){
+		"get": func(t *rapid.T) {
+			if len(state) == 0 {
+				t.Skip("queue empty")
+			}
 
-// Get is a conditional action which removes an item from the queue.
-func (m *queueMachine) Get(t *rapid.T) {
-	if m.q.Size() == 0 {
-		t.Skip("queue empty")
-	}
+			i := q.Get()
+			if i != state[0] {
+				t.Fatalf("got invalid value: %v vs expected %v", i, state[0])
+			}
+			state = state[1:]
+		},
+		"put": func(t *rapid.T) {
+			if len(state) == n {
+				t.Skip("queue full")
+			}
 
-	i := m.q.Get()
-	if i != m.state[0] {
-		t.Fatalf("got invalid value: %v vs expected %v", i, m.state[0])
-	}
-	m.state = m.state[1:]
-}
-
-// Put is a conditional action which adds an items to the queue.
-func (m *queueMachine) Put(t *rapid.T) {
-	if m.q.Size() == m.n {
-		t.Skip("queue full")
-	}
-
-	i := rapid.Int().Draw(t, "i")
-	m.q.Put(i)
-	m.state = append(m.state, i)
-}
-
-// Check runs after every action and verifies that all required invariants hold.
-func (m *queueMachine) Check(t *rapid.T) {
-	if m.q.Size() != len(m.state) {
-		t.Fatalf("queue size mismatch: %v vs expected %v", m.q.Size(), len(m.state))
-	}
+			i := rapid.Int().Draw(t, "i")
+			q.Put(i)
+			state = append(state, i)
+		},
+		"": func(t *rapid.T) {
+			if q.Size() != len(state) {
+				t.Fatalf("queue size mismatch: %v vs expected %v", q.Size(), len(state))
+			}
+		},
+	})
 }
 
 // Rename to TestQueue(t *testing.T) to make an actual (failing) test.
 func ExampleRun_queue() {
 	var t *testing.T
-	rapid.Check(t, rapid.Run[*queueMachine]())
+	rapid.Check(t, testQueue)
 }
