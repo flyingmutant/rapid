@@ -49,7 +49,7 @@ func testQueue(t *rapid.T) {
 
 	t.Run(map[string]func(*rapid.T){
 		"get": func(t *rapid.T) {
-			if len(state) == 0 {
+			if q.Size() == 0 {
 				t.Skip("queue empty")
 			}
 
@@ -60,7 +60,7 @@ func testQueue(t *rapid.T) {
 			state = state[1:]
 		},
 		"put": func(t *rapid.T) {
-			if len(state) == n {
+			if q.Size() == n {
 				t.Skip("queue full")
 			}
 

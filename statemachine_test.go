@@ -148,7 +148,7 @@ func queueTest(t *T) {
 	var state []int
 	t.Run(map[string]func(*T){
 		"Get": func(t *T) {
-			if len(state) == 0 {
+			if q.Size() == 0 {
 				t.Skip("queue empty")
 			}
 
@@ -159,7 +159,7 @@ func queueTest(t *T) {
 			state = state[1:]
 		},
 		"Put": func(t *T) {
-			if len(state) == size {
+			if q.Size() == size {
 				t.Skip("queue full")
 			}
 
