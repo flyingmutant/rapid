@@ -8,20 +8,25 @@ package rapid
 
 import (
 	"math"
+	"reflect"
 	"sort"
 	"testing"
 )
 
 const (
-	actionLabel      = "action"
-	validActionTries = 100 // hack, but probably good enough for now
-
+	actionLabel       = "action"
+	validActionTries  = 100 // hack, but probably good enough for now
+	checkMethodName   = "Check"
 	noValidActionsMsg = "can't find a valid action"
 )
 
 // Run executes a random sequence of actions (often called a "state machine" test).
 // actions[""], if set, is executed before/after every other action invocation
 // and should only contain invariant checking code.
+//
+// For complex state machines, it can be more convenient to specify actions as
+// methods of a special state machine type. In this case, [StateMachineActions]
+// can be used to create an actions map from state machine methods using reflection.
 func (t *T) Run(actions map[string]func(*T)) {
 	t.Helper()
 	if len(actions) == 0 {
@@ -62,6 +67,38 @@ func (t *T) Run(actions map[string]func(*T)) {
 			repeat.reject()
 		}
 	}
+}
+
+type StateMachine interface {
+	// Check is ran after every action and should contain invariant checks.
+	//
+	// All other public methods should have a form ActionName(t *rapid.T)
+	// and are used as possible actions. At least one action has to be specified.
+	Check(*T)
+}
+
+// StateMachineActions creates an actions map for [*T.Run]
+// from methods of a [StateMachine] type instance using reflection.
+func StateMachineActions(sm StateMachine) map[string]func(*T) {
+	var (
+		v = reflect.ValueOf(sm)
+		t = v.Type()
+		n = t.NumMethod()
+	)
+
+	actions := make(map[string]func(*T), n)
+	for i := 0; i < n; i++ {
+		name := t.Method(i).Name
+		m, ok := v.Method(i).Interface().(func(*T))
+		if ok && name != checkMethodName {
+			actions[name] = m
+		}
+	}
+
+	assertf(len(actions) > 0, "state machine of type %v has no actions specified", t)
+	actions[""] = sm.Check
+
+	return actions
 }
 
 type stateMachine struct {
