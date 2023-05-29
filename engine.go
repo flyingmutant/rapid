@@ -218,7 +218,7 @@ func doCheck(tb tb, failfile string, checks int, seed uint64, prop func(*T)) (in
 		}
 	}
 
-	seed, valid, invalid, err1 := findBug(tb, checks, seed, prop)
+	valid, invalid, seed, err1 := findBug(tb, checks, seed, prop)
 	if err1 == nil {
 		return valid, invalid, 0, nil, nil, nil
 	}
@@ -269,7 +269,7 @@ func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError,
 	return buf, err1, err2
 }
 
-func findBug(tb tb, checks int, seed uint64, prop func(*T)) (uint64, int, int, *testError) {
+func findBug(tb tb, checks int, seed uint64, prop func(*T)) (int, int, uint64, *testError) {
 	tb.Helper()
 
 	var (
@@ -303,11 +303,11 @@ func findBug(tb tb, checks int, seed uint64, prop func(*T)) (uint64, int, int, *
 			if t.shouldLog() {
 				t.Logf("[rapid] test #%v failed: %v", valid+invalid+1, err)
 			}
-			return seed, valid, invalid, err
+			return valid, invalid, seed, err
 		}
 	}
 
-	return 0, valid, invalid, nil
+	return valid, invalid, 0, nil
 }
 
 func checkOnce(t *T, prop func(*T)) (err *testError) {
