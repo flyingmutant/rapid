@@ -210,7 +210,7 @@ func checkShrink(t *testing.T, prop func(*T), draws ...any) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			t.Helper()
 
-			_, _, seed, buf, err1, err2 := doCheck(t, "", 100, baseSeed(), prop)
+			_, _, _, seed, buf, err1, err2 := doCheck(t, "", checkDeadline(nil), 100, baseSeed(), prop)
 			if seed != 0 && err1 == nil && err2 == nil {
 				t.Fatalf("shrink test did not fail (seed %v)", seed)
 			}

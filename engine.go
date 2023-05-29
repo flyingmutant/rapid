@@ -26,6 +26,9 @@ const (
 	invalidChecksMult = 10
 	exampleMaxTries   = 1000
 
+	maxTestTimeout  = 24 * time.Hour
+	shrinkStepBound = 10 * time.Second // can be improved by taking average checkOnce runtime into account
+
 	tracebackLen  = 32
 	tracebackStop = "pgregory.net/rapid.checkOnce"
 	runtimePrefix = "runtime."
@@ -84,13 +87,33 @@ func assertValidRange(min int, max int) {
 	}
 }
 
+func checkDeadline(t *testing.T) time.Time {
+	if t == nil {
+		return time.Now().Add(maxTestTimeout) // convenience
+	}
+	d, ok := t.Deadline()
+	if !ok {
+		return time.Now().Add(maxTestTimeout)
+	}
+	return d
+}
+
+func shrinkDeadline(deadline time.Time) time.Time {
+	d := time.Now().Add(flags.shrinkTime)
+	max := deadline.Add(-shrinkStepBound) // account for the fact that shrink deadline is checked before the step
+	if d.After(max) {
+		d = max
+	}
+	return d
+}
+
 // Check fails the current test if rapid can find a test case which falsifies prop.
 //
 // Property is falsified in case of a panic or a call to
 // [*T.Fatalf], [*T.Fatal], [*T.Errorf], [*T.Error], [*T.FailNow] or [*T.Fail].
 func Check(t *testing.T, prop func(*T)) {
 	t.Helper()
-	checkTB(t, prop)
+	checkTB(t, checkDeadline(t), prop)
 }
 
 // MakeCheck is a convenience function for defining subtests suitable for
@@ -110,7 +133,7 @@ func Check(t *testing.T, prop func(*T)) {
 func MakeCheck(prop func(*T)) func(*testing.T) {
 	return func(t *testing.T) {
 		t.Helper()
-		checkTB(t, prop)
+		checkTB(t, checkDeadline(t), prop)
 	}
 }
 
@@ -154,7 +177,7 @@ func checkFuzz(tb tb, prop func(*T), input []byte) {
 	}
 }
 
-func checkTB(tb tb, prop func(*T)) {
+func checkTB(tb tb, deadline time.Time, prop func(*T)) {
 	tb.Helper()
 
 	checks := flags.checks
@@ -163,11 +186,11 @@ func checkTB(tb tb, prop func(*T)) {
 	}
 
 	start := time.Now()
-	valid, invalid, seed, buf, err1, err2 := doCheck(tb, flags.failfile, checks, baseSeed(), prop)
+	valid, invalid, earlyExit, seed, buf, err1, err2 := doCheck(tb, flags.failfile, deadline, checks, baseSeed(), prop)
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {
-		if valid == checks {
+		if valid == checks || (earlyExit && valid > 0) {
 			tb.Logf("[rapid] OK, passed %v tests (%v)", valid, dt)
 		} else {
 			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
@@ -206,7 +229,7 @@ func checkTB(tb tb, prop func(*T)) {
 	}
 }
 
-func doCheck(tb tb, failfile string, checks int, seed uint64, prop func(*T)) (int, int, uint64, []uint64, *testError, *testError) {
+func doCheck(tb tb, failfile string, deadline time.Time, checks int, seed uint64, prop func(*T)) (int, int, bool, uint64, []uint64, *testError, *testError) {
 	tb.Helper()
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
@@ -214,13 +237,13 @@ func doCheck(tb tb, failfile string, checks int, seed uint64, prop func(*T)) (in
 	if failfile != "" {
 		buf, err1, err2 := checkFailFile(tb, failfile, prop)
 		if err1 != nil || err2 != nil {
-			return 0, 0, 0, buf, err1, err2
+			return 0, 0, false, 0, buf, err1, err2
 		}
 	}
 
-	valid, invalid, seed, err1 := findBug(tb, checks, seed, prop)
+	valid, invalid, earlyExit, seed, err1 := findBug(tb, deadline, checks, seed, prop)
 	if err1 == nil {
-		return valid, invalid, 0, nil, nil, nil
+		return valid, invalid, earlyExit, 0, nil, nil, nil
 	}
 
 	s := newRandomBitStream(seed, true)
@@ -228,13 +251,13 @@ func doCheck(tb tb, failfile string, checks int, seed uint64, prop func(*T)) (in
 	t.Logf("[rapid] trying to reproduce the failure")
 	err2 := checkOnce(t, prop)
 	if !sameError(err1, err2) {
-		return valid, invalid, seed, s.data, err1, err2
+		return valid, invalid, false, seed, s.data, err1, err2
 	}
 
 	t.Logf("[rapid] trying to minimize the failing test case")
-	buf, err3 := shrink(tb, s.recordedBits, err2, prop)
+	buf, err3 := shrink(tb, shrinkDeadline(deadline), s.recordedBits, err2, prop)
 
-	return valid, invalid, seed, buf, err2, err3
+	return valid, invalid, false, seed, buf, err2, err3
 }
 
 func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError, *testError) {
@@ -269,7 +292,7 @@ func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError,
 	return buf, err1, err2
 }
 
-func findBug(tb tb, checks int, seed uint64, prop func(*T)) (int, int, uint64, *testError) {
+func findBug(tb tb, deadline time.Time, checks int, seed uint64, prop func(*T)) (int, int, bool, uint64, *testError) {
 	tb.Helper()
 
 	var (
@@ -279,35 +302,45 @@ func findBug(tb tb, checks int, seed uint64, prop func(*T)) (int, int, uint64, *
 		invalid = 0
 	)
 
+	var total time.Duration
 	for valid < checks && invalid < checks*invalidChecksMult {
-		seed += uint64(valid) + uint64(invalid)
+		iter := valid + invalid
+		if iter > 0 && time.Until(deadline) < total/time.Duration(iter)*5 {
+			if t.shouldLog() {
+				t.Logf("[rapid] early exit after test #%v (%v)", iter, total)
+			}
+			return valid, invalid, true, 0, nil
+		}
+
+		seed += uint64(iter)
 		r.init(seed)
-		var start time.Time
+		start := time.Now()
 		if t.shouldLog() {
-			t.Logf("[rapid] test #%v start (seed %v)", valid+invalid+1, seed)
-			start = time.Now()
+			t.Logf("[rapid] test #%v start (seed %v)", iter+1, seed)
 		}
 
 		err := checkOnce(t, prop)
+		dt := time.Since(start)
+		total += dt
 		if err == nil {
 			if t.shouldLog() {
-				t.Logf("[rapid] test #%v OK (%v)", valid+invalid+1, time.Since(start))
+				t.Logf("[rapid] test #%v OK (%v)", iter+1, dt)
 			}
 			valid++
 		} else if err.isInvalidData() {
 			if t.shouldLog() {
-				t.Logf("[rapid] test #%v invalid (%v)", valid+invalid+1, time.Since(start))
+				t.Logf("[rapid] test #%v invalid (%v)", iter+1, dt)
 			}
 			invalid++
 		} else {
 			if t.shouldLog() {
-				t.Logf("[rapid] test #%v failed: %v", valid+invalid+1, err)
+				t.Logf("[rapid] test #%v failed: %v", iter+1, err)
 			}
-			return valid, invalid, seed, err
+			return valid, invalid, false, seed, err
 		}
 	}
 
-	return valid, invalid, 0, nil
+	return valid, invalid, false, 0, nil
 }
 
 func checkOnce(t *T, prop func(*T)) (err *testError) {
