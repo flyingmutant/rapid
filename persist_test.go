@@ -8,8 +8,23 @@ package rapid
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
+
+func TestFailFilePattern(t *testing.T) {
+	t.Parallel()
+
+	Check(t, func(t *T) {
+		testName := String().Draw(t, "testName")
+		_, fileName := failFileName(testName)
+		pattern := failFilePattern(testName)
+		match, err := filepath.Match(pattern, fileName)
+		if !match || err != nil {
+			t.Fatalf("pattern %q does not match %q; err %v", pattern, fileName, err)
+		}
+	})
+}
 
 func TestFailFileRoundtrip(t *testing.T) {
 	t.Parallel()

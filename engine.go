@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
@@ -186,7 +187,7 @@ func checkTB(tb tb, deadline time.Time, prop func(*T)) {
 	}
 
 	start := time.Now()
-	valid, invalid, earlyExit, seed, buf, err1, err2 := doCheck(tb, flags.failfile, deadline, checks, baseSeed(), prop)
+	valid, invalid, earlyExit, seed, failfile, buf, err1, err2 := doCheck(tb, deadline, checks, baseSeed(), flags.failfile, true, prop)
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {
@@ -196,18 +197,24 @@ func checkTB(tb tb, deadline time.Time, prop func(*T)) {
 			tb.Errorf("[rapid] only generated %v valid tests from %v total (%v)", valid, valid+invalid, dt)
 		}
 	} else {
-		repr := fmt.Sprintf("-rapid.seed=%d", seed)
-		if flags.failfile != "" && seed == 0 {
-			repr = fmt.Sprintf("-rapid.failfile=%q", flags.failfile)
-		} else if !flags.nofailfile {
-			_, failfile := failFileName(tb.Name())
+		if failfile == "" && !flags.nofailfile {
+			_, failfile = failFileName(tb.Name())
 			out := captureTestOutput(tb, prop, buf)
 			err := saveFailFile(failfile, rapidVersion, out, seed, buf)
-			if err == nil {
-				repr = fmt.Sprintf("-rapid.failfile=%q (or -rapid.seed=%d)", failfile, seed)
-			} else {
+			if err != nil {
 				tb.Logf("[rapid] %v", err)
+				failfile = ""
 			}
+		}
+
+		var repr string
+		switch {
+		case failfile != "" && seed != 0:
+			repr = fmt.Sprintf("-rapid.failfile=%q (or -rapid.seed=%d)", failfile, seed)
+		case failfile != "":
+			repr = fmt.Sprintf("-rapid.failfile=%q", failfile)
+		case seed != 0:
+			repr = fmt.Sprintf("-rapid.seed=%d", seed)
 		}
 
 		name := regexp.QuoteMeta(tb.Name())
@@ -229,21 +236,29 @@ func checkTB(tb tb, deadline time.Time, prop func(*T)) {
 	}
 }
 
-func doCheck(tb tb, failfile string, deadline time.Time, checks int, seed uint64, prop func(*T)) (int, int, bool, uint64, []uint64, *testError, *testError) {
+func doCheck(tb tb, deadline time.Time, checks int, seed uint64, failfile string, globFailFiles bool, prop func(*T)) (int, int, bool, uint64, string, []uint64, *testError, *testError) {
 	tb.Helper()
 
 	assertf(!tb.Failed(), "check function called with *testing.T which has already failed")
 
+	var failfiles []string
 	if failfile != "" {
+		failfiles = []string{failfile}
+	}
+	if globFailFiles {
+		matches, _ := filepath.Glob(failFilePattern(tb.Name()))
+		failfiles = append(failfiles, matches...)
+	}
+	for _, failfile := range failfiles {
 		buf, err1, err2 := checkFailFile(tb, failfile, prop)
 		if err1 != nil || err2 != nil {
-			return 0, 0, false, 0, buf, err1, err2
+			return 0, 0, false, 0, failfile, buf, err1, err2
 		}
 	}
 
 	valid, invalid, earlyExit, seed, err1 := findBug(tb, deadline, checks, seed, prop)
 	if err1 == nil {
-		return valid, invalid, earlyExit, 0, nil, nil, nil
+		return valid, invalid, earlyExit, 0, "", nil, nil, nil
 	}
 
 	s := newRandomBitStream(seed, true)
@@ -251,13 +266,13 @@ func doCheck(tb tb, failfile string, deadline time.Time, checks int, seed uint64
 	t.Logf("[rapid] trying to reproduce the failure")
 	err2 := checkOnce(t, prop)
 	if !sameError(err1, err2) {
-		return valid, invalid, false, seed, s.data, err1, err2
+		return valid, invalid, false, seed, "", s.data, err1, err2
 	}
 
 	t.Logf("[rapid] trying to minimize the failing test case")
 	buf, err3 := shrink(tb, shrinkDeadline(deadline), s.recordedBits, err2, prop)
 
-	return valid, invalid, false, seed, buf, err2, err3
+	return valid, invalid, false, seed, "", buf, err2, err3
 }
 
 func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError, *testError) {
