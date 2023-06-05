@@ -372,7 +372,7 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 
 func captureTestOutput(tb tb, prop func(*T), buf []uint64) []byte {
 	var b bytes.Buffer
-	l := log.New(&b, fmt.Sprintf("%s ", tb.Name()), log.Lmsgprefix|log.Ldate|log.Ltime)
+	l := log.New(&b, fmt.Sprintf("[%v] ", tb.Name()), log.Lmsgprefix|log.Ldate|log.Ltime|log.Lmicroseconds)
 	_ = checkOnce(newT(tb, newBufBitStream(buf, false), false, l), prop)
 	return b.Bytes()
 }
@@ -523,7 +523,7 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) *
 			testName = tb.Name()
 		}
 
-		t.rawLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", testName), 0)
+		t.rawLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", testName), log.Lmsgprefix|log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 
 	return t
