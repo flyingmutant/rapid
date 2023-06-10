@@ -59,7 +59,7 @@ type cmdline struct {
 
 func init() {
 	flag.IntVar(&flags.checks, "rapid.checks", 100, "rapid: number of checks to perform")
-	flag.IntVar(&flags.steps, "rapid.steps", 100, "rapid: number of state machine steps to perform")
+	flag.IntVar(&flags.steps, "rapid.steps", 30, "rapid: average number of Run actions to execute")
 	flag.StringVar(&flags.failfile, "rapid.failfile", "", "rapid: fail file to use to reproduce test failure")
 	flag.BoolVar(&flags.nofailfile, "rapid.nofailfile", false, "rapid: do not write fail files on test failures")
 	flag.Uint64Var(&flags.seed, "rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")

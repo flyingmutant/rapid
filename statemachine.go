@@ -7,7 +7,6 @@
 package rapid
 
 import (
-	"math"
 	"reflect"
 	"sort"
 	"testing"
@@ -46,10 +45,10 @@ func (t *T) Run(actions map[string]func(*T)) {
 
 	steps := flags.steps
 	if testing.Short() {
-		steps /= 5
+		steps /= 2
 	}
 
-	repeat := newRepeat(0, steps, math.MaxInt, "Run")
+	repeat := newRepeat(-1, -1, float64(steps), "Run")
 	sm := stateMachine{
 		check:      check,
 		actionKeys: SampledFrom(actionKeys),
