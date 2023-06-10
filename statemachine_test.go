@@ -42,7 +42,7 @@ func TestStateMachine_Counter(t *testing.T) {
 	checkShrink(t, func(t *T) {
 		var c buggyCounter
 		var incs, decs int
-		t.Run(map[string]func(*T){
+		t.Repeat(map[string]func(*T){
 			"Inc": func(_ *T) {
 				c.Inc()
 				incs++
@@ -78,7 +78,7 @@ func TestStateMachine_Halting(t *testing.T) {
 
 	checkShrink(t, func(t *T) {
 		var a, b, c []int
-		t.Run(map[string]func(*T){
+		t.Repeat(map[string]func(*T){
 			"A": func(t *T) {
 				if len(a) == 3 {
 					t.SkipNow()
@@ -146,7 +146,7 @@ func queueTest(t *T) {
 	size := IntRange(1, 1000).Draw(t, "size")
 	q := newBuggyQueue(size)
 	var state []int
-	t.Run(map[string]func(*T){
+	t.Repeat(map[string]func(*T){
 		"Get": func(t *T) {
 			if q.Size() == 0 {
 				t.Skip("queue empty")
@@ -191,7 +191,7 @@ func TestStateMachine_DiscardGarbage(t *testing.T) {
 
 	checkShrink(t, func(t *T) {
 		var a, b []int
-		t.Run(map[string]func(*T){
+		t.Repeat(map[string]func(*T){
 			"AddA": func(t *T) {
 				if len(b) < 3 {
 					t.Skip("too early")

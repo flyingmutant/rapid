@@ -50,7 +50,7 @@ func TestPanicTraceback(t *testing.T) {
 			func(t *T) *testError {
 				return checkOnce(t, func(t *T) {
 					var sm brokenMachine
-					t.Run(StateMachineActions(&sm))
+					t.Repeat(StateMachineActions(&sm))
 				})
 			},
 		},

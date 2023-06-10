@@ -19,14 +19,14 @@ const (
 	noValidActionsMsg = "can't find a valid action"
 )
 
-// Run executes a random sequence of actions (often called a "state machine" test).
+// Repeat executes a random sequence of actions (often called a "state machine" test).
 // actions[""], if set, is executed before/after every other action invocation
 // and should only contain invariant checking code.
 //
 // For complex state machines, it can be more convenient to specify actions as
 // methods of a special state machine type. In this case, [StateMachineActions]
 // can be used to create an actions map from state machine methods using reflection.
-func (t *T) Run(actions map[string]func(*T)) {
+func (t *T) Repeat(actions map[string]func(*T)) {
 	t.Helper()
 	if len(actions) == 0 {
 		return
@@ -48,7 +48,7 @@ func (t *T) Run(actions map[string]func(*T)) {
 		steps /= 2
 	}
 
-	repeat := newRepeat(-1, -1, float64(steps), "Run")
+	repeat := newRepeat(-1, -1, float64(steps), "Repeat")
 	sm := stateMachine{
 		check:      check,
 		actionKeys: SampledFrom(actionKeys),
@@ -76,7 +76,7 @@ type StateMachine interface {
 	Check(*T)
 }
 
-// StateMachineActions creates an actions map for [*T.Run]
+// StateMachineActions creates an actions map for [*T.Repeat]
 // from methods of a [StateMachine] type instance using reflection.
 func StateMachineActions(sm StateMachine) map[string]func(*T) {
 	var (

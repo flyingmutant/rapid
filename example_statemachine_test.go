@@ -47,7 +47,7 @@ func testQueue(t *rapid.T) {
 	q := NewQueue(n)                          // queue being tested
 	var state []int                           // model of the queue
 
-	t.Run(map[string]func(*rapid.T){
+	t.Repeat(map[string]func(*rapid.T){
 		"get": func(t *rapid.T) {
 			if q.Size() == 0 {
 				t.Skip("queue empty")
