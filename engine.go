@@ -569,8 +569,8 @@ func (t *T) Skip(args ...any) {
 	t.skip(fmt.Sprint(args...))
 }
 
-// SkipNow marks the current test case as invalid (except state machine
-// tests, where it marks current action as non-applicable instead).
+// SkipNow marks the current test case as invalid (except in [T.Repeat]
+// actions, where it marks current action as non-applicable instead).
 // If too many test cases are skipped, rapid will mark the test as failing
 // due to inability to generate enough valid test cases.
 //
