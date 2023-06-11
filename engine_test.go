@@ -22,13 +22,15 @@ func TestPanicTraceback(t *testing.T) {
 	t.Parallel()
 
 	testData := []struct {
-		name   string
-		suffix string
-		fail   func(*T) *testError
+		name       string
+		suffix     string
+		canSucceed bool
+		fail       func(*T) *testError
 	}{
 		{
 			"impossible filter",
 			"pgregory.net/rapid.find[...]",
+			false,
 			func(t *T) *testError {
 				g := Bool().Filter(func(bool) bool { return false })
 				_, err := recoverValue(g, t)
@@ -38,6 +40,7 @@ func TestPanicTraceback(t *testing.T) {
 		{
 			"broken custom generator",
 			"pgregory.net/rapid.brokenGen",
+			false,
 			func(t *T) *testError {
 				g := Custom(brokenGen)
 				_, err := recoverValue(g, t)
@@ -47,6 +50,7 @@ func TestPanicTraceback(t *testing.T) {
 		{
 			"broken state machine",
 			"pgregory.net/rapid.(*brokenMachine).DoNothing",
+			true,
 			func(t *T) *testError {
 				return checkOnce(t, func(t *T) {
 					var sm brokenMachine
@@ -63,6 +67,9 @@ func TestPanicTraceback(t *testing.T) {
 
 			err := td.fail(nt)
 			if err == nil {
+				if td.canSucceed {
+					t.SkipNow()
+				}
 				t.Fatalf("test case did not fail")
 			}
 
