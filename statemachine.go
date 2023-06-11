@@ -28,9 +28,6 @@ const (
 // can be used to create an actions map from state machine methods using reflection.
 func (t *T) Repeat(actions map[string]func(*T)) {
 	t.Helper()
-	if len(actions) == 0 {
-		return
-	}
 
 	check := func(*T) {}
 	actionKeys := make([]string, 0, len(actions))
@@ -40,6 +37,9 @@ func (t *T) Repeat(actions map[string]func(*T)) {
 		} else {
 			check = action
 		}
+	}
+	if len(actionKeys) == 0 {
+		return
 	}
 	sort.Strings(actionKeys)
 
