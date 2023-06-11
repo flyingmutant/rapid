@@ -64,7 +64,7 @@ regexp to see what happens when it is generating invalid addresses
 function ([source code](./example_function_test.go),
 [playground](https://go.dev/play/p/tZFU8zv8AUl)) and state machine
 ([source code](./example_statemachine_test.go),
-[playground](https://go.dev/play/p/uHduyKZoQVL)) example tests are provided.
+[playground](https://go.dev/play/p/cxEh4deG-4n)) example tests are provided.
 They both fail. Making them pass is a good way to get first real experience
 of working with rapid.
 
