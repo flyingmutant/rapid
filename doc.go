@@ -20,7 +20,6 @@ or "model-based") tests.
 Primitives:
   - [Bool]
   - [Rune], [RuneFrom]
-  - [String], [StringMatching], [StringOf], [StringOfN], [StringN]
   - [Byte], [ByteMin], [ByteMax], [ByteRange]
   - [Int], [IntMin], [IntMax], [IntRange]
   - [Int8], [Int8Min], [Int8Max], [Int8Range]
@@ -37,6 +36,7 @@ Primitives:
   - [Float64], [Float64Min], [Float64Max], [Float64Range]
 
 Collections:
+  - [String], [StringMatching], [StringOf], [StringOfN], [StringN]
   - [SliceOfBytesMatching]
   - [SliceOf], [SliceOfN], [SliceOfDistinct], [SliceOfNDistinct]
   - [Permutation]
