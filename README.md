@@ -153,11 +153,10 @@ go test -rapid.checks=10_000
 
 ## Status
 
-Rapid is preparing for stable 1.0 release. API breakage and bugs should be extremely rare.
-
-If rapid fails to find a bug you believe it should, or the failing test case
-that rapid reports does not look like a minimal one,
-please [open an issue](https://github.com/flyingmutant/rapid/issues).
+Rapid is stable: tests using rapid should continue to work with all future
+rapid releases with the same major version. Possible exceptions to this rule
+are API changes that replace the concrete type of parameter with an interface
+type, or other similar mostly non-breaking changes.
 
 ## License
 
