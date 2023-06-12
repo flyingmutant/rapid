@@ -41,7 +41,6 @@ Collections:
   - [SliceOf], [SliceOfN], [SliceOfDistinct], [SliceOfNDistinct]
   - [Permutation]
   - [MapOf], [MapOfN], [MapOfValues], [MapOfNValues]
-  - [Ptr]
 
 User-defined types:
   - [Custom]
@@ -53,5 +52,6 @@ Other:
   - [Just], [SampledFrom]
   - [OneOf]
   - [Deferred]
+  - [Ptr]
 */
 package rapid
