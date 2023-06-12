@@ -49,7 +49,7 @@ User-defined types:
 Other:
   - [Map],
   - [Generator.Filter]
-  - [Just], [SampledFrom]
+  - [SampledFrom], [Just]
   - [OneOf]
   - [Deferred]
   - [Ptr]
