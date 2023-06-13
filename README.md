@@ -139,6 +139,20 @@ specification, and track how the random bytes used correspond to the value
 generated, as well as their relationship with the parts of the bitstream
 allows rapid to intelligently and automatically minify any failure found.
 
+### What about fuzzing?
+
+Property-based testing focuses on quick feedback loop: checking the properties
+on a small but diverse set of pseudo-random inputs in a fractions of a second.
+
+In comparison, fuzzing focuses on slow, often multi-day, brute force input
+generation that maximizes the coverage.
+
+Both approaches are useful. Property-based tests are used alongside regular
+example-based tests during development, and fuzzing is used to search for edge
+cases and security vulnerabilities. With
+[`MakeFuzz`](https://pkg.go.dev/pgregory.net/rapid#MakeFuzz), any rapid test
+can be used as a fuzz target.
+
 ## Usage
 
 Just run `go test` as usual, it will pick up also all `rapid` tests.
