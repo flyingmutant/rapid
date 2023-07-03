@@ -47,6 +47,27 @@ More complete examples:
 - `Queue` state machine test:
   [source code](./example_statemachine_test.go), [playground](https://go.dev/play/p/cxEh4deG-4n)
 
+## Comparison
+
+Rapid aims to bring to Go the power and convenience
+[Hypothesis](https://github.com/HypothesisWorks/hypothesis) brings to Python.
+
+Compared to [testing.F.Fuzz](https://pkg.go.dev/testing#F.Fuzz), rapid shines
+in generating complex structured data, including state machine tests, but lacks
+coverage-guided feedback and mutations. Note that with
+[`MakeFuzz`](https://pkg.go.dev/pgregory.net/rapid#MakeFuzz), any rapid test
+can be used as a fuzz target for the standard fuzzer.
+
+Compared to [gopter](https://pkg.go.dev/github.com/leanovate/gopter), rapid
+provides a much simpler API (queue test in [rapid](./example_statemachine_test.go) vs
+[gopter](https://github.com/leanovate/gopter/blob/90cc76d7f1b21637b4b912a7c19dea3efe145bb2/commands/example_circularqueue_test.go)),
+is much smarter about data generation and is able to minimize failing test cases
+fully automatically, without any user code.
+
+As for [testing/quick](https://pkg.go.dev/testing/quick), it lacks both
+convenient data generation facilities and any form of test case minimization, which
+are two main things to look for in a property-based testing library.
+
 ## FAQ
 
 ### What is property-based testing?
