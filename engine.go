@@ -163,7 +163,7 @@ func checkFuzz(tb tb, prop func(*T), input []byte) {
 		input = input[n:]
 	}
 
-	t := newT(tb, newBufBitStream(buf, false), flags.verbose, nil)
+	t := newT(tb, newBufBitStream(buf, false), true, nil)
 	err := checkOnce(t, prop)
 
 	switch {

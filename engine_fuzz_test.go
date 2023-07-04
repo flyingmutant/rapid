@@ -33,6 +33,18 @@ func checkString(t *T) {
 	}
 }
 
+func checkStuckStateMachine(t *T) {
+	die := 0
+	t.Repeat(map[string]func(*T){
+		"roll": func(t *T) {
+			if die == 6 {
+				t.Skip("game over")
+			}
+			die = IntRange(1, 6).Draw(t, "die")
+		},
+	})
+}
+
 func TestRapidInt(t *testing.T) {
 	t.Skip()
 	Check(t, checkInt)
@@ -45,7 +57,12 @@ func TestRapidString(t *testing.T) {
 	t.Skip()
 	Check(t, checkString)
 }
+func TestRapidStuckStateMachine(t *testing.T) {
+	t.Skip()
+	Check(t, checkStuckStateMachine)
+}
 
-func FuzzInt(f *testing.F)    { f.Fuzz(MakeFuzz(checkInt)) }
-func FuzzSlice(f *testing.F)  { f.Fuzz(MakeFuzz(checkSlice)) }
-func FuzzString(f *testing.F) { f.Fuzz(MakeFuzz(checkString)) }
+func FuzzInt(f *testing.F)               { f.Fuzz(MakeFuzz(checkInt)) }
+func FuzzSlice(f *testing.F)             { f.Fuzz(MakeFuzz(checkSlice)) }
+func FuzzString(f *testing.F)            { f.Fuzz(MakeFuzz(checkString)) }
+func FuzzStuckStateMachine(f *testing.F) { f.Fuzz(MakeFuzz(checkStuckStateMachine)) }
