@@ -16,7 +16,7 @@ const (
 	actionLabel       = "action"
 	validActionTries  = 100 // hack, but probably good enough for now
 	checkMethodName   = "Check"
-	noValidActionsMsg = "can't find a valid action"
+	noValidActionsMsg = "can't find a valid (non-skipped) action"
 )
 
 // Repeat executes a random sequence of actions (often called a "state machine" test).
