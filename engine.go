@@ -580,6 +580,14 @@ func (t *T) SkipNow() {
 	t.skip("(*T).SkipNow() called")
 }
 
+func (t *T) Name() string {
+	if t.tb != nil {
+		return t.tb.Name()
+	}
+
+	return ""
+}
+
 // Errorf is equivalent to [T.Logf] followed by [T.Fail].
 func (t *T) Errorf(format string, args ...any) {
 	if t.tbLog && t.tb != nil {

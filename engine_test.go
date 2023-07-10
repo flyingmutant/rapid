@@ -7,6 +7,7 @@
 package rapid
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -92,4 +93,17 @@ func BenchmarkCheckOverhead(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		checkTB(b, deadline, f)
 	}
+}
+
+func TestNameInGeneratorStillWorksIfUsingExample(t *testing.T) {
+	g := Custom(func(t *T) string {
+		str := Just("rapid test").Draw(t, "")
+		return fmt.Sprintf("%s-%s", str, t.Name())
+	})
+	t.Run("does not panic when calling t.Name() inside generator called via .Example()", func(t *testing.T) {
+		exmpl := g.Example(0)
+		if exmpl != "rapid test-" {
+			t.Fatalf("expected example %s to contain the rapid test identifier and not panic", exmpl)
+		}
+	})
 }
