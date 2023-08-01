@@ -182,7 +182,7 @@ There are a number of optional flags to influence rapid behavior, run
 `go test -args -h` and look at the flags with the `-rapid.` prefix. You can
 then pass such flags as usual. For example:
 
-```
+```sh
 go test -rapid.checks=10_000
 ```
 
@@ -195,7 +195,7 @@ type, or other similar mostly non-breaking changes.
 
 ## License
 
-Rapid is licensed under the [Mozilla Public License Version 2.0](./LICENSE). 
+Rapid is licensed under the [Mozilla Public License Version 2.0](./LICENSE).
 
 [godev-img]: https://pkg.go.dev/badge/pgregory.net/rapid
 [godev]: https://pkg.go.dev/pgregory.net/rapid
