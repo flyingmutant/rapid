@@ -474,23 +474,7 @@ type TB interface {
 	Failed() bool
 }
 
-// tb is a private copy of TB, made to avoid T having public fields
-type tb interface {
-	Helper()
-	Name() string
-	Logf(format string, args ...any)
-	Log(args ...any)
-	Skipf(format string, args ...any)
-	Skip(args ...any)
-	SkipNow()
-	Errorf(format string, args ...any)
-	Error(args ...any)
-	Fatalf(format string, args ...any)
-	Fatal(args ...any)
-	FailNow()
-	Fail()
-	Failed() bool
-}
+type tb TB // tb is a private copy of TB, made to avoid T having public fields
 
 // T is similar to [testing.T], but with extra bookkeeping for property-based tests.
 //
