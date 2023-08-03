@@ -298,6 +298,10 @@ func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError,
 		tb.Logf("[rapid] fail file %q is no longer valid", failfile)
 		return nil, nil, nil
 	}
+	if err1.data == groupDidNotUseBitstream {
+		tb.Logf("[rapid] fail file %q did not use bitstream. Skipping fail file check.", failfile)
+		return nil, nil, nil
+	}
 
 	s2 := newBufBitStream(buf, false)
 	t2 := newT(tb, s2, flags.verbose, nil)
