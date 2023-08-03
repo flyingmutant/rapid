@@ -88,9 +88,10 @@ func assertValidRange(min int, max int) {
 	}
 }
 
-func checkDeadline(t *testing.T) time.Time {
-	if t == nil {
-		return time.Now().Add(maxTestTimeout) // convenience
+func checkDeadline(tb tb) time.Time {
+	t, ok := tb.(*testing.T)
+	if !ok {
+		return time.Now().Add(maxTestTimeout)
 	}
 	d, ok := t.Deadline()
 	if !ok {
@@ -112,7 +113,7 @@ func shrinkDeadline(deadline time.Time) time.Time {
 //
 // Property is falsified in case of a panic or a call to
 // [*T.Fatalf], [*T.Fatal], [*T.Errorf], [*T.Error], [*T.FailNow] or [*T.Fail].
-func Check(t *testing.T, prop func(*T)) {
+func Check(t TB, prop func(*T)) {
 	t.Helper()
 	checkTB(t, checkDeadline(t), prop)
 }
