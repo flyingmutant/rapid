@@ -360,7 +360,7 @@ func findBug(tb tb, deadline time.Time, checks int, seed uint64, prop func(*T)) 
 }
 
 func checkOnce(t *T, prop func(*T)) (err *testError) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	defer func() { err = panicToError(recover(), 3) }()
@@ -477,6 +477,23 @@ type TB interface {
 
 type tb TB // tb is a private copy of TB, made to avoid T having public fields
 
+type nilTB struct{}
+
+func (nilTB) Helper()               {}
+func (nilTB) Name() string          { return "" }
+func (nilTB) Logf(string, ...any)   {}
+func (nilTB) Log(...any)            {}
+func (nilTB) Skipf(string, ...any)  { panic("call to TB.Skipf() outside a test") }
+func (nilTB) Skip(...any)           { panic("call to TB.Skip() outside a test") }
+func (nilTB) SkipNow()              { panic("call to TB.SkipNow() outside a test") }
+func (nilTB) Errorf(string, ...any) { panic("call to TB.Errorf() outside a test") }
+func (nilTB) Error(...any)          { panic("call to TB.Error() outside a test") }
+func (nilTB) Fatalf(string, ...any) { panic("call to TB.Fatalf() outside a test") }
+func (nilTB) Fatal(...any)          { panic("call to TB.Fatal() outside a test") }
+func (nilTB) FailNow()              { panic("call to TB.FailNow() outside a test") }
+func (nilTB) Fail()                 { panic("call to TB.Fail() outside a test") }
+func (nilTB) Failed() bool          { panic("call to TB.Failed() outside a test") }
+
 // T is similar to [testing.T], but with extra bookkeeping for property-based tests.
 //
 // For tests to be reproducible, they should generally run in a single goroutine.
@@ -494,6 +511,10 @@ type T struct {
 }
 
 func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) *T {
+	if tb == nil {
+		tb = nilTB{}
+	}
+
 	t := &T{
 		tb:       tb,
 		tbLog:    tbLog,
@@ -515,13 +536,13 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) *
 }
 
 func (t *T) shouldLog() bool {
-	return t.rawLog != nil || (t.tbLog && t.tb != nil)
+	return t.rawLog != nil || t.tbLog
 }
 
 func (t *T) Logf(format string, args ...any) {
 	if t.rawLog != nil {
 		t.rawLog.Printf(format, args...)
-	} else if t.tbLog && t.tb != nil {
+	} else if t.tbLog {
 		t.tb.Helper()
 		t.tb.Logf(format, args...)
 	}
@@ -530,7 +551,7 @@ func (t *T) Logf(format string, args ...any) {
 func (t *T) Log(args ...any) {
 	if t.rawLog != nil {
 		t.rawLog.Print(args...)
-	} else if t.tbLog && t.tb != nil {
+	} else if t.tbLog {
 		t.tb.Helper()
 		t.tb.Log(args...)
 	}
@@ -538,7 +559,7 @@ func (t *T) Log(args ...any) {
 
 // Skipf is equivalent to [T.Logf] followed by [T.SkipNow].
 func (t *T) Skipf(format string, args ...any) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -547,7 +568,7 @@ func (t *T) Skipf(format string, args ...any) {
 
 // Skip is equivalent to [T.Log] followed by [T.SkipNow].
 func (t *T) Skip(args ...any) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	t.Log(args...)
@@ -567,7 +588,7 @@ func (t *T) SkipNow() {
 
 // Errorf is equivalent to [T.Logf] followed by [T.Fail].
 func (t *T) Errorf(format string, args ...any) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -576,7 +597,7 @@ func (t *T) Errorf(format string, args ...any) {
 
 // Error is equivalent to [T.Log] followed by [T.Fail].
 func (t *T) Error(args ...any) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	t.Log(args...)
@@ -585,7 +606,7 @@ func (t *T) Error(args ...any) {
 
 // Fatalf is equivalent to [T.Logf] followed by [T.FailNow].
 func (t *T) Fatalf(format string, args ...any) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	t.Logf(format, args...)
@@ -594,7 +615,7 @@ func (t *T) Fatalf(format string, args ...any) {
 
 // Fatal is equivalent to [T.Log] followed by [T.FailNow].
 func (t *T) Fatal(args ...any) {
-	if t.tbLog && t.tb != nil {
+	if t.tbLog {
 		t.tb.Helper()
 	}
 	t.Log(args...)

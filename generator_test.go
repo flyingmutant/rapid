@@ -32,3 +32,12 @@ func BenchmarkGenerator_Value(b *testing.B) {
 		g.value(t)
 	}
 }
+
+func TestExampleHelper(t *testing.T) {
+	g := Custom(func(t *T) int {
+		t.Helper()
+		return Int().Draw(t, t.Name())
+	})
+
+	g.Example(0)
+}
