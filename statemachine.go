@@ -88,9 +88,21 @@ func StateMachineActions(sm StateMachine) map[string]func(*T) {
 	actions := make(map[string]func(*T), n)
 	for i := 0; i < n; i++ {
 		name := t.Method(i).Name
+
+		if name == checkMethodName {
+			continue
+		}
+
 		m, ok := v.Method(i).Interface().(func(*T))
-		if ok && name != checkMethodName {
+		if ok {
 			actions[name] = m
+		}
+
+		m2, ok := v.Method(i).Interface().(func(TB))
+		if ok {
+			actions[name] = func(t *T) {
+				m2(t)
+			}
 		}
 	}
 

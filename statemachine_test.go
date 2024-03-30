@@ -6,7 +6,10 @@
 
 package rapid
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 // https://github.com/leanovate/gopter/blob/master/commands/example_circularqueue_test.go
 var gopterBug = false
@@ -231,6 +234,35 @@ func TestStateMachine_DiscardGarbage(t *testing.T) {
 		"AddA", 0,
 		"AddA", 0,
 	)
+}
+
+type stateMachineTest struct {
+	run []string
+}
+
+func (sm *stateMachineTest) ActionA(t *T) {
+	sm.run = append(sm.run, "actionA")
+}
+func (sm *stateMachineTest) ActionB(t TB) { sm.run = append(sm.run, "actionB") }
+func (sm *stateMachineTest) ActionC(t *T) { sm.run = append(sm.run, "actionC") }
+func (sm *stateMachineTest) Check(*T)     {}
+
+func TestStateMachineActions(t *testing.T) {
+	Check(t, func(t *T) {
+		sm := &stateMachineTest{}
+		actions := StateMachineActions(sm)
+		actions["ActionA"](t)
+		actions["ActionB"](t)
+		actions["ActionC"](t)
+
+		if want := []string{
+			"actionA",
+			"actionB",
+			"actionC",
+		}; !reflect.DeepEqual(want, sm.run) {
+			t.Fatalf("expected state %v, got %v", want, sm.run)
+		}
+	})
 }
 
 func BenchmarkCheckQueue(b *testing.B) {
