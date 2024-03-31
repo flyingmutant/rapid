@@ -240,26 +240,56 @@ type stateMachineTest struct {
 	run []string
 }
 
-func (sm *stateMachineTest) ActionA(t *T) {
-	sm.run = append(sm.run, "actionA")
+func (sm *stateMachineTest) Check(t *T) {}
+
+func (sm *stateMachineTest) ActionT(t *T) {
+	sm.run = append(sm.run, "ActionT")
 }
-func (sm *stateMachineTest) ActionB(t TB) { sm.run = append(sm.run, "actionB") }
-func (sm *stateMachineTest) ActionC(t *T) { sm.run = append(sm.run, "actionC") }
-func (sm *stateMachineTest) Check(*T)     {}
+
+func (sm *stateMachineTest) ActionTB(t TB) {
+	if len(sm.run) > 2 {
+		// Add a value to run that isn't expected to ensure the post-action check is skipped.
+		sm.run = append(sm.run, "Post-Skip")
+		t.Skip()
+	}
+
+	sm.run = append(sm.run, "ActionTB")
+}
 
 func TestStateMachineActions(t *testing.T) {
-	Check(t, func(t *T) {
+	t.Run("Check", MakeCheck(func(t *T) {
 		sm := &stateMachineTest{}
 		actions := StateMachineActions(sm)
-		actions["ActionA"](t)
-		actions["ActionB"](t)
-		actions["ActionC"](t)
 
-		if want := []string{
-			"actionA",
-			"actionB",
-			"actionC",
-		}; !reflect.DeepEqual(want, sm.run) {
+		actionT, ok := actions["ActionT"]
+		if !ok {
+			t.Fatalf("ActionA missing")
+		}
+		actionTB, ok := actions["ActionTB"]
+		if !ok {
+			t.Fatalf("ActionTB missing")
+		}
+
+		var want []string
+		for i := 0; i < Int().Draw(t, "ActionT acount"); i++ {
+			actionT(t)
+			want = append(want, "ActionT")
+		}
+
+		for i := 0; i < Int().Draw(t, "ActionTB acount"); i++ {
+			actionTB(t)
+			want = append(want, "ActionTB")
+		}
+
+		if !reflect.DeepEqual(want, sm.run) {
+			t.Fatalf("expected state %v, got %v", want, sm.run)
+		}
+	}))
+
+	t.Run("directly use action with testing.T", func(t *testing.T) {
+		sm := &stateMachineTest{}
+		sm.ActionTB(t)
+		if want := []string{"ActionTB"}; !reflect.DeepEqual(want, sm.run) {
 			t.Fatalf("expected state %v, got %v", want, sm.run)
 		}
 	})
