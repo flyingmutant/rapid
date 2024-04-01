@@ -271,12 +271,12 @@ func TestStateMachineActions(t *testing.T) {
 		}
 
 		var want []string
-		for i := 0; i < Int().Draw(t, "ActionT acount"); i++ {
+		for i := 0; i < Int().Draw(t, "ActionT count"); i++ {
 			actionT(t)
 			want = append(want, "ActionT")
 		}
 
-		for i := 0; i < Int().Draw(t, "ActionTB acount"); i++ {
+		for i := 0; i < Int().Draw(t, "ActionTB count"); i++ {
 			actionTB(t)
 			want = append(want, "ActionTB")
 		}
