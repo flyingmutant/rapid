@@ -43,8 +43,9 @@ func kindaSafeFilename(f string) string {
 		}
 	}
 	name := s.String()
+	nameUpper := strings.ToUpper(name)
 	for _, reserved := range windowsReservedNames {
-		if name == reserved {
+		if nameUpper == reserved {
 			return name + "_"
 		}
 	}
