@@ -12,6 +12,8 @@ import (
 )
 
 // Make creates a generator of values of type V, using reflection to infer the required structure.
+// Currently, Make may be unable to terminate generation of values of some recursive types, thus using
+// Make with recursive types requires extra care.
 func Make[V any]() *Generator[V] {
 	var zero V
 	gen := newMakeGen(reflect.TypeOf(zero))
