@@ -7,6 +7,7 @@
 package rapid_test
 
 import (
+	"context"
 	"testing"
 
 	. "pgregory.net/rapid"
@@ -66,3 +67,28 @@ func FuzzInt(f *testing.F)               { f.Fuzz(MakeFuzz(checkInt)) }
 func FuzzSlice(f *testing.F)             { f.Fuzz(MakeFuzz(checkSlice)) }
 func FuzzString(f *testing.F)            { f.Fuzz(MakeFuzz(checkString)) }
 func FuzzStuckStateMachine(f *testing.F) { f.Fuzz(MakeFuzz(checkStuckStateMachine)) }
+
+func FuzzContext(f *testing.F) {
+	type key struct{}
+
+	var ctx context.Context
+	f.Fuzz(MakeFuzz(func(t *T) {
+		// Assign to outer variable
+		// so we can check it after the fuzzing.
+		ctx = context.WithValue(t.Context(), key{}, "value")
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("context must be valid: %v", err)
+		}
+	}))
+
+	// ctx is set only if the fuzzing function was called.
+	if ctx != nil {
+		if err := ctx.Err(); err == nil {
+			f.Fatalf("context must be canceled")
+		}
+
+		if want, got := "value", ctx.Value(key{}); want != got {
+			f.Fatalf("context must have value %q, got %q", want, got)
+		}
+	}
+}

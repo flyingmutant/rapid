@@ -18,7 +18,6 @@ func TestDataVis(t *testing.T) {
 	f, err := os.Create("vis-test.html")
 	if err != nil {
 		t.Fatalf("failed to create vis html file: %v", err)
-
 	}
 	defer func() { _ = f.Close() }()
 
@@ -55,7 +54,9 @@ func TestDataVis(t *testing.T) {
 	g := SliceOf(SliceOf(Uint().Filter(func(i uint) bool { return i%2 == 1 }))).Filter(func(s [][]uint) bool { return len(s) > 0 })
 	for {
 		s := newRandomBitStream(baseSeed(), true)
-		_, err := recoverValue(g, newT(nil, s, false, nil))
+		nt, cancel := newT(nil, s, false, nil)
+		_, err := recoverValue(g, nt)
+		cancel()
 		if err != nil && !err.isInvalidData() {
 			t.Errorf("unexpected error %v", err)
 		}

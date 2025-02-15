@@ -218,7 +218,8 @@ func checkShrink(t *testing.T, prop func(*T), draws ...any) {
 				t.Fatalf("flaky shrink test (seed %v)\nTraceback (%v):\n%vOriginal traceback (%v):\n%v", seed, err2, traceback(err2), err1, traceback(err1))
 			}
 
-			nt := newT(t, newBufBitStream(buf, false), false, nil, draws...)
+			nt, cancel := newT(t, newBufBitStream(buf, false), false, nil, draws...)
+			defer cancel()
 			_ = checkOnce(nt, prop)
 			if nt.draws != len(draws) {
 				t.Fatalf("different number of draws: %v vs expected %v", nt.draws, len(draws))
