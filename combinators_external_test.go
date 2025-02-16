@@ -7,6 +7,8 @@
 package rapid_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -58,6 +60,39 @@ func TestCustom(t *testing.T) {
 	for _, g := range gens {
 		t.Run(g.String(), MakeCheck(func(t *T) { g.Draw(t, "") }))
 	}
+}
+
+func TestCustomContext(t *testing.T) {
+	t.Parallel()
+
+	type key struct{}
+
+	gen := Custom(func(t *T) context.Context {
+		ctx := t.Context()
+
+		// Inside the custom generator, the context must be valid.
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("context must be valid: %v", err)
+		}
+
+		x := Int().Draw(t, "x")
+		return context.WithValue(ctx, key{}, x)
+	})
+
+	Check(t, func(t *T) {
+		ctx := gen.Draw(t, "value")
+
+		if _, ok := ctx.Value(key{}).(int); !ok {
+			t.Fatalf("context must contain an int")
+		}
+
+		// Outside the custom generator,
+		// the context from inside the generator
+		// must no longer be valid.
+		if err := ctx.Err(); err == nil || !errors.Is(err, context.Canceled) {
+			t.Fatalf("context must be canceled: %v", err)
+		}
+	})
 }
 
 func TestFilter(t *testing.T) {

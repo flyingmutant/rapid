@@ -84,7 +84,9 @@ func (g *Generator[V]) Example(seed ...int) V {
 		s = uint64(seed[0])
 	}
 
-	v, n, err := example(g, newT(nil, newRandomBitStream(s, false), false, nil))
+	t, cancel := newT(nil, newRandomBitStream(s, false), false, nil)
+	defer cancel()
+	v, n, err := example(g, t)
 	assertf(err == nil, "%v failed to generate an example in %v tries: %v", g, n, err)
 
 	return v

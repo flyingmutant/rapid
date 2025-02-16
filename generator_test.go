@@ -6,7 +6,11 @@
 
 package rapid
 
-import "testing"
+import (
+	"context"
+	"errors"
+	"testing"
+)
 
 type trivialGenImpl struct{}
 
@@ -14,7 +18,8 @@ func (trivialGenImpl) String() string    { return "" }
 func (trivialGenImpl) value(t *T) uint64 { return t.s.drawBits(64) }
 
 func BenchmarkTrivialGenImplValue(b *testing.B) {
-	t := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
+	t, cancel := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
+	defer cancel()
 	g := trivialGenImpl{}
 	b.ResetTimer()
 
@@ -24,7 +29,8 @@ func BenchmarkTrivialGenImplValue(b *testing.B) {
 }
 
 func BenchmarkGenerator_Value(b *testing.B) {
-	t := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
+	t, cancel := newT(nil, newRandomBitStream(baseSeed(), false), false, nil)
+	defer cancel()
 	g := newGenerator[uint64](trivialGenImpl{})
 	b.ResetTimer()
 
@@ -40,4 +46,26 @@ func TestExampleHelper(t *testing.T) {
 	})
 
 	g.Example(0)
+}
+
+func TestExampleContext(t *testing.T) {
+	type key struct{}
+
+	g := Custom(func(t *T) context.Context {
+		ctx := context.WithValue(t.Context(), key{}, Int().Draw(t, "x"))
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		return ctx
+	})
+
+	ctx := g.Example(0)
+
+	if err := ctx.Err(); err == nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context to be canceled, got: %v", err)
+	}
+
+	if _, ok := ctx.Value(key{}).(int); !ok {
+		t.Fatalf("context must have a value")
+	}
 }
