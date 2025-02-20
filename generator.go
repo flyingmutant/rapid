@@ -101,6 +101,8 @@ func (g *Generator[V]) AsAny() *Generator[any] {
 }
 
 func example[V any](g *Generator[V], t *T) (V, int, error) {
+	defer t.cleanup()
+
 	for i := 1; ; i++ {
 		r, err := recoverValue(g, t)
 		if err == nil {

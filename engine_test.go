@@ -7,6 +7,8 @@
 package rapid
 
 import (
+	"context"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -91,5 +93,25 @@ func BenchmarkCheckOverhead(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		checkTB(b, deadline, f)
+	}
+}
+
+func TestCheckContext(t *testing.T) {
+	type key struct{}
+
+	var ctx context.Context
+	Check(t, func(t *T) {
+		ctx = context.WithValue(t.Context(), key{}, Int().Draw(t, "x"))
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	if err := ctx.Err(); err == nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context to be canceled, got: %v", err)
+	}
+
+	if _, ok := ctx.Value(key{}).(int); !ok {
+		t.Fatalf("context must have a value")
 	}
 }

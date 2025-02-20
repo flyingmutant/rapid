@@ -38,6 +38,7 @@ func (g *customGen[V]) value(t *T) V {
 
 func (g *customGen[V]) maybeValue(t *T) (V, bool) {
 	t = newT(t.tb, t.s, flags.debug, nil)
+	defer t.cleanup()
 
 	defer func() {
 		if r := recover(); r != nil {

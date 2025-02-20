@@ -8,6 +8,7 @@ package rapid
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -365,6 +366,7 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 	}
 	defer func() { err = panicToError(recover(), 3) }()
 
+	defer t.cleanup()
 	prop(t)
 	t.failOnError()
 
@@ -500,7 +502,11 @@ func (nilTB) Failed() bool          { panic("call to TB.Failed() outside a test"
 // If concurrency is unavoidable, methods on *T, such as [*testing.T.Helper] and [*T.Errorf],
 // are safe for concurrent calls, but *Generator.Draw from a given *T is not.
 type T struct {
-	tb       // unnamed to force re-export of (*T).Helper()
+	tb // unnamed to force re-export of (*T).Helper()
+
+	ctx       context.Context
+	cancelCtx context.CancelFunc
+
 	tbLog    bool
 	rawLog   *log.Logger
 	s        bitStream
@@ -537,6 +543,56 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) *
 
 func (t *T) shouldLog() bool {
 	return t.rawLog != nil || t.tbLog
+}
+
+// Context returns a context.Context associated with the test.
+// It is valid only for the duration of the rapid check.
+func (t *T) Context() context.Context {
+	// Fast path: no need to lock if the context is already set.
+	t.mu.RLock()
+	ctx := t.ctx
+	t.mu.RUnlock()
+	if ctx != nil {
+		return ctx
+	}
+
+	// Slow path: lock and check again, create new context if needed.
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.ctx != nil {
+		// Another goroutine set the context
+		// while we were waiting for the lock.
+		return t.ctx
+	}
+
+	// Use the testing.TB's context as the starting point if available,
+	// and the Background context if not.
+	//
+	// T.Context was added in Go 1.24.
+	if tctx, ok := t.tb.(interface{ Context() context.Context }); ok {
+		ctx = tctx.Context()
+	} else {
+		ctx = context.Background()
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	t.ctx = ctx
+	t.cancelCtx = cancel
+	return ctx
+}
+
+// cleanup runs any cleanup tasks associated with the property check.
+// It is safe to call multiple times.
+func (t *T) cleanup() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.cancelCtx != nil {
+		t.cancelCtx()
+		t.cancelCtx = nil
+		t.ctx = nil
+	}
 }
 
 func (t *T) Logf(format string, args ...any) {

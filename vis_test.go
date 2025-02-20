@@ -18,7 +18,6 @@ func TestDataVis(t *testing.T) {
 	f, err := os.Create("vis-test.html")
 	if err != nil {
 		t.Fatalf("failed to create vis html file: %v", err)
-
 	}
 	defer func() { _ = f.Close() }()
 

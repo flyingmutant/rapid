@@ -6,7 +6,11 @@
 
 package rapid
 
-import "testing"
+import (
+	"context"
+	"errors"
+	"testing"
+)
 
 type trivialGenImpl struct{}
 
@@ -40,4 +44,26 @@ func TestExampleHelper(t *testing.T) {
 	})
 
 	g.Example(0)
+}
+
+func TestExampleContext(t *testing.T) {
+	type key struct{}
+
+	g := Custom(func(t *T) context.Context {
+		ctx := context.WithValue(t.Context(), key{}, Int().Draw(t, "x"))
+		if err := ctx.Err(); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		return ctx
+	})
+
+	ctx := g.Example(0)
+
+	if err := ctx.Err(); err == nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context to be canceled, got: %v", err)
+	}
+
+	if _, ok := ctx.Value(key{}).(int); !ok {
+		t.Fatalf("context must have a value")
+	}
 }
