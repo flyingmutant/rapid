@@ -165,9 +165,7 @@ func checkFuzz(tb tb, prop func(*T), input []byte) {
 		input = input[n:]
 	}
 
-	t, cancel := newT(tb, newBufBitStream(buf, false), true, nil)
-	defer cancel()
-
+	t := newT(tb, newBufBitStream(buf, false), true, nil)
 	err := checkOnce(t, prop)
 
 	switch {
@@ -232,12 +230,7 @@ func checkTB(tb tb, deadline time.Time, prop func(*T)) {
 			tb.Errorf("[rapid] flaky test, can not reproduce a failure\nTo try to reproduce, specify -run=%q %v\nTraceback (%v):\n%vOriginal traceback (%v):\n%vFailed test output:", name, repr, err2, traceback(err2), err1, traceback(err1))
 		}
 
-		func() {
-			t, cancel := newT(tb, newBufBitStream(buf, false), false, nil) // output using (*testing.T).Log for proper line numbers
-			defer cancel()
-
-			_ = checkOnce(t, prop)
-		}()
+		_ = checkOnce(newT(tb, newBufBitStream(buf, false), true, nil), prop) // output using (*testing.T).Log for proper line numbers
 	}
 
 	if tb.Failed() {
@@ -271,8 +264,7 @@ func doCheck(tb tb, deadline time.Time, checks int, seed uint64, failfile string
 	}
 
 	s := newRandomBitStream(seed, true)
-	t, cancel := newT(tb, s, flags.verbose, nil)
-	defer cancel()
+	t := newT(tb, s, flags.verbose, nil)
 	t.Logf("[rapid] trying to reproduce the failure")
 	err2 := checkOnce(t, prop)
 	if !sameError(err1, err2) {
@@ -298,12 +290,9 @@ func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError,
 		return nil, nil, nil
 	}
 
-	err1 := func() *testError {
-		s1 := newBufBitStream(buf, false)
-		t1, cancel1 := newT(tb, s1, flags.verbose, nil)
-		defer cancel1()
-		return checkOnce(t1, prop)
-	}()
+	s1 := newBufBitStream(buf, false)
+	t1 := newT(tb, s1, flags.verbose, nil)
+	err1 := checkOnce(t1, prop)
 	if err1 == nil {
 		return nil, nil, nil
 	}
@@ -312,13 +301,10 @@ func checkFailFile(tb tb, failfile string, prop func(*T)) ([]uint64, *testError,
 		return nil, nil, nil
 	}
 
-	err2 := func() *testError {
-		s2 := newBufBitStream(buf, false)
-		t2, cancel2 := newT(tb, s2, flags.verbose, nil)
-		defer cancel2()
-		t2.Logf("[rapid] trying to reproduce the failure")
-		return checkOnce(t2, prop)
-	}()
+	s2 := newBufBitStream(buf, false)
+	t2 := newT(tb, s2, flags.verbose, nil)
+	t2.Logf("[rapid] trying to reproduce the failure")
+	err2 := checkOnce(t2, prop)
 
 	return buf, err1, err2
 }
@@ -328,12 +314,10 @@ func findBug(tb tb, deadline time.Time, checks int, seed uint64, prop func(*T)) 
 
 	var (
 		r       = newRandomBitStream(0, false)
+		t       = newT(tb, r, flags.verbose, nil)
 		valid   = 0
 		invalid = 0
 	)
-
-	t, cancel := newT(tb, r, flags.verbose, nil)
-	defer cancel()
 
 	var total time.Duration
 	for valid < checks && invalid < checks*invalidChecksMult {
@@ -382,6 +366,7 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 	}
 	defer func() { err = panicToError(recover(), 3) }()
 
+	defer t.cleanup()
 	prop(t)
 	t.failOnError()
 
@@ -391,9 +376,7 @@ func checkOnce(t *T, prop func(*T)) (err *testError) {
 func captureTestOutput(tb tb, prop func(*T), buf []uint64) []byte {
 	var b bytes.Buffer
 	l := log.New(&b, fmt.Sprintf("[%v] ", tb.Name()), log.Lmsgprefix|log.Ldate|log.Ltime|log.Lmicroseconds)
-	t, cancel := newT(tb, newBufBitStream(buf, false), false, l)
-	defer cancel()
-	_ = checkOnce(t, prop)
+	_ = checkOnce(newT(tb, newBufBitStream(buf, false), false, l), prop)
 	return b.Bytes()
 }
 
@@ -521,7 +504,9 @@ func (nilTB) Failed() bool          { panic("call to TB.Failed() outside a test"
 type T struct {
 	tb // unnamed to force re-export of (*T).Helper()
 
-	ctx      context.Context
+	ctx       context.Context
+	cancelCtx context.CancelFunc
+
 	tbLog    bool
 	rawLog   *log.Logger
 	s        bitStream
@@ -531,24 +516,13 @@ type T struct {
 	failed   stopTest
 }
 
-func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) (_ *T, cancel func()) {
+func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) *T {
 	if tb == nil {
 		tb = nilTB{}
 	}
 
-	var ctx context.Context
-	if tctx, ok := tb.(interface{ Context() context.Context }); ok {
-		// Go 1.24 added a Context method to testing.TB.
-		// Use it if available.
-		ctx = tctx.Context()
-	} else {
-		ctx = context.Background()
-	}
-
-	ctx, cancel = context.WithCancel(ctx)
 	t := &T{
 		tb:       tb,
-		ctx:      ctx,
 		tbLog:    tbLog,
 		rawLog:   rawLog,
 		s:        s,
@@ -564,7 +538,7 @@ func newT(tb tb, s bitStream, tbLog bool, rawLog *log.Logger, refDraws ...any) (
 		t.rawLog = log.New(os.Stdout, fmt.Sprintf("[%v] ", testName), log.Lmsgprefix|log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 
-	return t, cancel
+	return t
 }
 
 func (t *T) shouldLog() bool {
@@ -574,7 +548,52 @@ func (t *T) shouldLog() bool {
 // Context returns a context.Context associated with the test.
 // It is valid only for the duration of the rapid check.
 func (t *T) Context() context.Context {
-	return t.ctx
+	// Fast path: no need to lock if the context is already set.
+	t.mu.RLock()
+	if t.ctx != nil {
+		t.mu.RUnlock()
+		return t.ctx
+	}
+	t.mu.RUnlock()
+
+	// Slow path: lock and check again, create new context if needed.
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.ctx != nil {
+		// Another goroutine set the context
+		// while we were waiting for the lock.
+		return t.ctx
+	}
+
+	// Use the testing.TB's context as the starting point if available,
+	// and the Background context if not.
+	//
+	// T.Context was added in Go 1.24.
+	var ctx context.Context
+	if tctx, ok := t.tb.(interface{ Context() context.Context }); ok {
+		ctx = tctx.Context()
+	} else {
+		ctx = context.Background()
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	t.ctx = ctx
+	t.cancelCtx = cancel
+	return ctx
+}
+
+// cleanup runs any cleanup tasks associated with the property check.
+// It is safe to call multiple times.
+func (t *T) cleanup() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.cancelCtx != nil {
+		t.cancelCtx()
+		t.cancelCtx = nil
+		t.ctx = nil
+	}
 }
 
 func (t *T) Logf(format string, args ...any) {

@@ -84,9 +84,7 @@ func (g *Generator[V]) Example(seed ...int) V {
 		s = uint64(seed[0])
 	}
 
-	t, cancel := newT(nil, newRandomBitStream(s, false), false, nil)
-	defer cancel()
-	v, n, err := example(g, t)
+	v, n, err := example(g, newT(nil, newRandomBitStream(s, false), false, nil))
 	assertf(err == nil, "%v failed to generate an example in %v tries: %v", g, n, err)
 
 	return v
@@ -103,6 +101,8 @@ func (g *Generator[V]) AsAny() *Generator[any] {
 }
 
 func example[V any](g *Generator[V], t *T) (V, int, error) {
+	defer t.cleanup()
+
 	for i := 1; ; i++ {
 		r, err := recoverValue(g, t)
 		if err == nil {

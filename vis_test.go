@@ -54,9 +54,7 @@ func TestDataVis(t *testing.T) {
 	g := SliceOf(SliceOf(Uint().Filter(func(i uint) bool { return i%2 == 1 }))).Filter(func(s [][]uint) bool { return len(s) > 0 })
 	for {
 		s := newRandomBitStream(baseSeed(), true)
-		nt, cancel := newT(nil, s, false, nil)
-		_, err := recoverValue(g, nt)
-		cancel()
+		_, err := recoverValue(g, newT(nil, s, false, nil))
 		if err != nil && !err.isInvalidData() {
 			t.Errorf("unexpected error %v", err)
 		}

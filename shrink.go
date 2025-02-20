@@ -258,11 +258,7 @@ func (s *shrinker) accept(buf []uint64, label string, format string, args ...any
 	s.debugf(true, label+": trying to reproduce the failure with a smaller test case: "+format, args...)
 	s.tries[label]++
 	s1 := newBufBitStream(buf, false)
-	err1 := func() *testError {
-		t, cancel := newT(s.tb, s1, flags.debug && flags.verbose, nil)
-		defer cancel()
-		return checkOnce(t, s.prop)
-	}()
+	err1 := checkOnce(newT(s.tb, s1, flags.debug && flags.verbose, nil), s.prop)
 	if traceback(err1) != traceback(s.err) {
 		s.cache[bufStr] = struct{}{}
 		return false
@@ -272,11 +268,7 @@ func (s *shrinker) accept(buf []uint64, label string, format string, args ...any
 	s.tries[label]++
 	s.err = err1
 	s2 := newBufBitStream(buf, true)
-	err2 := func() *testError {
-		t, cancel := newT(s.tb, s2, flags.debug && flags.verbose, nil)
-		defer cancel()
-		return checkOnce(t, s.prop)
-	}()
+	err2 := checkOnce(newT(s.tb, s2, flags.debug && flags.verbose, nil), s.prop)
 	s.rec = s2.recordedBits
 	s.rec.prune()
 	assert(compareData(s.rec.data, buf) <= 0)
