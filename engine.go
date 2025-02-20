@@ -550,11 +550,11 @@ func (t *T) shouldLog() bool {
 func (t *T) Context() context.Context {
 	// Fast path: no need to lock if the context is already set.
 	t.mu.RLock()
-	if t.ctx != nil {
-		t.mu.RUnlock()
-		return t.ctx
-	}
+	ctx := t.ctx
 	t.mu.RUnlock()
+	if ctx != nil {
+		return ctx
+	}
 
 	// Slow path: lock and check again, create new context if needed.
 	t.mu.Lock()
@@ -570,7 +570,6 @@ func (t *T) Context() context.Context {
 	// and the Background context if not.
 	//
 	// T.Context was added in Go 1.24.
-	var ctx context.Context
 	if tctx, ok := t.tb.(interface{ Context() context.Context }); ok {
 		ctx = tctx.Context()
 	} else {
