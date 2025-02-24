@@ -548,9 +548,17 @@ func (t *T) shouldLog() bool {
 	return t.rawLog != nil || t.tbLog
 }
 
-// Context returns a context.Context associated with the property check.
-// It is valid only for the duration of the check,
-// and is canceled shortly before Cleanup functions are run.
+// Context returns a context.Context that is canceled
+// after the property function exits,
+// before Cleanup-registered functions are run.
+//
+// For [Check], [MakeFuzz], and similar functions,
+// each call to the property function gets a unique context
+// that is canceled after that property function exits.
+//
+// For [Custom], each time a new value is generated,
+// the generator function gets a unique context
+// that is canceled after the generator function exits.
 func (t *T) Context() context.Context {
 	// Fast path: no need to lock if the context is already set.
 	t.mu.RLock()
@@ -596,13 +604,20 @@ func (t *T) Context() context.Context {
 }
 
 // Cleanup registers a function to be called
-// when this property check is over.
-// Use it to clean up any resources acquired during the check.
+// when a property function finishes running.
+//
+// For [Check], [MakeFuzz], and similar functions,
+// each call to the property function registers its cleanup functions,
+// which are called after the property function exits.
+//
+// For [Custom], each time a new value is generated,
+// the generator function registers its cleanup functions,
+// which are called after the generator function exits.
 //
 // Cleanup functions are called in last-in, first-out order.
 //
-// Note that the context returned by [T.Context] is canceled
-// by the time Cleanup functions are run.
+// If [T.Context] is used, the context is canceled
+// before the Cleanup functions are executed.
 func (t *T) Cleanup(f func()) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
