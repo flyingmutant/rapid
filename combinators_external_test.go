@@ -95,6 +95,28 @@ func TestCustomContext(t *testing.T) {
 	})
 }
 
+func TestCustomCleanup(t *testing.T) {
+	t.Parallel()
+
+	var open bool
+	gen := Custom(func(t *T) int {
+		t.Cleanup(func() { open = false })
+		return Int().Draw(t, "")
+	})
+
+	// Cleanup functions registered during a Custom generator
+	// are run after generation, not after the Check.
+	Check(t, func(t *T) {
+		open = true
+		_ = gen.Draw(t, "value")
+
+		// Cleanup must run after each run of the custom generator.
+		if open {
+			t.Fatalf("cleanup must be run")
+		}
+	})
+}
+
 func TestFilter(t *testing.T) {
 	t.Parallel()
 

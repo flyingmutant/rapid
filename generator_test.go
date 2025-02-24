@@ -46,7 +46,7 @@ func TestExampleHelper(t *testing.T) {
 	g.Example(0)
 }
 
-func TestExampleContext(t *testing.T) {
+func TestCustomExampleContext(t *testing.T) {
 	type key struct{}
 
 	g := Custom(func(t *T) context.Context {
@@ -65,5 +65,19 @@ func TestExampleContext(t *testing.T) {
 
 	if _, ok := ctx.Value(key{}).(int); !ok {
 		t.Fatalf("context must have a value")
+	}
+}
+
+func TestCustomExampleCleanup(t *testing.T) {
+	var state bool
+	g := Custom(func(t *T) int {
+		t.Cleanup(func() { state = false })
+		return Int().Draw(t, "x")
+	})
+
+	state = true
+	_ = g.Example(0)
+	if state {
+		t.Fatalf("cleanup must be called")
 	}
 }

@@ -92,3 +92,20 @@ func FuzzContext(f *testing.F) {
 		}
 	}
 }
+
+func FuzzCleanup(f *testing.F) {
+	var state []bool
+	f.Fuzz(MakeFuzz(func(t *T) {
+		idx := len(state)
+		state = append(state, false)
+		t.Cleanup(func() {
+			state[idx] = true
+		})
+	}))
+
+	for _, ok := range state {
+		if !ok {
+			f.Fatalf("cleanup must be called")
+		}
+	}
+}

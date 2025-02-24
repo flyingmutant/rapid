@@ -19,6 +19,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -506,6 +507,8 @@ type T struct {
 
 	ctx       context.Context
 	cancelCtx context.CancelFunc
+	cleanups  []func()
+	cleaning  atomic.Bool
 
 	tbLog    bool
 	rawLog   *log.Logger
@@ -545,14 +548,32 @@ func (t *T) shouldLog() bool {
 	return t.rawLog != nil || t.tbLog
 }
 
-// Context returns a context.Context associated with the test.
-// It is valid only for the duration of the rapid check.
+// Context returns a context.Context that is canceled
+// after the property function exits,
+// before Cleanup-registered functions are run.
+//
+// For [Check], [MakeFuzz], and similar functions,
+// each call to the property function gets a unique context
+// that is canceled after that property function exits.
+//
+// For [Custom], each time a new value is generated,
+// the generator function gets a unique context
+// that is canceled after the generator function exits.
 func (t *T) Context() context.Context {
 	// Fast path: no need to lock if the context is already set.
 	t.mu.RLock()
 	ctx := t.ctx
 	t.mu.RUnlock()
 	if ctx != nil {
+		return ctx
+	}
+
+	// If we're in the middle of cleaning up
+	// and the context has already been canceled and cleared,
+	// don't create a new one. Return a canceled context instead.
+	if t.cleaning.Load() {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
 		return ctx
 	}
 
@@ -582,16 +603,70 @@ func (t *T) Context() context.Context {
 	return ctx
 }
 
-// cleanup runs any cleanup tasks associated with the property check.
-// It is safe to call multiple times.
-func (t *T) cleanup() {
+// Cleanup registers a function to be called
+// when a property function finishes running.
+//
+// For [Check], [MakeFuzz], and similar functions,
+// each call to the property function registers its cleanup functions,
+// which are called after the property function exits.
+//
+// For [Custom], each time a new value is generated,
+// the generator function registers its cleanup functions,
+// which are called after the generator function exits.
+//
+// Cleanup functions are called in last-in, first-out order.
+//
+// If [T.Context] is used, the context is canceled
+// before the Cleanup functions are executed.
+func (t *T) Cleanup(f func()) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
+	t.cleanups = append(t.cleanups, f)
+}
+
+// cleanup runs any cleanup tasks associated with the property check.
+// It is safe to call multiple times.
+func (t *T) cleanup() {
+	t.cleaning.Store(true)
+	defer t.cleaning.Store(false)
+
+	// If a cleanup function panics,
+	// we still want to run the remaining cleanup functions.
+	defer func() {
+		t.mu.Lock()
+		recurse := len(t.cleanups) > 0
+		t.mu.Unlock()
+
+		if recurse {
+			t.cleanup()
+		}
+	}()
+
+	// Context must be closed before t.Cleanup functions are run.
+	t.mu.Lock()
 	if t.cancelCtx != nil {
 		t.cancelCtx()
 		t.cancelCtx = nil
 		t.ctx = nil
+	}
+	t.mu.Unlock()
+
+	for {
+		var cleanup func()
+		t.mu.Lock()
+		if len(t.cleanups) > 0 {
+			last := len(t.cleanups) - 1
+			cleanup = t.cleanups[last]
+			t.cleanups = t.cleanups[:last]
+		}
+		t.mu.Unlock()
+
+		if cleanup == nil {
+			break
+		}
+
+		cleanup()
 	}
 }
 

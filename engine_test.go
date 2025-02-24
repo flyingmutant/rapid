@@ -9,6 +9,7 @@ package rapid
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -97,6 +98,8 @@ func BenchmarkCheckOverhead(b *testing.B) {
 }
 
 func TestCheckContext(t *testing.T) {
+	t.Parallel()
+
 	type key struct{}
 
 	var ctx context.Context
@@ -115,3 +118,144 @@ func TestCheckContext(t *testing.T) {
 		t.Fatalf("context must have a value")
 	}
 }
+
+func TestCheckCleanup(t *testing.T) {
+	t.Parallel()
+
+	// Each Check iteration will append a true to indicate "open",
+	// and flip it to false on cleanup.
+	//
+	// After the check is done, we expect all values to be false.
+	var state []bool
+
+	Check(t, func(t *T) {
+		idx := len(state)
+		state = append(state, true)
+		t.Cleanup(func() {
+			state[idx] = false
+		})
+	})
+
+	for _, v := range state {
+		if v {
+			t.Fatalf("expected all values to be false")
+		}
+	}
+}
+
+func TestCheckCleanupMultipleOrder(t *testing.T) {
+	t.Parallel()
+
+	// If multiple cleanups are appended during a Check,
+	// they must run in reverse order.
+	var state []int
+	Check(t, func(t *T) {
+		// We just want to capture the result of one iteration,
+		// so we'll keep resetting the state.
+		state = nil
+		t.Cleanup(func() {
+			state = append(state, 1)
+		})
+		t.Cleanup(func() {
+			state = append(state, 2)
+		})
+		t.Cleanup(func() {
+			state = append(state, 3)
+		})
+	})
+
+	if !reflect.DeepEqual(state, []int{3, 2, 1}) {
+		t.Fatalf("expected cleanups to run in reverse order, got: %v", state)
+	}
+}
+
+func TestCheckCleanupPanic(t *testing.T) {
+	t.Parallel()
+
+	// A Cleanup function halfway through will panic.
+	// Deferred assertions will check that all values are false.
+	var state []bool
+	defer func() {
+		for _, v := range state {
+			if v {
+				t.Errorf("expected all values to be false")
+			}
+		}
+	}()
+
+	Check(ignoreErrorsTB{t}, func(t *T) {
+		idx := len(state)
+		state = append(state, true)
+		t.Cleanup(func() {
+			state[idx] = false
+			if idx == len(state)/2 {
+				panic("cleanup panic")
+			}
+		})
+	})
+}
+
+func TestCheckCleanupNewCleanupsDuringCleanup(t *testing.T) {
+	t.Parallel()
+
+	// Cleanups can be added during cleanup.
+	var state []bool
+	Check(t, func(t *T) {
+		idx := len(state)
+		state = append(state, true)
+		t.Cleanup(func() {
+			// Odd numbered events will add a new cleanup.
+			if idx%2 == 0 {
+				state[idx] = false
+			} else {
+				t.Cleanup(func() {
+					state[idx] = false
+				})
+			}
+		})
+	})
+}
+
+func TestCheckCleanupContextIsCanceled(t *testing.T) {
+	t.Parallel()
+
+	// Context created during Check is canceled by the time Cleanup is run.
+	Check(t, func(t *T) {
+		ctx := t.Context()
+		t.Cleanup(func() {
+			if err := ctx.Err(); err == nil || !errors.Is(err, context.Canceled) {
+				t.Fatalf("expected context to be canceled, got: %v", ctx)
+			}
+		})
+	})
+}
+
+func TestCheckCleanupContextCreatedInCleanup(t *testing.T) {
+	t.Parallel()
+
+	// Context created during Cleanup is already canceled.
+	Check(t, func(t *T) {
+		ctx := t.Context()
+		t.Cleanup(func() {
+			// ctx is already cleared on rapid.T by now,
+			// so this will request a new context.
+			newCtx := t.Context()
+			if ctx == newCtx {
+				t.Fatalf("expected new context")
+			}
+
+			if err := newCtx.Err(); err == nil || !errors.Is(err, context.Canceled) {
+				t.Fatalf("expected context to be canceled, got: %v", newCtx)
+			}
+		})
+	})
+}
+
+// ignoreErrorsTB is a TB that ignores all errors posted to it.
+type ignoreErrorsTB struct{ TB }
+
+func (ignoreErrorsTB) Error(...interface{})          {}
+func (ignoreErrorsTB) Errorf(string, ...interface{}) {}
+func (ignoreErrorsTB) Fatal(...interface{})          {}
+func (ignoreErrorsTB) Fatalf(string, ...interface{}) {}
+func (ignoreErrorsTB) Fail()                         {}
