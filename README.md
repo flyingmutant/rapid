@@ -186,6 +186,23 @@ then pass such flags as usual. For example:
 go test -rapid.checks=10_000
 ```
 
+You can also configure options programmatically using the functional options pattern:
+
+```go
+// Run with 1000 checks
+rapid.Check(t, myPropertyFunc, rapid.WithChecks(1000))
+
+// Use a specific seed for reproducible tests
+rapid.Check(t, myPropertyFunc, rapid.WithSeed(12345))
+
+// Use both options together
+rapid.Check(t, myPropertyFunc, rapid.WithChecks(1000), rapid.WithSeed(12345))
+
+// Works with MakeCheck too
+checkFunc := rapid.MakeCheck(myPropertyFunc, rapid.WithChecks(1000))
+t.Run("my subtest", checkFunc)
+```
+
 ## Status
 
 Rapid is stable: tests using rapid should continue to work with all future

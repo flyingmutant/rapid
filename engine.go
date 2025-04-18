@@ -111,13 +111,36 @@ func shrinkDeadline(deadline time.Time) time.Time {
 	return d
 }
 
+// checkOpts holds configuration options for Check and MakeCheck.
+type checkOpts struct {
+	checks int
+	seed   uint64
+}
+
+// checkOption is a function that modifies the checkOpts struct.
+type checkOption func(*checkOpts)
+
+// WithChecks sets the number of checks to perform.
+func WithChecks(checks int) checkOption {
+	return func(o *checkOpts) {
+		o.checks = checks
+	}
+}
+
+// WithSeed sets the seed for the random number generator.
+func WithSeed(seed uint64) checkOption {
+	return func(o *checkOpts) {
+		o.seed = seed
+	}
+}
+
 // Check fails the current test if rapid can find a test case which falsifies prop.
 //
 // Property is falsified in case of a panic or a call to
 // [*T.Fatalf], [*T.Fatal], [*T.Errorf], [*T.Error], [*T.FailNow] or [*T.Fail].
-func Check(t TB, prop func(*T)) {
+func Check(t TB, prop func(*T), opts ...checkOption) {
 	t.Helper()
-	checkTB(t, checkDeadline(t), prop)
+	checkTB(t, checkDeadline(t), prop, opts...)
 }
 
 // MakeCheck is a convenience function for defining subtests suitable for
@@ -134,10 +157,10 @@ func Check(t TB, prop func(*T)) {
 //	        // test code
 //	    })
 //	})
-func MakeCheck(prop func(*T)) func(*testing.T) {
+func MakeCheck(prop func(*T), opts ...checkOption) func(*testing.T) {
 	return func(t *testing.T) {
 		t.Helper()
-		checkTB(t, checkDeadline(t), prop)
+		checkTB(t, checkDeadline(t), prop, opts...)
 	}
 }
 
@@ -181,16 +204,29 @@ func checkFuzz(tb tb, prop func(*T), input []byte) {
 	}
 }
 
-func checkTB(tb tb, deadline time.Time, prop func(*T)) {
+func checkTB(tb tb, deadline time.Time, prop func(*T), opts ...checkOption) {
 	tb.Helper()
+
+	var checkOpts checkOpts
+	for _, optFn := range opts {
+		optFn(&checkOpts)
+	}
 
 	checks := flags.checks
 	if testing.Short() {
 		checks /= 5
 	}
+	if checkOpts.checks > 0 {
+		checks = checkOpts.checks
+	}
+
+	baseSeed := baseSeed()
+	if checkOpts.seed != 0 {
+		baseSeed = checkOpts.seed
+	}
 
 	start := time.Now()
-	valid, invalid, earlyExit, seed, failfile, buf, err1, err2 := doCheck(tb, deadline, checks, baseSeed(), flags.failfile, true, prop)
+	valid, invalid, earlyExit, seed, failfile, buf, err1, err2 := doCheck(tb, deadline, checks, baseSeed, flags.failfile, true, prop)
 	dt := time.Since(start)
 
 	if err1 == nil && err2 == nil {

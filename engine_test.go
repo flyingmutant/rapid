@@ -11,6 +11,7 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -249,6 +250,67 @@ func TestCheckCleanupContextCreatedInCleanup(t *testing.T) {
 			}
 		})
 	})
+}
+
+func TestWithChecks(t *testing.T) {
+	t.Parallel()
+
+	// Test with explicitly set number of checks
+	var count int32
+	Check(t, func(t *T) {
+		atomic.AddInt32(&count, 1)
+	}, WithChecks(10))
+
+	if count != 10 {
+		t.Errorf("WithChecks(10) resulted in %d actual checks", count)
+	}
+}
+
+func TestWithSeed(t *testing.T) {
+	t.Parallel()
+
+	seed := uint64(12345)
+	getValues := func(seed uint64) []int {
+		var values []int
+		Check(t, func(t *T) {
+			values = append(values, Int().Draw(t, "val"))
+		}, WithSeed(seed), WithChecks(5))
+		return values
+	}
+
+	// Get two sets of values with the same seed
+	values1 := getValues(seed)
+	values2 := getValues(seed)
+
+	// Should produce identical sequences with the same seed
+	if !reflect.DeepEqual(values1, values2) {
+		t.Errorf("Same seed produced different values: %v vs %v", values1, values2)
+	}
+
+	// Get values with a different seed
+	values3 := getValues(seed + 1)
+
+	// Should produce different sequences with different seeds
+	if reflect.DeepEqual(values1, values3) {
+		t.Errorf("Different seeds produced identical sequences")
+	}
+}
+
+func TestMakeCheckWithOptions(t *testing.T) {
+	t.Parallel()
+
+	// Test MakeCheck with options
+	var count int32
+	checkFunc := MakeCheck(func(t *T) {
+		atomic.AddInt32(&count, 1)
+	}, WithChecks(15))
+
+	// Run the returned function
+	checkFunc(t)
+
+	if count != 15 {
+		t.Errorf("MakeCheck with WithChecks(15) resulted in %d actual checks", count)
+	}
 }
 
 // ignoreErrorsTB is a TB that ignores all errors posted to it.
