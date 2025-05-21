@@ -14,7 +14,10 @@ import (
 type MakeConfig struct {
 	// Types, if specified, provides Generators for a given type that will
 	// be used in favor of the automatic reflection based generation.
-	Types  map[reflect.Type]*Generator[any]
+	Types map[reflect.Type]*Generator[any]
+	// Kinds, if specified, provides Generators for a given kinda that will
+	// be used in favor of the automatic reflection based generation.
+	Kinds map[reflect.Kind]*Generator[any]
 	// Fields, if specified, provides Generators for a given field of a
 	// given type that will be used in favor of automatic reflection based
 	// generation.
@@ -81,6 +84,12 @@ func (g *castGen) value(t *T) any {
 func (c *MakeConfig) newMakeKindGen(typ reflect.Type) (gen *Generator[any], mayNeedCast bool) {
 	if c.Types != nil {
 		if gen, ok := c.Types[typ]; ok {
+			return gen, true
+		}
+	}
+
+	if c.Kinds != nil {
+		if gen, ok := c.Kinds[typ.Kind()]; ok {
 			return gen, true
 		}
 	}
