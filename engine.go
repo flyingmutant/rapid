@@ -711,6 +711,11 @@ func (t *T) Skip(args ...any) {
 // If too many test cases are skipped, rapid will mark the test as failing
 // due to inability to generate enough valid test cases.
 //
+// The test case or action will be treated like it had never been drawn
+// and will not be shown in test logs.
+// Therefore, to avoid confusing test failures later on,
+// [SkipNow] must not be called after the action has already mutated shared state.
+//
 // Prefer *Generator.Filter to SkipNow, and prefer generators that always produce
 // valid test cases to Filter.
 func (t *T) SkipNow() {
