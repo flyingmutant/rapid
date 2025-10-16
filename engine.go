@@ -480,6 +480,10 @@ func panicToError(p any, skip int) *testError {
 		return nil
 	}
 
+	if err, ok := p.(*testError); ok {
+		return err
+	}
+
 	callers := make([]uintptr, tracebackLen)
 	callers = callers[:runtime.Callers(skip, callers)]
 	frames := runtime.CallersFrames(callers)
