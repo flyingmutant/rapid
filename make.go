@@ -11,16 +11,16 @@ import (
 	"reflect"
 )
 
+// MakeConfig customizes reflection-based generators produced by MakeCustom.
 type MakeConfig struct {
-	// Types, if specified, provides Generators for a given type that will
-	// be used in favor of the automatic reflection based generation.
+	// Types, if specified, provides Generators for concrete types that override
+	// the automatic reflection-based generation.
 	Types map[reflect.Type]*Generator[any]
-	// Kinds, if specified, provides Generators for a given kinda that will
-	// be used in favor of the automatic reflection based generation.
+	// Kinds, if specified, provides Generators for the specified kind that
+	// override the automatic reflection-based generation.
 	Kinds map[reflect.Kind]*Generator[any]
-	// Fields, if specified, provides Generators for a given field of a
-	// given type that will be used in favor of automatic reflection based
-	// generation.
+	// Fields, if specified, provides Generators for fields on a given type that
+	// override the automatic reflection-based generation.
 	Fields map[reflect.Type]map[string]*Generator[any]
 }
 
