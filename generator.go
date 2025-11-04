@@ -91,8 +91,8 @@ func (g *Generator[V]) Example(seed ...int) V {
 }
 
 // Filter creates a generator producing only values from g for which fn returns true.
-func (g *Generator[V]) Filter(fn func(V) bool) *Generator[V] {
-	return filter(g, fn)
+func (g *Generator[V]) Filter(fn func(V) bool, opts ...filterOption) *Generator[V] {
+	return filter(g, fn, opts...)
 }
 
 // AsAny creates a generator producing values from g converted to any.

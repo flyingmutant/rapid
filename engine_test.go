@@ -41,6 +41,16 @@ func TestPanicTraceback(t *testing.T) {
 			},
 		},
 		{
+			"impossible filter with options",
+			"pgregory.net/rapid.find[...]",
+			false,
+			func(t *T) *testError {
+				g := Bool().Filter(func(bool) bool { return false }, WithMaxAttempts(10))
+				_, err := recoverValue(g, t)
+				return err
+			},
+		},
+		{
 			"broken custom generator",
 			"pgregory.net/rapid.brokenGen",
 			false,

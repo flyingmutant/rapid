@@ -47,20 +47,22 @@ var (
 )
 
 type cmdline struct {
-	checks     int
-	steps      int
-	failfile   string
-	nofailfile bool
-	seed       uint64
-	log        bool
-	verbose    bool
-	debug      bool
-	debugvis   bool
-	shrinkTime time.Duration
+	checks            int
+	filterMaxattempts int
+	steps             int
+	failfile          string
+	nofailfile        bool
+	seed              uint64
+	log               bool
+	verbose           bool
+	debug             bool
+	debugvis          bool
+	shrinkTime        time.Duration
 }
 
 func init() {
 	flag.IntVar(&flags.checks, "rapid.checks", 100, "rapid: number of checks to perform")
+	flag.IntVar(&flags.filterMaxattempts, "rapid.filtermaxattempts", 1000, "rapid: maximum number of attempts to draw a valid value from a Filter generator")
 	flag.IntVar(&flags.steps, "rapid.steps", 30, "rapid: average number of Repeat actions to execute")
 	flag.StringVar(&flags.failfile, "rapid.failfile", "", "rapid: fail file to use to reproduce test failure")
 	flag.BoolVar(&flags.nofailfile, "rapid.nofailfile", false, "rapid: do not write fail files on test failures")

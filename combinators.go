@@ -76,14 +76,35 @@ func (g *deferredGen[V]) value(t *T) V {
 	return g.g.value(t)
 }
 
-func filter[V any](g *Generator[V], fn func(V) bool) *Generator[V] {
-	return newGenerator[V](&filteredGen[V]{
-		g:  g,
-		fn: fn,
-	})
+type filterOpts struct {
+	maxAttempts int
+}
+type filterOption func(*filterOpts) *filterOpts
+
+func filter[V any](g *Generator[V], fn func(V) bool, opts ...filterOption) *Generator[V] {
+	impl := &filteredGen[V]{
+		g:          g,
+		fn:         fn,
+		filterOpts: &filterOpts{},
+	}
+
+	impl.applyOptions(opts...)
+
+	return newGenerator[V](impl)
+}
+
+func WithMaxAttempts(max int) filterOption {
+	return func(o *filterOpts) *filterOpts {
+		if max <= 0 {
+			panic(invalidData("max attempts should be greater than 0"))
+		}
+		o.maxAttempts = max
+		return o
+	}
 }
 
 type filteredGen[V any] struct {
+	*filterOpts
 	g  *Generator[V]
 	fn func(V) bool
 }
@@ -93,7 +114,15 @@ func (g *filteredGen[V]) String() string {
 }
 
 func (g *filteredGen[V]) value(t *T) V {
-	return find(g.maybeValue, t, small)
+	tries := g.maxAttempts
+	if tries <= 0 {
+		// If no max attempts specified, use the default value.
+		tries = flags.filterMaxattempts
+
+	}
+
+	return find(g.maybeValue, t, tries)
+
 }
 
 func (g *filteredGen[V]) maybeValue(t *T) (V, bool) {
@@ -103,6 +132,12 @@ func (g *filteredGen[V]) maybeValue(t *T) (V, bool) {
 	} else {
 		var zero V
 		return zero, false
+	}
+}
+
+func (g *filteredGen[V]) applyOptions(opts ...filterOption) {
+	for _, opt := range opts {
+		g.filterOpts = opt(g.filterOpts)
 	}
 }
 
