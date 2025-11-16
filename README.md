@@ -186,6 +186,12 @@ then pass such flags as usual. For example:
 go test -rapid.checks=10_000
 ```
 
+Every flag with the `-rapid.` prefix also has a matching `RAPID_` environment
+variable (replace the dot with an underscore and uppercase the name). For
+instance, `RAPID_CHECKS=10 go test` sets the default for `-rapid.checks=10`,
+and an explicit flag still overrides the environment default when both are
+present.
+
 ## Status
 
 Rapid is stable: tests using rapid should continue to work with all future
