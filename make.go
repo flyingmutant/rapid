@@ -211,50 +211,57 @@ func (c *MakeConfig) genAnyMap(typ reflect.Type) *Generator[any] {
 }
 
 func (c *MakeConfig) genAnyStruct(typ reflect.Type) *Generator[any] {
-	customFields := map[string]*Generator[any]{}
-	if c.Fields != nil {
-		if custom, ok := c.Fields[typ]; ok {
-			customFields = custom
+	switch typ {
+	case reflect.TypeOf(time.Time{}):
+		return Custom[any](func(t *T) any {
+			return time.Unix(Int64().value(t), 0).UTC()
+		})
+	default:
+		customFields := map[string]*Generator[any]{}
+		if c.Fields != nil {
+			if custom, ok := c.Fields[typ]; ok {
+				customFields = custom
+			}
 		}
-	}
-
-	numFields := typ.NumField()
-	fieldGens := make([]*Generator[any], numFields)
-	for i := 0; i < numFields; i++ {
-		field := typ.Field(i)
-		if !field.IsExported() {
-			continue
-		}
-
-		if gen, ok := customFields[field.Name]; ok {
-			fieldGens[i] = gen
-		} else {
-			fieldGens[i] = c.newMakeGen(field.Type)
-		}
-	}
-
-	return Custom(func(t *T) any {
-		s := reflect.Indirect(reflect.New(typ))
-
-		fieldsSet := 0
+	
+		numFields := typ.NumField()
+		fieldGens := make([]*Generator[any], numFields)
 		for i := 0; i < numFields; i++ {
-			if fieldGens[i] == nil {
+			field := typ.Field(i)
+			if !field.IsExported() {
 				continue
 			}
-
-			value := fieldGens[i].value(t)
-			if value == nil {
-				continue
+	
+			if gen, ok := customFields[field.Name]; ok {
+				fieldGens[i] = gen
+			} else {
+				fieldGens[i] = c.newMakeGen(field.Type)
 			}
-
-			s.Field(i).Set(reflect.ValueOf(value))
-			fieldsSet++
 		}
-
-		if fieldsSet == 0 {
-			t.s.drawBits(0)
-		}
-
-		return s.Interface()
-	})
+	
+		return Custom(func(t *T) any {
+			s := reflect.Indirect(reflect.New(typ))
+	
+			fieldsSet := 0
+			for i := 0; i < numFields; i++ {
+				if fieldGens[i] == nil {
+					continue
+				}
+	
+				value := fieldGens[i].value(t)
+				if value == nil {
+					continue
+				}
+	
+				s.Field(i).Set(reflect.ValueOf(value))
+				fieldsSet++
+			}
+	
+			if fieldsSet == 0 {
+				t.s.drawBits(0)
+			}
+	
+			return s.Interface()
+		})
+	}
 }
