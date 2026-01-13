@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -60,16 +61,101 @@ type cmdline struct {
 }
 
 func init() {
-	flag.IntVar(&flags.checks, "rapid.checks", 100, "rapid: number of checks to perform")
-	flag.IntVar(&flags.steps, "rapid.steps", 30, "rapid: average number of Repeat actions to execute")
-	flag.StringVar(&flags.failfile, "rapid.failfile", "", "rapid: fail file to use to reproduce test failure")
-	flag.BoolVar(&flags.nofailfile, "rapid.nofailfile", false, "rapid: do not write fail files on test failures")
-	flag.Uint64Var(&flags.seed, "rapid.seed", 0, "rapid: PRNG seed to start with (0 to use a random one)")
-	flag.BoolVar(&flags.log, "rapid.log", false, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
-	flag.BoolVar(&flags.verbose, "rapid.v", false, "rapid: verbose output")
-	flag.BoolVar(&flags.debug, "rapid.debug", false, "rapid: debugging output")
-	flag.BoolVar(&flags.debugvis, "rapid.debugvis", false, "rapid: debugging visualization")
-	flag.DurationVar(&flags.shrinkTime, "rapid.shrinktime", 30*time.Second, "rapid: maximum time to spend on test case minimization")
+	defaults := loadCmdlineDefaults(os.LookupEnv)
+	flag.IntVar(&flags.checks, "rapid.checks", defaults.checks, "rapid: number of checks to perform")
+	flag.IntVar(&flags.steps, "rapid.steps", defaults.steps, "rapid: average number of Repeat actions to execute")
+	flag.StringVar(&flags.failfile, "rapid.failfile", defaults.failfile, "rapid: fail file to use to reproduce test failure")
+	flag.BoolVar(&flags.nofailfile, "rapid.nofailfile", defaults.nofailfile, "rapid: do not write fail files on test failures")
+	flag.Uint64Var(&flags.seed, "rapid.seed", defaults.seed, "rapid: PRNG seed to start with (0 to use a random one)")
+	flag.BoolVar(&flags.log, "rapid.log", defaults.log, "rapid: eager verbose output to stdout (to aid with unrecoverable test failures)")
+	flag.BoolVar(&flags.verbose, "rapid.v", defaults.verbose, "rapid: verbose output")
+	flag.BoolVar(&flags.debug, "rapid.debug", defaults.debug, "rapid: debugging output")
+	flag.BoolVar(&flags.debugvis, "rapid.debugvis", defaults.debugvis, "rapid: debugging visualization")
+	flag.DurationVar(&flags.shrinkTime, "rapid.shrinktime", defaults.shrinkTime, "rapid: maximum time to spend on test case minimization")
+}
+
+func defaultCmdline() cmdline {
+	return cmdline{
+		checks:     100,
+		steps:      30,
+		shrinkTime: 30 * time.Second,
+	}
+}
+
+func loadCmdlineDefaults(lookup func(string) (string, bool)) cmdline {
+	defaults := defaultCmdline()
+
+	defaults.checks = envInt(lookup, "RAPID_CHECKS", defaults.checks)
+	defaults.steps = envInt(lookup, "RAPID_STEPS", defaults.steps)
+	defaults.failfile = envString(lookup, "RAPID_FAILFILE", defaults.failfile)
+	defaults.nofailfile = envBool(lookup, "RAPID_NOFAILFILE", defaults.nofailfile)
+	defaults.seed = envUint64(lookup, "RAPID_SEED", defaults.seed)
+	defaults.log = envBool(lookup, "RAPID_LOG", defaults.log)
+	defaults.verbose = envBool(lookup, "RAPID_V", defaults.verbose)
+	defaults.debug = envBool(lookup, "RAPID_DEBUG", defaults.debug)
+	defaults.debugvis = envBool(lookup, "RAPID_DEBUGVIS", defaults.debugvis)
+	defaults.shrinkTime = envDuration(lookup, "RAPID_SHRINKTIME", defaults.shrinkTime)
+
+	return defaults
+}
+
+func envString(lookup func(string) (string, bool), key string, defaultValue string) string {
+	if v, ok := lookup(key); ok {
+		return v
+	}
+	return defaultValue
+}
+
+func envInt(lookup func(string) (string, bool), key string, defaultValue int) int {
+	v, ok := lookup(key)
+	if !ok {
+		return defaultValue
+	}
+	n, err := strconv.ParseInt(v, 0, strconv.IntSize)
+	if err != nil {
+		panicInvalidEnv(key, v, err)
+	}
+	return int(n)
+}
+
+func envBool(lookup func(string) (string, bool), key string, defaultValue bool) bool {
+	v, ok := lookup(key)
+	if !ok {
+		return defaultValue
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		panicInvalidEnv(key, v, err)
+	}
+	return b
+}
+
+func envUint64(lookup func(string) (string, bool), key string, defaultValue uint64) uint64 {
+	v, ok := lookup(key)
+	if !ok {
+		return defaultValue
+	}
+	n, err := strconv.ParseUint(v, 0, 64)
+	if err != nil {
+		panicInvalidEnv(key, v, err)
+	}
+	return n
+}
+
+func envDuration(lookup func(string) (string, bool), key string, defaultValue time.Duration) time.Duration {
+	v, ok := lookup(key)
+	if !ok {
+		return defaultValue
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		panicInvalidEnv(key, v, err)
+	}
+	return d
+}
+
+func panicInvalidEnv(key, value string, err error) {
+	panic(fmt.Sprintf("[rapid] invalid value for %s=%q: %v", key, value, err))
 }
 
 func assert(ok bool) {
@@ -392,6 +478,10 @@ type testError struct {
 func panicToError(p any, skip int) *testError {
 	if p == nil {
 		return nil
+	}
+
+	if err, ok := p.(*testError); ok {
+		return err
 	}
 
 	callers := make([]uintptr, tracebackLen)
