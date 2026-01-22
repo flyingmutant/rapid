@@ -12,6 +12,7 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -775,6 +776,31 @@ func (t *T) Log(args ...any) {
 	} else if t.tbLog {
 		t.tb.Helper()
 		t.tb.Log(args...)
+	}
+}
+
+// Output returns a Writer that writes to the same test output stream as T.Log.
+// The output is indented like T.Log lines, but Output does not
+// add source locations or newlines. The output is internally line
+// buffered, and a call to T.Log or the end of the test will implicitly
+// flush the buffer, followed by a newline. After a test function and all its
+// parents return, neither Output nor the Write method may be called.
+//
+// Only available on Go >= 1.25
+func (t *T) Output() io.Writer {
+	t.Helper()
+
+	if t.rawLog != nil {
+		return t.rawLog.Writer()
+	} else if t.tbLog {
+		if tout, ok := t.tb.(interface{ Output() io.Writer }); ok {
+			return tout.Output()
+		} else {
+			t.Fatal("[rapid] Output requires Go 1.25 or newer")
+			return nil
+		}
+	} else {
+		return io.Discard
 	}
 }
 

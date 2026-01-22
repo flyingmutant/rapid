@@ -7,6 +7,7 @@
 package rapid
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"reflect"
@@ -249,6 +250,20 @@ func TestCheckCleanupContextCreatedInCleanup(t *testing.T) {
 			}
 		})
 	})
+}
+
+func TestOutputRawLog(t *testing.T) {
+	t.Parallel()
+
+	msg := []byte("Hello World")
+
+	out := captureTestOutput(t, func(t *T) {
+		t.Output().Write(msg)
+	}, nil)
+
+	if !bytes.Contains(out, msg) {
+		t.Errorf("expected output to contain %q, got: %q", msg, out)
+	}
 }
 
 // ignoreErrorsTB is a TB that ignores all errors posted to it.
