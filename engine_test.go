@@ -7,6 +7,7 @@
 package rapid
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"reflect"
@@ -259,3 +260,17 @@ func (ignoreErrorsTB) Errorf(string, ...interface{}) {}
 func (ignoreErrorsTB) Fatal(...interface{})          {}
 func (ignoreErrorsTB) Fatalf(string, ...interface{}) {}
 func (ignoreErrorsTB) Fail()                         {}
+
+func TestOutputRawLog(t *testing.T) {
+	t.Parallel()
+
+	msg := []byte("Hello World")
+
+	out := captureTestOutput(t, func(t *T) {
+		t.Output().Write(msg)
+	}, nil)
+
+	if !bytes.Contains(out, msg) {
+		t.Errorf("expected output to contain %q, got: %q", msg, out)
+	}
+}
