@@ -23,7 +23,7 @@ Here is what a trivial test using rapid looks like ([playground](https://go.dev/
 package rapid_test
 
 import (
-	"sort"
+	"slices"
 	"testing"
 
 	"pgregory.net/rapid"
@@ -32,8 +32,8 @@ import (
 func TestSortStrings(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		s := rapid.SliceOf(rapid.String()).Draw(t, "s")
-		sort.Strings(s)
-		if !sort.StringsAreSorted(s) {
+		slices.Sort(s)
+		if !slices.IsSorted(s) {
 			t.Fatalf("unsorted after sort: %v", s)
 		}
 	})
