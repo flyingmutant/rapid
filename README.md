@@ -15,6 +15,9 @@ automatically minimizes the failing test case before presenting it.
 - Support for state machine ("stateful" or "model-based") testing
 - No dependencies outside the Go standard library
 
+*If you like rapid but are looking for a Rust alternative, check out
+[chaos_theory](https://github.com/flyingmutant/chaos_theory)*.
+
 ## Examples
 
 Here is what a trivial test using rapid looks like ([playground](https://go.dev/play/p/QJhOzo_BByz)):
