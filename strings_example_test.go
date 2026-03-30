@@ -1,10 +1,8 @@
-// Copyright 2020 Gregory Petrosyan <gregory.petrosyan@gmail.com>
+// Copyright 2023 Gregory Petrosyan <pgregory@pgregory.net>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
-//go:build !go1.21
 
 package rapid_test
 
@@ -31,7 +29,7 @@ func ExampleRune() {
 	// '0' '@' '?' '\'' '\ue05d'
 	// '<' '%' '!' '\u0604' 'A'
 	// '%' '╷' '~' '!' '/'
-	// '\u00ad' '𝪪' '@' '҈' ' '
+	// '\u00ad' '𝅾' '@' '҈' ' '
 }
 
 func ExampleRuneFrom() {
@@ -66,8 +64,8 @@ func ExampleString() {
 	}
 	// Output:
 	// "\n߾⃝?\rA�֍"
-	// "\u2006𑰼"
-	// "A￠\u0603ᾢ"
+	// "\u2006𑨳"
+	// "A＄\u0603ᾢ"
 	// "+^#.[#৲"
 	// ""
 }
@@ -94,8 +92,8 @@ func ExampleStringN() {
 	}
 	// Output:
 	// "\n߾⃝?\r"
-	// "\u2006𑰼#`\x1b"
-	// "A￠\u0603ᾢÉ"
+	// "\u2006𑨳#`\x1b"
+	// "A＄\u0603ᾢÉ"
 	// "+^#.["
 	// ".A<a¤"
 }
