@@ -13,20 +13,20 @@ import (
 )
 
 func ExampleMake() {
-	gen := rapid.Make[map[int]bool]()
+	gen := rapid.Make[map[int32]bool]()
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// map[-433:true -261:false -53:false -23:false 1:true 184:false]
+	// map[-53:false -49:true -23:false -5:false 1:true 56:false]
 	// map[-3:true 0:true]
-	// map[4:true]
-	// map[-359:true -154:true -71:true -17:false -1:false 590:false 22973756520:true]
+	// map[0:true]
+	// map[-103:true -26:true -7:true -1:false 78:false 22525032:true]
 	// map[]
 }
 
-type nodeValue int
+type nodeValue int32
 
 type tree struct {
 	Value       nodeValue
@@ -47,9 +47,9 @@ func ExampleMake_tree() {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// (nil 1 (nil 184 nil))
-	// (((nil -1 (((((nil -485 ((nil -2 ((((nil -5 nil) -9898554875447 nil) -34709387 ((nil 50440 nil) 113 (((((nil -442 nil) -66090341586 nil) 179745 nil) 494 (((nil -2 nil) 543360606020 nil) 15261837 nil)) -1778 nil))) -21034573818 nil)) -5 nil)) 15606609 nil) 882666 (nil 3 nil)) -12 (nil -2 ((nil 1 nil) -2 (((nil 11 nil) -187307 ((nil -198 (nil -6895 nil)) 12027 (nil -539313 nil))) 1532 (nil 6 nil))))) 1745354 nil)) -2 nil) -3 nil)
+	// (nil 1 (nil 56 nil))
+	// (((nil -1 (((((nil -101 ((nil -2 ((((nil -1 nil) -802741815 nil) -106379 ((nil 1288 nil) 17 (((((nil -58 nil) -55219410 nil) 7713 nil) 238 (((nil -2 nil) 47243076 nil) 57485 nil)) -242 nil))) -29499386 nil)) -5 nil)) 926545 nil) 14314 (nil 3 nil)) -12 (nil -2 ((nil 1 nil) -2 (((nil 3 nil) -7083 ((nil -70 (nil -2799 nil)) 1787 (nil -15025 nil))) 508 (nil 6 nil))))) 41418 nil)) -2 nil) -3 nil)
 	// nil
-	// (((nil -15 (nil 6598 nil)) -131 (nil 317121006373596 ((nil 14 ((nil -9223372036854775808 nil) 1 nil)) 14668 nil))) 590 nil)
+	// (((nil -15 (nil 454 nil)) -3 (nil 2096073436 ((nil 6 ((nil -2147483648 nil) 1 nil)) 332 nil))) 78 nil)
 	// nil
 }

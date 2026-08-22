@@ -28,5 +28,9 @@ jobs:
       - name: Test
         run: go test -race
 
+      - name: Test 32-bit
+        if: runner.os == 'Linux'
+        run: GOARCH=386 go test
+
       - name: Bench
         run: go test -run=Benchmark -bench=.

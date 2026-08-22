@@ -34,7 +34,10 @@ func TestIntExamples(t *testing.T) {
 		IntRange(10, 100).AsAny(),
 		IntRange(100, 10000).AsAny(),
 		IntRange(100, 1000000).AsAny(),
-		IntRange(100, 1<<60-1).AsAny(),
+	}
+	if bits.UintSize == 64 {
+		max := int64(1<<60 - 1)
+		gens = append(gens, IntRange(100, int(max)).AsAny())
 	}
 
 	for _, g := range gens {
@@ -258,8 +261,8 @@ func TestIntCoverage(t *testing.T) {
 	}
 
 	if bits.UintSize == 64 {
-		filters = append(filters, func(i int) bool { return i > 1<<62 })
-		filters = append(filters, func(i int) bool { return i < -(1 << 62) })
+		filters = append(filters, func(i int) bool { return int64(i) > int64(1<<62) })
+		filters = append(filters, func(i int) bool { return int64(i) < int64(-(1 << 62)) })
 	}
 
 	for i, fn := range filters {
@@ -285,7 +288,7 @@ func TestUintCoverage(t *testing.T) {
 	}
 
 	if bits.UintSize == 64 {
-		filters = append(filters, func(i uint) bool { return i > 1<<63 })
+		filters = append(filters, func(i uint) bool { return uint64(i) > uint64(1<<63) })
 	}
 
 	for i, fn := range filters {

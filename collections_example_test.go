@@ -8,40 +8,41 @@ package rapid_test
 
 import (
 	"fmt"
+	"math"
 
 	"pgregory.net/rapid"
 )
 
 func ExampleSliceOf() {
-	gen := rapid.SliceOf(rapid.Int())
+	gen := rapid.SliceOf(rapid.IntRange(math.MinInt32, math.MaxInt32))
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// [1 -1902 7 -236 14 -433 -1572631 -1 4219826 -50 1414 -3890044391133 -9223372036854775808 5755498240 -10 680558 10 -80458281 0 -27]
-	// [-3 -2 -1 -3 -2172865589 -5 -2 -2503553836720]
-	// [4 308 -2 21 -5843 3 1 78 6129321692 -59]
-	// [590 -131 -15 -769 16 -1 14668 14 -1 -58784]
+	// [1 -366 7 -236 14 -49 -65303 -1 25522 -2 134 -951504605 -2147483648 17690368 -2 8814 10 -4960809 0 -11]
+	// [-3 -2 -1 -3 -25381941 -1 -2 -661644976]
+	// [0 308 -2 5 -211 3 1 14 22415068 -11]
+	// [78 -3 -15 -1 0 -1 332 6 -1 -1440]
 	// []
 }
 
 func ExampleSliceOfN() {
-	gen := rapid.SliceOfN(rapid.Int(), 5, 5)
+	gen := rapid.SliceOfN(rapid.IntRange(math.MinInt32, math.MaxInt32), 5, 5)
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// [1 -1902 7 -236 14]
-	// [-3 -2 -1 -3 -2172865589]
-	// [4 308 -2 21 -5843]
-	// [590 -131 -15 -769 16]
-	// [4629136912 270 141395 -129322425838843911 -7]
+	// [1 -366 7 -236 14]
+	// [-3 -2 -1 -3 -25381941]
+	// [0 308 -2 5 -211]
+	// [78 -3 -15 -1 0]
+	// [15402512 14 2131 -631093255 -3]
 }
 
 func ExampleSliceOfDistinct() {
-	gen := rapid.SliceOfDistinct(rapid.IntMin(0), func(i int) int { return i % 2 })
+	gen := rapid.SliceOfDistinct(rapid.IntRange(0, math.MaxInt32), func(i int) int { return i % 2 })
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
@@ -49,51 +50,51 @@ func ExampleSliceOfDistinct() {
 	// Output:
 	// [1]
 	// [2 1]
-	// [4 1]
-	// [590]
+	// [0 1]
+	// [78]
 	// []
 }
 
 func ExampleSliceOfNDistinct() {
-	gen := rapid.SliceOfNDistinct(rapid.IntMin(0), 2, 2, func(i int) int { return i % 2 })
+	gen := rapid.SliceOfNDistinct(rapid.IntRange(0, math.MaxInt32), 2, 2, func(i int) int { return i % 2 })
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// [4219826 49]
+	// [25522 1]
 	// [2 1]
-	// [4 1]
-	// [0 58783]
-	// [4629136912 141395]
+	// [0 1]
+	// [0 1439]
+	// [15402512 2131]
 }
 
 func ExampleMapOf() {
-	gen := rapid.MapOf(rapid.Int(), rapid.StringMatching(`[a-z]+`))
+	gen := rapid.MapOf(rapid.IntRange(math.MinInt32, math.MaxInt32), rapid.StringMatching(`[a-z]+`))
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// map[1:nhlgqwasbggbaociac 561860:r]
-	// map[-3752:pizpv -3:bacuabp 0:bi]
-	// map[-33086515648293:gewf -264276:b -1313:a -258:v -4:b -2:fdhbzcz 4:ubfsdbowrja 1775:tcozav 8334:lvcprss 376914:braigey]
-	// map[-350:h 590:coaaamcasnapgaad]
+	// map[1:nhlgqwasbggbaociac 4804:r]
+	// map[-168:pizpv -3:bacuabp 0:bi]
+	// map[-235083557:gewf -2132:b -33:a -4:b -2:v 0:ubfsdbowrja 82:braigey 142:lvcprss 239:tcozav]
+	// map[-30:h 78:coaaamcasnapgaad]
 	// map[]
 }
 
 func ExampleMapOfN() {
-	gen := rapid.MapOfN(rapid.Int(), rapid.StringMatching(`[a-z]+`), 5, 5)
+	gen := rapid.MapOfN(rapid.IntRange(math.MinInt32, math.MaxInt32), rapid.StringMatching(`[a-z]+`), 5, 5)
 
 	for i := 0; i < 5; i++ {
 		fmt.Println(gen.Example(i))
 	}
 	// Output:
-	// map[-130450326583:bd -2983:bbdbcs 1:nhlgqwasbggbaociac 31:kmdnpmcbuagzr 561860:r]
-	// map[-82024404:d -3752:pizpv -3:bacuabp 0:bi 179745:rzkneb]
-	// map[-33086515648293:gewf -258:v 4:ubfsdbowrja 1775:tcozav 8334:lvcprss]
-	// map[-4280678227:j -25651:aafmd -3308:o -350:h 590:coaaamcasnapgaad]
-	// map[-9614404661322:gsb -378:y 2:paai 4629136912:otg 1476419818092:qign]
+	// map[-124912695:bd -423:bbdbcs 1:nhlgqwasbggbaociac 15:kmdnpmcbuagzr 4804:r]
+	// map[-235476:d -168:pizpv -3:bacuabp 0:bi 7713:rzkneb]
+	// map[-235083557:gewf -2:v 0:ubfsdbowrja 142:lvcprss 239:tcozav]
+	// map[-2488147:j -9267:aafmd -236:o -30:h 78:coaaamcasnapgaad]
+	// map[-378:y 0:paai 2:b 15402512:otg 24810092:qign]
 }
 
 func ExampleMapOfValues() {

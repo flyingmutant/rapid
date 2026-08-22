@@ -8,6 +8,7 @@ package rapid_test
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"pgregory.net/rapid"
@@ -58,16 +59,16 @@ func ExampleDeferred() {
 }
 
 func ExampleMap() {
-	gen := rapid.Map(rapid.Int(), strconv.Itoa)
+	gen := rapid.Map(rapid.IntRange(math.MinInt32, math.MaxInt32), strconv.Itoa)
 	for i := 0; i < 5; i++ {
 		fmt.Printf("%#v\n", gen.Example(i))
 	}
 	// Output:
 	// "-3"
-	// "-186981"
+	// "-23141"
 	// "4"
 	// "-2"
-	// "43"
+	// "11"
 }
 
 func ExampleJust() {
@@ -127,7 +128,7 @@ func ExampleOneOf() {
 }
 
 func ExamplePtr() {
-	gen := rapid.Ptr(rapid.Int(), true)
+	gen := rapid.Ptr(rapid.IntRange(math.MinInt32, math.MaxInt32), true)
 
 	for i := 0; i < 5; i++ {
 		v := gen.Example(i)
@@ -141,6 +142,6 @@ func ExamplePtr() {
 	// (*int) 1
 	// (*int) -3
 	// <nil>
-	// (*int) 590
+	// (*int) 78
 	// <nil>
 }
