@@ -9,6 +9,7 @@ package rapid
 import (
 	"encoding/binary"
 	"fmt"
+	"hash/maphash"
 	"math"
 	"math/bits"
 	"os"
@@ -35,13 +36,14 @@ func shrink(tb tb, deadline time.Time, rec recordedBits, err *testError, prop fu
 	rec.prune()
 
 	s := &shrinker{
-		tb:      tb,
-		rec:     rec,
-		err:     err,
-		prop:    prop,
-		visBits: []recordedBits{rec},
-		tries:   map[string]int{},
-		cache:   map[string]struct{}{},
+		tb:        tb,
+		rec:       rec,
+		err:       err,
+		prop:      prop,
+		visBits:   []recordedBits{rec},
+		tries:     map[string]int{},
+		cacheSeed: maphash.MakeSeed(),
+		cache:     map[uint64]struct{}{},
 	}
 
 	buf, err := s.shrink(deadline)
@@ -64,15 +66,16 @@ func shrink(tb tb, deadline time.Time, rec recordedBits, err *testError, prop fu
 }
 
 type shrinker struct {
-	tb      tb
-	rec     recordedBits
-	err     *testError
-	prop    func(*T)
-	visBits []recordedBits
-	tries   map[string]int
-	shrinks int
-	cache   map[string]struct{}
-	hits    int
+	tb        tb
+	rec       recordedBits
+	err       *testError
+	prop      func(*T)
+	visBits   []recordedBits
+	tries     map[string]int
+	shrinks   int
+	cacheSeed maphash.Seed
+	cache     map[uint64]struct{}
+	hits      int
 }
 
 func (s *shrinker) debugf(verbose_ bool, format string, args ...any) {
@@ -249,8 +252,8 @@ func (s *shrinker) accept(buf []uint64, label string, format string, args ...any
 	if compareData(buf, s.rec.data) >= 0 {
 		return false
 	}
-	bufStr := dataStr(buf)
-	if _, ok := s.cache[bufStr]; ok {
+	bufHash := maphash.String(s.cacheSeed, dataStr(buf))
+	if _, ok := s.cache[bufHash]; ok {
 		s.hits++
 		return false
 	}
@@ -260,7 +263,7 @@ func (s *shrinker) accept(buf []uint64, label string, format string, args ...any
 	s1 := newBufBitStream(buf, false)
 	err1 := checkOnce(newT(s.tb, s1, flags.debug && flags.verbose, nil), s.prop)
 	if traceback(err1) != traceback(s.err) {
-		s.cache[bufStr] = struct{}{}
+		s.cache[bufHash] = struct{}{}
 		return false
 	}
 
