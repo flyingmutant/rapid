@@ -171,3 +171,13 @@ func TestFailure_LastIndex(t *testing.T) {
 		}
 	})
 }
+
+// https://github.com/flyingmutant/rapid/issues/97
+func TestLongShrink(t *testing.T) {
+	t.Skip("too slow :-(")
+
+	Check(t, func(t *T) {
+		SliceOfN(Int(), 9000, 9001).Draw(t, "values")
+		panic("always broken")
+	})
+}
